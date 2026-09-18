@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SKILLINK - Tracking Service</title>
+    <link rel="icon" type="image/png" href="{{ asset('image/MP_Logo.png') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+        body {
+            background-image: url('{{ asset('image/MP_Background.JPG') }}');
+            background-size: cover; background-position: center; background-repeat: no-repeat;
+            background-attachment: fixed; min-height: 100vh;
+        }
+        .header {
+            position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
+            background-color: #0033a0; color: white; display: flex;
+            align-items: center; justify-content: space-between; padding: 10px 25px;
+        }
+        .header-left { display: flex; align-items: center; gap: 15px; }
+        .menu-icon { font-size: 20px; cursor: pointer; }
+        .header-left img.logo { width: 42px; height: 42px; border-radius: 50%; }
+        .header-left h1 { font-size: 18px; }
+        .header-left p { font-size: 11px; }
+
+        .page-content { padding: 80px 25px 40px 25px; position: relative; min-height: 100vh; }
+        .overlay { position: absolute; top: 0; left: 0; width: 100%; min-height: 100vh; background: rgba(20, 55, 130, 0.65); z-index: 0; }
+        .page-inner { position: relative; z-index: 2; max-width: 1100px; margin: 0 auto; }
+        .page-title { color: white; font-size: 24px; font-weight: bold; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; }
+        .back-link { color: #93c5fd; font-size: 14px; text-decoration: none; display: flex; align-items: center; gap: 6px; }
+        .back-link:hover { text-decoration: underline; }
+
+        .card { background: rgba(20, 60, 130, 0.55); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 12px; padding: 24px; color: white; margin-bottom: 25px; }
+        .card h3 { font-size: 18px; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; }
+        .card hr { border: none; border-top: 1px solid rgba(255, 255, 255, 0.3); margin: 15px 0; }
+
+        /* 4-STAGE STEPPER */
+        .stepper { display: flex; justify-content: space-between; align-items: center; margin: 25px 0 30px 0; position: relative; }
+        .stepper::before { content: ""; position: absolute; top: 20px; left: 5%; width: 90%; height: 4px; background: rgba(255,255,255,0.25); z-index: 1; }
+        .step { position: relative; z-index: 2; text-align: center; flex: 1; }
+        .step-circle { width: 42px; height: 42px; border-radius: 50%; background: rgba(255,255,255,0.2); border: 3px solid rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center; margin: 0 auto 8px auto; font-weight: bold; font-size: 14px; transition: all 0.3s ease; }
+        .step.active .step-circle { background: #2563eb; border-color: #60a5fa; box-shadow: 0 0 12px rgba(96,165,250,0.8); }
+        .step.completed .step-circle { background: #16a34a; border-color: #4ade80; }
+        .step-label { font-size: 12px; font-weight: bold; color: rgba(255,255,255,0.85); text-transform: uppercase; }
+
+        .btn { padding: 9px 18px; border-radius: 6px; font-size: 13px; font-weight: bold; border: none; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; }
+        .btn-success { background: #16a34a; color: white; }
+        .btn-success:hover { background: #15803d; }
+        .btn-primary { background: #0033a0; color: white; border: 1px solid #60a5fa; }
+        .btn-primary:hover { background: #1d4ed8; }
+
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+        .badge-pending { background: rgba(234, 179, 8, 0.3); color: #fef08a; border: 1px solid #eab308; }
+        .badge-accepted { background: rgba(59, 130, 246, 0.3); color: #bfdbfe; border: 1px solid #3b82f6; }
+        .badge-progress { background: rgba(168, 85, 247, 0.3); color: #e9d5ff; border: 1px solid #a855f7; }
+        .badge-completed { background: rgba(34, 197, 94, 0.3); color: #bbf7d0; border: 1px solid #22c55e; }
+
+        /* STANDARDIZED COMPACT SIDEBAR (ADMIN-STYLE PROPORTIONS) */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 260px;
+            height: 100vh;
+            background: #0033a0;
+            z-index: 2000;
+            transition: left 0.3s ease;
+            padding-top: 65px;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.35);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .sidebar.active {
+            left: 0;
+        }
+
+        /* Compact Header with 54px Avatar (Fits all screens cleanly) */
+        .sidebar-profile {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px 15px 10px 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            margin-bottom: 6px;
+            flex-shrink: 0;
+        }
+
+        .sidebar-avatar, .sidebar-profile img {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            background: white;
+            padding: 3px;
+            margin-bottom: 6px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+            object-fit: cover;
+        }
+
+        .sidebar-avatar-fallback {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 6px;
+            color: white;
+            font-size: 24px;
+        }
+
+        .sidebar-profile .name {
+            color: white;
+            font-weight: bold;
+            font-size: 13.5px;
+            text-align: center;
+            line-height: 1.3;
+        }
+
+        .sidebar-profile .role {
+            margin-top: 3px;
+            text-align: center;
+        }
+
+        .role-badge {
+            background: #10b981;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 9.5px;
+            font-weight: bold;
+            display: inline-block;
+            letter-spacing: 0.5px;
+        }
+
+        /* Compact Menu Items */
+        .sidebar-menu {
+            list-style: none;
+            padding: 2px 0;
+            margin: 0;
+            flex: 1 0 auto;
+        }
+
+        .sidebar-menu li {
+            padding: 0;
+        }
+
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 22px;
+            color: white;
+            text-decoration: none;
+            font-size: 13.5px;
+            transition: background 0.2s ease;
+        }
+
+        .sidebar-menu a:hover, .sidebar-menu a.active {
+            background: rgba(255,255,255,0.18);
+            font-weight: bold;
+        }
+
+        .sidebar-menu a i {
+            width: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: white;
+        }
+
+        /* Bottom Pinned Footer */
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 10px 22px 18px 22px;
+            border-top: 1px solid rgba(255, 255, 255, 0.18);
+            flex-shrink: 0;
+        }
+
+        .sidebar-footer .logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 13.5px;
+            font-weight: bold;
+            transition: opacity 0.2s ease;
+        }
+
+        .sidebar-footer .logout-btn:hover {
+            opacity: 0.8;
+        }
+
+        .sidebar-footer .logout-btn i {
+            width: 20px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.45);
+            z-index: 1500;
+        }
+
+        .sidebar-overlay.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="header-left">
+            <i class="fa-solid fa-bars menu-icon" onclick="toggleSidebar()"></i>
+            <img src="{{ asset('image/MP_Logo.png') }}" alt="Logo" class="logo">
+            <div>
+                <h1>SKILLINK</h1>
+                <p>Magalang, Pampanga &bull; Skilled Worker Portal</p>
+            </div>
+        </div>
+        <div>
+            <a href="{{ route('dashboard.SkilledWorker') }}" class="back-link"><i class="fa-solid fa-house"></i> Main Dashboard</a>
+        </div>
+    </div>
+
+    <!-- UNIFIED SIDEBAR -->
+    @include('partials.sidebar_skilled_worker', ['active' => 'tracking'])
+
+    <!-- PAGE CONTENT -->
+    <div class="page-content">
+        <div class="overlay"></div>
+        <div class="page-inner">
+
+            <div class="page-title">
+                <span><i class="fa-solid fa-timeline"></i> TRACKING SERVICE & ACTIVE BOOKINGS</span>
+                <a href="{{ route('dashboard.SkilledWorker') }}" class="back-link">&larr; Back to Dashboard</a>
+            </div>
+
+            @if(session('success'))
+                <div style="background: rgba(34, 197, 94, 0.25); border: 1px solid #4ade80; color: #bbf7d0; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <i class="fa-solid fa-circle-check"></i> {{ session('success') }}
+                </div>
+            @endif
+
+            <!-- 1. ACTIVE DIRECT BOOKINGS -->
+            <div class="card">
+                <h3><i class="fa-solid fa-handshake"></i> Active Direct Bookings</h3>
+                <p style="font-size: 13px; opacity: 0.85;">Direktang serbisyong hiniling ng mga residente ng Magalang gamit ang 4-Stage Stepper.</p>
+                <hr>
+
+                @if(isset($bookings) && count($bookings) > 0)
+                    @foreach($bookings as $booking)
+                        @php
+                            $status = strtoupper($booking->status ?? 'PENDING');
+                            $isPending = ($status === 'PENDING');
+                            $isAccepted = ($status === 'ACCEPTED');
+                            $isInProgress = ($status === 'IN_PROGRESS' || $status === 'IN PROGRESS');
+                            $isCompleted = ($status === 'COMPLETED');
+                        @endphp
+
+                        <div style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                                <div>
+                                    <span style="font-size: 15px; font-weight: bold; color: #93c5fd;">{{ $booking->booking_reference }}</span>
+                                    <h4 style="font-size: 17px; margin-top: 4px;">{{ $booking->service_category }}</h4>
+                                </div>
+                                <div>
+                                    <span class="badge badge-{{ strtolower(str_replace('_', '', $status)) }}">{{ $status }}</span>
+                                </div>
+                            </div>
+
+                            <!-- 4-Stage Stepper Bar -->
+                            <div class="stepper">
+                                <div class="step {{ ($isPending || $isAccepted || $isInProgress || $isCompleted) ? 'completed' : '' }}">
+                                    <div class="step-circle"><i class="fa-solid fa-paper-plane"></i></div>
+                                    <div class="step-label">1. Request Pending</div>
+                                </div>
+                                <div class="step {{ ($isAccepted || $isInProgress || $isCompleted) ? ($isAccepted ? 'active' : 'completed') : '' }}">
+                                    <div class="step-circle"><i class="fa-solid fa-thumbs-up"></i></div>
+                                    <div class="step-label">2. Accepted</div>
+                                </div>
+                                <div class="step {{ ($isInProgress || $isCompleted) ? ($isInProgress ? 'active' : 'completed') : '' }}">
+                                    <div class="step-circle"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+                                    <div class="step-label">3. In Progress</div>
+                                </div>
+                                <div class="step {{ $isCompleted ? 'completed active' : '' }}">
+                                    <div class="step-circle"><i class="fa-solid fa-flag-checkered"></i></div>
+                                    <div class="step-label">4. Completed</div>
+                                </div>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; font-size: 13px; opacity: 0.9; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px;">
+                                <div><strong>Client:</strong> {{ $booking->client_name ?? $booking->client_username }}</div>
+                                <div><strong>Barangay:</strong> {{ $booking->barangay }}</div>
+                                <div><strong>Schedule:</strong> {{ $booking->scheduled_date }}</div>
+                                <div><strong>Budget:</strong> <span style="color: #4ade80; font-weight: bold;">{{ $booking->estimated_budget }}</span></div>
+                                <div style="grid-column: 1 / -1;"><strong>Description:</strong> {{ $booking->task_description }}</div>
+                            </div>
+
+                            <!-- Lifecycle Actions -->
+                            <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end;">
+                                @if($isPending)
+                                    <form method="POST" action="{{ route('skilled_worker.booking.update_status', $booking->booking_id) }}">
+                                        @csrf
+                                        <input type="hidden" name="status" value="ACCEPTED">
+                                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Accept Booking Request</button>
+                                    </form>
+                                @elseif($isAccepted)
+                                    <form method="POST" action="{{ route('skilled_worker.booking.update_status', $booking->booking_id) }}">
+                                        @csrf
+                                        <input type="hidden" name="status" value="IN_PROGRESS">
+                                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-play"></i> Start Service Work</button>
+                                    </form>
+                                @elseif($isInProgress)
+                                    <form method="POST" action="{{ route('skilled_worker.booking.update_status', $booking->booking_id) }}">
+                                        @csrf
+                                        <input type="hidden" name="status" value="COMPLETED">
+                                        <button type="submit" class="btn btn-success"><i class="fa-solid fa-circle-check"></i> Mark Service as Completed</button>
+                                    </form>
+                                @else
+                                    <span style="font-size: 13px; color: #4ade80; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-circle-check"></i> Service Completed & Closed</span>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                @else
+                    <div style="text-align: center; padding: 30px; opacity: 0.7;">
+                        <i class="fa-solid fa-inbox" style="font-size: 32px; margin-bottom: 10px;"></i>
+                        <p>Walang aktibong direct booking sa kasalukuyan.</p>
+                    </div>
+                @endif
+            </div>
+
+            <!-- 2. JOB APPLICATIONS DISPATCHED -->
+            <div class="card">
+                <h3><i class="fa-solid fa-paper-plane"></i> Municipal Job Applications Dispatched</h3>
+                <p style="font-size: 13px; opacity: 0.85;">Mga in-applyan mong trabaho sa Magalang na ipinost ng mga residente o ng munisipyo.</p>
+                <hr>
+
+                @if(isset($appliedJobs) && count($appliedJobs) > 0)
+                    @foreach($appliedJobs as $job)
+                        <div style="background: rgba(255,255,255,0.08); border-radius: 8px; padding: 14px 18px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                            <div>
+                                <strong style="font-size: 15px; color: white;">{{ $job->title }}</strong>
+                                <p style="font-size: 12px; opacity: 0.85; margin: 4px 0;">{{ $job->description }}</p>
+                                <div style="font-size: 11px; opacity: 0.7; display: flex; gap: 15px;">
+                                    <span><i class="fa-solid fa-tag"></i> {{ $job->category }}</span>
+                                    <span><i class="fa-solid fa-location-dot"></i> Brgy. {{ $job->barangay }}</span>
+                                    <span><i class="fa-regular fa-calendar"></i> {{ $job->date_posted }}</span>
+                                </div>
+                            </div>
+                            <div>
+                                <span class="badge badge-accepted">{{ $job->status ?? 'Applied' }}</span>
+                            </div>
+                        </div>
+                    @endforeach
+                @else
+                    <div style="text-align: center; padding: 30px; opacity: 0.7;">
+                        <p>Wala ka pang in-applyang trabaho.</p>
+                    </div>
+                @endif
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.getElementById('sidebarOverlay').classList.toggle('active');
+        }
+    </script>
+</body>
+</html>
