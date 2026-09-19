@@ -24,7 +24,7 @@
         .header-left p { font-size: 11px; }
 
         .page-content { padding: 80px 25px 40px 25px; position: relative; min-height: 100vh; }
-        .overlay { position: absolute; top: 0; left: 0; width: 100%; min-height: 100vh; background: rgba(20, 55, 130, 0.65); z-index: 0; }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(20, 55, 130, 0.65); z-index: 0; pointer-events: none; }
         .page-inner { position: relative; z-index: 2; max-width: 1100px; margin: 0 auto; }
         .page-title { color: white; font-size: 24px; font-weight: bold; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; }
         .back-link { color: #93c5fd; font-size: 14px; text-decoration: none; display: flex; align-items: center; gap: 6px; }

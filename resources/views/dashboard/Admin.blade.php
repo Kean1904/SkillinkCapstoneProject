@@ -263,7 +263,7 @@
         }
 
         .overlay {
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
@@ -271,6 +271,7 @@
             background: rgba(10, 35, 90, 0.65);
             backdrop-filter: blur(2px);
             z-index: 0;
+            pointer-events: none;
         }
 
         .page-inner {

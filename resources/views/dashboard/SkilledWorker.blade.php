@@ -99,13 +99,14 @@
         }
 
         .overlay {
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
-            min-height: 100vh;
+            height: 100%;
             background: rgba(20, 55, 130, 0.55);
             z-index: 0;
+            pointer-events: none;
         }
 
         .page-inner {
