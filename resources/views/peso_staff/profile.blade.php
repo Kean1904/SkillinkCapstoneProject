@@ -216,38 +216,175 @@
 
     <div class="page-content">
         <div class="overlay"></div>
-        <div class="page-inner">
+        <div class="page-inner" style="max-width: 680px;">
 
             <div class="page-title">
-                <span><i class="fa-solid fa-user"></i> PESO OFFICER PROFILE</span>
+                <span><i class="fa-solid fa-user"></i> MY PROFILE</span>
                 <a href="{{ route('dashboard.PesoStaff') }}" class="back-link">&larr; Back to PESO Dashboard</a>
             </div>
 
-            <!-- PROFILE CARD -->
-            <div class="card" style="display: flex; gap: 25px; align-items: center; flex-wrap: wrap;">
-                <img src="{{ asset('image/MP_Profile.png') }}" alt="Profile" style="width: 90px; height: 90px; border-radius: 50%; background: white; padding: 5px; border: 3px solid #60a5fa;">
-                <div>
-                    <h2 style="font-size: 22px; margin-bottom: 4px;">{{ $user->full_name }}</h2>
-                    <p style="font-size: 13px; color: #93c5fd; margin-bottom: 8px;">@ {{ $user->name }} &bull; Public Employment Service Officer</p>
-                    <span style="background: #16a34a; color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: bold;">
-                        <i class="fa-solid fa-shield-check"></i> Authorized Municipal Staff
+            @if(session('success'))
+                <div style="background: rgba(34, 197, 94, 0.25); border: 1px solid #4ade80; color: #bbf7d0; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px; font-size: 13.5px;">
+                    <i class="fa-solid fa-circle-check"></i> {{ session('success') }}
+                </div>
+            @endif
+
+            @if(isset($errors) && $errors->any())
+                <div style="background: rgba(239, 68, 68, 0.25); border: 1px solid #f87171; color: #fecaca; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px; font-size: 13.5px;">
+                    <i class="fa-solid fa-triangle-exclamation"></i> {{ $errors->first() }}
+                </div>
+            @endif
+
+            <!-- PROFILE HEADER (AVATAR + CAMERA + BADGES) -->
+            <div style="text-align: center; margin-bottom: 24px;">
+                <div style="position: relative; display: inline-block; cursor: pointer;" onclick="openEditProfileModal()" title="Click to Change Photo">
+                    <img id="profileHeaderImg" src="{{ $user->profile_image_uri ? asset($user->profile_image_uri) : asset('image/MP_Profile.png') }}" alt="Profile" style="width: 115px; height: 115px; border-radius: 50%; object-fit: cover; background: white; padding: 4px; border: 3px solid rgba(255,255,255,0.7); box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+                    <div style="position: absolute; bottom: 4px; right: 4px; width: 34px; height: 34px; border-radius: 50%; background: #0033a0; border: 2px solid white; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.35);">
+                        <i class="fa-solid fa-camera"></i>
+                    </div>
+                </div>
+
+                <h2 style="color: white; font-size: 22px; font-weight: 900; margin-top: 14px; text-transform: uppercase; letter-spacing: 0.5px;">
+                    {{ $user->full_name }}
+                </h2>
+
+                <div style="margin-top: 6px;">
+                    <span style="background: #1e3a8a; color: #93c5fd; padding: 4px 14px; border-radius: 12px; font-size: 12px; font-weight: bold; border: 1px solid rgba(255,255,255,0.3); display: inline-block;">
+                        PESO STAFF
+                    </span>
+                </div>
+
+                <div style="margin-top: 8px;">
+                    <span style="background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid #10b981; padding: 4px 12px; border-radius: 8px; font-size: 11px; font-weight: bold; display: inline-flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-shield-check"></i> VERIFIED PESO OFFICIAL
                     </span>
                 </div>
             </div>
 
-            <!-- DETAILS GRID -->
-            <div class="card">
-                <h3><i class="fa-solid fa-building"></i> Office Designation Details</h3>
-                <hr>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; font-size: 14px;">
-                    <div><span style="opacity: 0.7; font-size: 12px; display: block;">OFFICIAL EMAIL</span><strong>{{ $user->email }}</strong></div>
-                    <div><span style="opacity: 0.7; font-size: 12px; display: block;">HOTLINE / CONTACT</span><strong>{{ $user->contact_number }}</strong></div>
-                    <div><span style="opacity: 0.7; font-size: 12px; display: block;">OFFICE LOCATION</span><strong>PESO Magalang, Municipal Hall Complex</strong></div>
-                    <div><span style="opacity: 0.7; font-size: 12px; display: block;">BARANGAY STATION</span><strong>{{ $user->barangay }}</strong></div>
-                    <div><span style="opacity: 0.7; font-size: 12px; display: block;">JURISDICTION</span><strong>Municipality of Magalang, Pampanga</strong></div>
+            <!-- ACCOUNT INFORMATION CARD -->
+            <div class="card" style="background: rgba(30, 58, 138, 0.35); border: 1px solid rgba(255,255,255,0.25); border-radius: 16px; padding: 22px;">
+                <h3 style="font-size: 14px; font-weight: bold; color: white; letter-spacing: 0.5px; margin-bottom: 12px;">
+                    OFFICIAL DESIGNATION & ACCOUNT DETAILS
+                </h3>
+                <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.2); margin-bottom: 16px;">
+
+                <div style="display: flex; flex-direction: column; gap: 14px; font-size: 13.5px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <i class="fa-solid fa-id-card" style="width: 20px; text-align: center; color: #93c5fd;"></i>
+                        <div style="flex: 1;"><span style="opacity: 0.7; font-size: 11px; display: block;">OFFICIAL USERNAME</span><strong>@ {{ $user->name }}</strong></div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <i class="fa-solid fa-envelope" style="width: 20px; text-align: center; color: #93c5fd;"></i>
+                        <div style="flex: 1;"><span style="opacity: 0.7; font-size: 11px; display: block;">OFFICIAL EMAIL</span><strong>{{ $user->email }}</strong></div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <i class="fa-solid fa-phone" style="width: 20px; text-align: center; color: #93c5fd;"></i>
+                        <div style="flex: 1;"><span style="opacity: 0.7; font-size: 11px; display: block;">HOTLINE / CONTACT</span><strong>{{ $user->contact_number ?? 'Not Provided' }}</strong></div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <i class="fa-solid fa-building-flag" style="width: 20px; text-align: center; color: #93c5fd;"></i>
+                        <div style="flex: 1;"><span style="opacity: 0.7; font-size: 11px; display: block;">OFFICE LOCATION</span><strong>PESO Magalang, Municipal Hall Complex</strong></div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <i class="fa-solid fa-location-dot" style="width: 20px; text-align: center; color: #93c5fd;"></i>
+                        <div style="flex: 1;"><span style="opacity: 0.7; font-size: 11px; display: block;">BARANGAY STATION</span><strong>Brgy. {{ $user->barangay ?? 'Magalang' }}</strong></div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <i class="fa-solid fa-cake-candles" style="width: 20px; text-align: center; color: #93c5fd;"></i>
+                        <div style="flex: 1;"><span style="opacity: 0.7; font-size: 11px; display: block;">AGE / GENDER</span><strong>{{ $user->age ?? 30 }} yrs old &bull; {{ $user->gender ?? 'Official' }}</strong></div>
+                    </div>
                 </div>
             </div>
 
+            <!-- EDIT DETAILS BUTTON -->
+            <button type="button" onclick="openEditProfileModal()" style="width: 100%; padding: 14px; background: #0033a0; color: white; border: none; border-radius: 12px; font-weight: bold; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.25); margin-top: 15px;">
+                <i class="fa-solid fa-pen-to-square"></i> EDIT PROFILE DETAILS
+            </button>
+
+        </div>
+    </div>
+
+    <!-- EDIT PROFILE MODAL -->
+    <div id="editProfileModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.65); z-index: 3000; align-items: center; justify-content: center; padding: 20px;">
+        <div style="background: #1e293b; border: 1px solid rgba(255,255,255,0.25); border-radius: 18px; padding: 25px; width: 100%; max-width: 520px; color: white; max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="font-size: 18px; font-weight: bold;"><i class="fa-solid fa-user-pen" style="color: #60a5fa;"></i> Edit Staff Profile</h3>
+                <i class="fa-solid fa-xmark" style="cursor: pointer; font-size: 20px; opacity: 0.8;" onclick="closeEditProfileModal()"></i>
+            </div>
+
+            <form method="POST" action="{{ route('peso_staff.profile.update') }}" enctype="multipart/form-data">
+                @csrf
+
+                <!-- AVATAR UPLOAD PREVIEW -->
+                <div style="text-align: center; margin-bottom: 18px;">
+                    <div style="position: relative; display: inline-block;">
+                        <img id="avatarPreview" src="{{ $user->profile_image_uri ? asset($user->profile_image_uri) : asset('image/MP_Profile.png') }}" style="width: 85px; height: 85px; border-radius: 50%; object-fit: cover; background: white; padding: 3px; border: 2px solid #60a5fa;">
+                        <label for="avatarInput" style="position: absolute; bottom: 0; right: 0; width: 28px; height: 28px; border-radius: 50%; background: #2563eb; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid white; font-size: 12px;" title="Upload Photo">
+                            <i class="fa-solid fa-camera"></i>
+                        </label>
+                        <input type="file" id="avatarInput" name="avatar" accept="image/*" style="display: none;" onchange="previewAvatar(event)">
+                    </div>
+                    <p style="font-size: 11px; opacity: 0.75; margin-top: 6px;">Tap camera to upload new avatar image</p>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                    <div>
+                        <label style="display: block; font-size: 11px; font-weight: bold; margin-bottom: 4px; opacity: 0.85;">FIRST NAME</label>
+                        <input type="text" name="first_name" value="{{ $user->first_name }}" style="width: 100%; padding: 9px; border-radius: 6px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.3);" required>
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 11px; font-weight: bold; margin-bottom: 4px; opacity: 0.85;">LAST NAME</label>
+                        <input type="text" name="last_name" value="{{ $user->last_name }}" style="width: 100%; padding: 9px; border-radius: 6px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.3);" required>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 12px;">
+                    <label style="display: block; font-size: 11px; font-weight: bold; margin-bottom: 4px; opacity: 0.85;">HOTLINE / CONTACT NUMBER</label>
+                    <input type="text" name="contact_number" value="{{ $user->contact_number }}" placeholder="e.g. 09123456789" style="width: 100%; padding: 9px; border-radius: 6px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.3);">
+                </div>
+
+                <div style="margin-bottom: 12px;">
+                    <label style="display: block; font-size: 11px; font-weight: bold; margin-bottom: 4px; opacity: 0.85;">BARANGAY STATION</label>
+                    <select name="barangay" style="width: 100%; padding: 9px; border-radius: 6px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.3);" required>
+                        @php
+                            $barangays = [
+                                "Ayala", "Bucanan", "Camias", "Dolores", "Escaler", "La Paz", "Navaling",
+                                "San Agustin", "San Antonio", "San Francisco", "San Ildefonso", "San Isidro",
+                                "San Jose", "San Miguel", "San Nicolas 1st", "San Nicolas 2nd", "San Pablo",
+                                "San Pedro 1st", "San Pedro 2nd", "San Roque", "San Vicente", "Santa Cruz",
+                                "Santa Lucia", "Santa Maria", "Santo Niño", "Santo Rosario", "Turu"
+                            ];
+                        @endphp
+                        @foreach($barangays as $bgy)
+                            <option value="{{ $bgy }}" style="color: black;" {{ ($user->barangay ?? '') == $bgy ? 'selected' : '' }}>{{ $bgy }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 12px;">
+                    <label style="display: block; font-size: 11px; font-weight: bold; margin-bottom: 4px; opacity: 0.85;">OFFICE ADDRESS / COMPLEX</label>
+                    <input type="text" name="address" value="{{ $user->address ?? 'PESO Office, Municipal Hall Complex' }}" style="width: 100%; padding: 9px; border-radius: 6px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.3);">
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px;">
+                    <div>
+                        <label style="display: block; font-size: 11px; font-weight: bold; margin-bottom: 4px; opacity: 0.85;">AGE</label>
+                        <input type="number" name="age" value="{{ $user->age ?? 30 }}" min="18" max="100" style="width: 100%; padding: 9px; border-radius: 6px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.3);">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 11px; font-weight: bold; margin-bottom: 4px; opacity: 0.85;">GENDER</label>
+                        <select name="gender" style="width: 100%; padding: 9px; border-radius: 6px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.3);">
+                            <option value="Male" style="color: black;" {{ ($user->gender ?? '') == 'Male' ? 'selected' : '' }}>Male</option>
+                            <option value="Female" style="color: black;" {{ ($user->gender ?? '') == 'Female' ? 'selected' : '' }}>Female</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="btn" style="background: rgba(255,255,255,0.2); color: white; padding: 10px 18px; border-radius: 6px;" onclick="closeEditProfileModal()">Cancel</button>
+                    <button type="submit" class="btn" style="background: #2563eb; color: white; padding: 10px 20px; border-radius: 6px; font-weight: bold;"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -255,6 +392,22 @@
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('active');
             document.getElementById('sidebarOverlay').classList.toggle('active');
+        }
+        function openEditProfileModal() {
+            document.getElementById('editProfileModal').style.display = 'flex';
+        }
+        function closeEditProfileModal() {
+            document.getElementById('editProfileModal').style.display = 'none';
+        }
+        function previewAvatar(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('avatarPreview').src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
         }
     </script>
 </body>

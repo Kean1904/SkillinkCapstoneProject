@@ -98,6 +98,47 @@ class PesoStaffController extends Controller
         return view('peso_staff.profile', compact('user'));
     }
 
+    public function updateProfile(Request $request)
+    {
+        $user = $this->getCurrentStaff();
+
+        $request->validate([
+            'first_name' => 'required|string|max:100',
+            'last_name' => 'required|string|max:100',
+            'contact_number' => 'nullable|string|max:50',
+            'barangay' => 'required|string|max:100',
+            'address' => 'nullable|string|max:255',
+            'age' => 'nullable|integer|min:15|max:120',
+            'gender' => 'nullable|string|max:20',
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:4096',
+        ]);
+
+        $user->first_name = $request->first_name;
+        $user->last_name = $request->last_name;
+        $user->contact_number = $request->contact_number;
+        $user->barangay = $request->barangay;
+        $user->address = $request->address;
+        if ($request->filled('age')) $user->age = $request->age;
+        if ($request->filled('gender')) $user->gender = $request->gender;
+
+        if ($request->hasFile('avatar')) {
+            $avatar = $request->file('avatar');
+            $filename = 'avatar_' . $user->user_id . '_' . time() . '.' . $avatar->getClientOriginalExtension();
+            $destinationPath = public_path('uploads/avatars');
+            if (!file_exists($destinationPath)) {
+                mkdir($destinationPath, 0777, true);
+            }
+            $avatar->move($destinationPath, $filename);
+            $user->profile_image_uri = 'uploads/avatars/' . $filename;
+            Session::put('profile_image_uri', $user->profile_image_uri);
+        }
+
+        $user->save();
+        Session::put('full_name', $user->first_name . ' ' . $user->last_name);
+
+        return back()->with('success', 'Your staff profile details have been updated successfully!');
+    }
+
     public function settings()
     {
         $user = $this->getCurrentStaff();

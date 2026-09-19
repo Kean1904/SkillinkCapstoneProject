@@ -62,7 +62,6 @@
             left: 0;
         }
 
-        /* Compact Header with 54px Avatar (Fits all screens cleanly) */
         .sidebar-profile {
             display: flex;
             flex-direction: column;
@@ -122,7 +121,6 @@
             letter-spacing: 0.5px;
         }
 
-        /* Compact Menu Items */
         .sidebar-menu {
             list-style: none;
             padding: 2px 0;
@@ -157,7 +155,6 @@
             color: white;
         }
 
-        /* Bottom Pinned Footer */
         .sidebar-footer {
             margin-top: auto;
             padding: 10px 22px 18px 22px;
@@ -169,12 +166,11 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            color: #ffffff;
+            color: lightcoral;
             text-decoration: none;
             font-size: 13.5px;
             font-weight: bold;
             transition: opacity 0.2s ease;
-            color: lightcoral;
         }
 
         .sidebar-footer .logout-btn:hover {
@@ -201,6 +197,22 @@
         .sidebar-overlay.active {
             display: block;
         }
+
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.25); transition: .3s; border-radius: 24px; border: 1px solid rgba(255,255,255,0.4); }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+        input:checked + .slider { background-color: #10b981; border-color: #10b981; }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        .settings-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.12); cursor: pointer; }
+        .settings-row:last-child { border-bottom: none; }
+        .settings-row:hover .row-title { color: #93c5fd; }
+        .row-title { font-size: 14px; font-weight: bold; transition: color 0.2s; }
+        .row-sub { font-size: 12px; opacity: 0.75; margin-top: 2px; }
+
+        .modal-wrap { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.65); z-index: 3000; align-items: center; justify-content: center; padding: 20px; }
+        .modal-box { background: #1e293b; border: 1px solid rgba(255,255,255,0.25); border-radius: 16px; padding: 24px; width: 100%; max-width: 520px; color: white; max-height: 85vh; overflow-y: auto; }
     </style>
 </head>
 <body>
@@ -224,38 +236,213 @@
 
     <div class="page-content">
         <div class="overlay"></div>
-        <div class="page-inner">
+        <div class="page-inner" style="max-width: 760px;">
 
             <div class="page-title">
-                <span><i class="fa-solid fa-gear"></i> ADMINISTRATOR SYSTEM SETTINGS</span>
-                <a href="{{ route('dashboard.Admin') }}" class="back-link">&larr; Back to Admin Dashboard</a>
+                <div>
+                    <span><i class="fa-solid fa-gear"></i> ADMINISTRATOR SYSTEM SETTINGS & GOVERNANCE</span>
+                    <p style="font-size: 12.5px; opacity: 0.75; font-weight: normal; margin-top: 4px;">Master credentials, system telemetry alerts, and municipal platform governance</p>
+                </div>
+                <a href="{{ route('dashboard.Admin') }}" class="back-link">&larr; Back to Dashboard</a>
             </div>
 
             @if(session('success'))
-                <div style="background: rgba(34, 197, 94, 0.25); border: 1px solid #4ade80; color: #bbf7d0; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px;">
+                <div style="background: rgba(34, 197, 94, 0.25); border: 1px solid #4ade80; color: #bbf7d0; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px; font-size: 13.5px;">
                     <i class="fa-solid fa-circle-check"></i> {{ session('success') }}
                 </div>
             @endif
 
-            <div class="card">
-                <h3><i class="fa-solid fa-key"></i> Root Administrator Password</h3>
-                <p style="font-size: 13px; opacity: 0.85;">Magpalit ng master administrator password.</p>
-                <hr>
-
-                <form method="POST" action="{{ route('admin.password.update') }}">
-                    @csrf
-                    <div class="input-group">
-                        <label>Current Password</label>
-                        <input type="password" name="current_password" required placeholder="Enter current root password">
+            <!-- 1. SECURITY & ACCESS -->
+            <div class="card" style="background: rgba(30, 58, 138, 0.35); border: 1px solid rgba(255,255,255,0.2); border-radius: 14px; padding: 20px; margin-bottom: 18px;">
+                <h3 style="font-size: 13px; font-weight: bold; color: #93c5fd; letter-spacing: 0.8px; margin-bottom: 6px;">
+                    <i class="fa-solid fa-shield-halved"></i> ROOT SECURITY & ACCESS CONTROL
+                </h3>
+                <div class="settings-row" onclick="openModal('passwordModal')">
+                    <div>
+                        <p class="row-title">Change Master Administrator Password</p>
+                        <p class="row-sub">Update the root municipal system governance password</p>
                     </div>
-                    <div class="input-group">
-                        <label>New Password (Min. 6 characters)</label>
-                        <input type="password" name="new_password" required minlength="6" placeholder="Enter new root password">
+                    <i class="fa-solid fa-chevron-right" style="opacity: 0.6; font-size: 13px;"></i>
+                </div>
+                <div class="settings-row" style="cursor: default;">
+                    <div>
+                        <p class="row-title">System Privilege Level</p>
+                        <p class="row-sub">Highest administrative clearance in Magalang LGU</p>
                     </div>
-                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-shield-halved"></i> Update Root Password</button>
-                </form>
+                    <span style="background: #8b5cf6; color: white; padding: 3px 10px; border-radius: 10px; font-size: 11px; font-weight: bold;"><i class="fa-solid fa-crown"></i> Super Administrator</span>
+                </div>
             </div>
 
+            <!-- 2. NOTIFICATIONS & SYSTEM ALERTS -->
+            <div class="card" style="background: rgba(30, 58, 138, 0.35); border: 1px solid rgba(255,255,255,0.2); border-radius: 14px; padding: 20px; margin-bottom: 18px;">
+                <h3 style="font-size: 13px; font-weight: bold; color: #93c5fd; letter-spacing: 0.8px; margin-bottom: 6px;">
+                    <i class="fa-solid fa-bell"></i> SYSTEM TELEMETRY & ALERTS
+                </h3>
+                <div class="settings-row" style="cursor: default;">
+                    <div>
+                        <p class="row-title">Security & Audit Log Telemetry</p>
+                        <p class="row-sub">Track staff actions, privilege escalation, and role updates</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="settings-row" style="cursor: default;">
+                    <div>
+                        <p class="row-title">Municipal Registration Spikes</p>
+                        <p class="row-sub">Alert when unusual influx of worker registrations occurs</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="settings-row" style="cursor: default;">
+                    <div>
+                        <p class="row-title">Server & Cloud Database Health</p>
+                        <p class="row-sub">Notify on database connection fluctuations</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 3. LEGAL & SYSTEM GOVERNANCE -->
+            <div class="card" style="background: rgba(30, 58, 138, 0.35); border: 1px solid rgba(255,255,255,0.2); border-radius: 14px; padding: 20px; margin-bottom: 18px;">
+                <h3 style="font-size: 13px; font-weight: bold; color: #93c5fd; letter-spacing: 0.8px; margin-bottom: 6px;">
+                    <i class="fa-solid fa-gavel"></i> LEGAL & SYSTEM GOVERNANCE
+                </h3>
+                <div class="settings-row" onclick="openModal('privacyModal')">
+                    <div>
+                        <p class="row-title">Data Privacy Act (RA 10173) Master Custodian</p>
+                        <p class="row-sub">Highest legal compliance duties for municipal data custody</p>
+                    </div>
+                    <i class="fa-solid fa-chevron-right" style="opacity: 0.6; font-size: 13px;"></i>
+                </div>
+                <div class="settings-row" onclick="openModal('termsModal')">
+                    <div>
+                        <p class="row-title">Magalang LGU Master Governance Terms</p>
+                        <p class="row-sub">Institutional rules for municipal software and databases</p>
+                    </div>
+                    <i class="fa-solid fa-chevron-right" style="opacity: 0.6; font-size: 13px;"></i>
+                </div>
+            </div>
+
+            <!-- 4. ABOUT & MUNICIPAL SUPPORT -->
+            <div class="card" style="background: rgba(30, 58, 138, 0.35); border: 1px solid rgba(255,255,255,0.2); border-radius: 14px; padding: 20px;">
+                <h3 style="font-size: 13px; font-weight: bold; color: #93c5fd; letter-spacing: 0.8px; margin-bottom: 6px;">
+                    <i class="fa-solid fa-circle-info"></i> ABOUT & MUNICIPAL SUPPORT
+                </h3>
+                <div class="settings-row" onclick="openModal('aboutModal')">
+                    <div>
+                        <p class="row-title">About SKILLINK</p>
+                        <p class="row-sub">PESO Municipality of Magalang Job Platform</p>
+                    </div>
+                    <i class="fa-solid fa-chevron-right" style="opacity: 0.6; font-size: 13px;"></i>
+                </div>
+                <div class="settings-row" style="cursor: default;">
+                    <div>
+                        <p class="row-title">Municipal PESO Helpline</p>
+                        <p class="row-sub">Direct contact for Magalang PESO Department</p>
+                    </div>
+                    <span style="font-size: 13px; font-weight: bold; color: #93c5fd;">(045) 866-0000</span>
+                </div>
+                <div class="settings-row" style="cursor: default;">
+                    <div>
+                        <p class="row-title">System Infrastructure</p>
+                        <p class="row-sub">Capstone Municipal Cloud Deployment</p>
+                    </div>
+                    <span style="font-size: 12px; opacity: 0.75;">v1.0.0 (Capstone Build)</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- CHANGE PASSWORD MODAL -->
+    <div id="passwordModal" class="modal-wrap">
+        <div class="modal-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="font-size: 17px; font-weight: bold;"><i class="fa-solid fa-lock" style="color: #60a5fa;"></i> Change Administrator Password</h3>
+                <i class="fa-solid fa-xmark" style="cursor: pointer; font-size: 18px;" onclick="closeModal('passwordModal')"></i>
+            </div>
+            <form method="POST" action="{{ route('admin.password.update') }}">
+                @csrf
+                <div style="margin-bottom: 12px;">
+                    <label style="display: block; font-size: 11px; font-weight: bold; margin-bottom: 4px; opacity: 0.85;">CURRENT PASSWORD</label>
+                    <input type="password" name="current_password" placeholder="Enter current root password" style="width: 100%; padding: 10px; border-radius: 6px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.3);" required>
+                </div>
+                <div style="margin-bottom: 18px;">
+                    <label style="display: block; font-size: 11px; font-weight: bold; margin-bottom: 4px; opacity: 0.85;">NEW ROOT PASSWORD (MIN. 6 CHARACTERS)</label>
+                    <input type="password" name="new_password" minlength="6" placeholder="Enter new secure root password" style="width: 100%; padding: 10px; border-radius: 6px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.3);" required>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="btn" style="background: rgba(255,255,255,0.2); color: white; border-radius: 6px;" onclick="closeModal('passwordModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="border-radius: 6px;"><i class="fa-solid fa-shield-halved"></i> Update Root Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- DATA PRIVACY ACT MODAL -->
+    <div id="privacyModal" class="modal-wrap">
+        <div class="modal-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="font-size: 16px; font-weight: bold;"><i class="fa-solid fa-shield-halved" style="color: #10b981;"></i> DATA PRIVACY ACT OF 2012 (RA 10173)</h3>
+                <i class="fa-solid fa-xmark" style="cursor: pointer; font-size: 18px;" onclick="closeModal('privacyModal')"></i>
+            </div>
+            <div style="font-size: 13px; line-height: 1.6; opacity: 0.9; display: flex; flex-direction: column; gap: 12px;">
+                <p>The Master Administrator acts as the chief data protection officer for the SKILLINK platform under Republic Act No. 10173.</p>
+                <p><strong>&bull; Sovereign Security:</strong> Municipal records, user identity proofs, and authentication digests are encrypted at rest and in transit.</p>
+                <p><strong>&bull; Access Logging:</strong> All administrative queries and modifications to user accounts are permanently recorded in the immutable audit logs.</p>
+                <p><strong>&bull; Citizen Rights:</strong> The system enforces automated adherence to citizen rights regarding personal information correction and account lifecycle management.</p>
+            </div>
+            <div style="margin-top: 20px; text-align: right;">
+                <button type="button" class="btn btn-primary" style="border-radius: 6px;" onclick="closeModal('privacyModal')">Understood</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TERMS OF SERVICE MODAL -->
+    <div id="termsModal" class="modal-wrap">
+        <div class="modal-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="font-size: 16px; font-weight: bold;"><i class="fa-solid fa-gavel" style="color: #60a5fa;"></i> MUNICIPAL LGU SYSTEM GOVERNANCE</h3>
+                <i class="fa-solid fa-xmark" style="cursor: pointer; font-size: 18px;" onclick="closeModal('termsModal')"></i>
+            </div>
+            <div style="font-size: 13px; line-height: 1.6; opacity: 0.9; display: flex; flex-direction: column; gap: 12px;">
+                <p>Governance framework for SKILLINK Municipal Platform:</p>
+                <p><strong>1.</strong> All system features and role assignments are designated under the authority of the LGU Municipality of Magalang.</p>
+                <p><strong>2.</strong> System modifications and role changes must align with civil service standards and municipal public employment policies.</p>
+                <p><strong>3.</strong> Ensure system uptime, database consistency, and failover reliability across all 27 barangays of Magalang.</p>
+            </div>
+            <div style="margin-top: 20px; text-align: right;">
+                <button type="button" class="btn btn-primary" style="border-radius: 6px;" onclick="closeModal('termsModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ABOUT SKILLINK MODAL -->
+    <div id="aboutModal" class="modal-wrap">
+        <div class="modal-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="font-size: 16px; font-weight: bold;"><i class="fa-solid fa-circle-info" style="color: #60a5fa;"></i> ABOUT SKILLINK</h3>
+                <i class="fa-solid fa-xmark" style="cursor: pointer; font-size: 18px;" onclick="closeModal('aboutModal')"></i>
+            </div>
+            <div style="font-size: 13px; line-height: 1.6; opacity: 0.9; display: flex; flex-direction: column; gap: 12px;">
+                <p>SKILLINK is a municipal employment matching and worker accreditation application developed for the Public Employment Service Office (PESO) of the Municipality of Magalang, Pampanga.</p>
+                <p>Developed as a Capstone Research Project to bridge skilled local workers (plumbers, carpenters, electricians, etc.) and residential employers across all 27 barangays of Magalang.</p>
+                <div style="background: rgba(255,255,255,0.08); padding: 12px; border-radius: 8px; font-size: 12px;">
+                    <p><i class="fa-solid fa-location-dot" style="color: #60a5fa;"></i> Municipal Hall Complex, Magalang, Pampanga</p>
+                    <p style="margin-top: 4px;"><i class="fa-solid fa-phone" style="color: #60a5fa;"></i> (045) 866-0000 &bull; peso@magalang.gov.ph</p>
+                </div>
+            </div>
+            <div style="margin-top: 20px; text-align: right;">
+                <button type="button" class="btn btn-primary" style="border-radius: 6px;" onclick="closeModal('aboutModal')">Close</button>
+            </div>
         </div>
     </div>
 
@@ -263,6 +450,12 @@
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('active');
             document.getElementById('sidebarOverlay').classList.toggle('active');
+        }
+        function openModal(id) {
+            document.getElementById(id).style.display = 'flex';
+        }
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
         }
     </script>
 </body>

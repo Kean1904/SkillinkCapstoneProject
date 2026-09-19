@@ -492,7 +492,7 @@
                             </div>
                         </div>
 
-                        <div class="stat-card">
+                        <div class="stat-card" style="cursor: pointer;" onclick="window.location.href='{{ route('residential.job_posts') }}'" title="View Your Posted Jobs">
                             <p class="label">POST JOB</p>
                             <div class="value-row">
                                 <div class="stat-icon"><i class="fa-solid fa-briefcase"></i></div>
@@ -501,27 +501,38 @@
                         </div>
                     </div>
 
-                    <!-- CREATE A JOBS -->
-                    <div class="create-offer-btn" onclick="window.location.href='#'">
+                    <!-- CREATE A JOBS (INTERACTIVE) -->
+                    <div class="create-offer-btn" onclick="window.location.href='{{ route('residential.job_posts') }}?action=create'" style="cursor: pointer;" title="Click to Post a Job Need in Magalang">
                         <div class="plus-icon"><i class="fa-solid fa-plus"></i></div>
                         <span>CREATE A JOBS</span>
                     </div>
 
                     <!-- AVAILABLE SKILLED WORKER LIST -->
                     <div class="panel">
-                        <h3>AVAILABLE SKILLED WORKER</h3>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h3>AVAILABLE SKILLED WORKER</h3>
+                            <a href="{{ route('residential.saved_workers') }}" style="color: #93c5fd; font-size: 12px; text-decoration: none;"><i class="fa-solid fa-bookmark"></i> View Saved</a>
+                        </div>
                         <hr>
                         @if(isset($workersList) && count($workersList) > 0)
                             @foreach($workersList as $worker)
-                                <div style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; margin-bottom: 10px; border-left: 4px solid #10b981; display: flex; justify-content: space-between; align-items: center;">
+                                <div style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; margin-bottom: 10px; border-left: 4px solid #10b981; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
                                     <div>
                                         <strong style="font-size: 14px;">{{ $worker->full_name }}</strong>
                                         <p style="font-size: 12px; opacity: 0.9; margin: 3px 0;"><i class="fa-solid fa-wrench"></i> {{ $worker->skills ?? 'General Handyman' }}</p>
                                         <span style="font-size: 11px; opacity: 0.75;"><i class="fa-solid fa-location-dot"></i> {{ $worker->barangay }}</span>
                                     </div>
-                                    <div style="text-align: right;">
-                                        <span style="background: #10b981; color: white; font-size: 11px; font-weight: bold; padding: 3px 8px; border-radius: 10px;">★ {{ number_format($worker->rating ?? 5.0, 1) }}</span>
-                                        <p style="font-size: 10px; color: #a7f3d0; margin-top: 4px;">{{ $worker->is_verified ? 'Verified PESO' : 'Pending Verification' }}</p>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <form method="POST" action="{{ route('residential.worker.toggle_save', $worker->user_id) }}" style="display: inline;">
+                                            @csrf
+                                            <button type="submit" title="Save / Bookmark Worker" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.4); color: white; border-radius: 6px; padding: 5px 9px; cursor: pointer; font-size: 12px;">
+                                                <i class="fa-regular fa-bookmark"></i>
+                                            </button>
+                                        </form>
+                                        <div style="text-align: right;">
+                                            <span style="background: #10b981; color: white; font-size: 11px; font-weight: bold; padding: 3px 8px; border-radius: 10px;">★ {{ number_format($worker->rating ?? 5.0, 1) }}</span>
+                                            <p style="font-size: 10px; color: #a7f3d0; margin-top: 4px;">{{ $worker->is_verified ? 'Verified PESO' : 'Pending Verification' }}</p>
+                                        </div>
                                     </div>
                                 </div>
                             @endforeach

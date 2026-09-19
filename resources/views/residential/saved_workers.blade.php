@@ -260,14 +260,25 @@
                                     <p style="margin-top: 4px; color: #86efac;"><i class="fa-solid fa-certificate"></i> {{ $worker->certificate_proof ?? 'TESDA NC II' }}</p>
                                 </div>
 
-                                <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="openBookModal('{{ $worker->name }}', '{{ $worker->full_name }}', '{{ $worker->skills }}')">
-                                    <i class="fa-solid fa-calendar-check"></i> Book Worker Now
-                                </button>
+                                <div style="display: flex; gap: 8px; margin-top: 10px;">
+                                    <button class="btn btn-primary" style="flex: 1; justify-content: center;" onclick="openBookModal('{{ $worker->name }}', '{{ $worker->full_name }}', '{{ $worker->skills }}')">
+                                        <i class="fa-solid fa-calendar-check"></i> Book Now
+                                    </button>
+                                    <form method="POST" action="{{ route('residential.worker.toggle_save', $worker->user_id) }}" style="display: inline;">
+                                        @csrf
+                                        <button type="submit" class="btn" style="background: rgba(239,68,68,0.25); color: #fca5a5; border: 1px solid #ef4444;" title="Remove from Saved">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
                         @endforeach
                     @else
-                        <div style="grid-column: 1 / -1; text-align: center; padding: 30px; opacity: 0.7;">
-                            <p>Walang naka-save na manggagawa sa ngayon.</p>
+                        <div style="grid-column: 1 / -1; text-align: center; padding: 45px 20px; opacity: 0.85;">
+                            <i class="fa-regular fa-bookmark" style="font-size: 38px; color: #93c5fd; margin-bottom: 12px; display: inline-block;"></i>
+                            <p style="font-size: 16px; font-weight: bold; margin-bottom: 6px;">Walang naka-save na manggagawa sa ngayon.</p>
+                            <p style="font-size: 13px; opacity: 0.75; margin-bottom: 16px;">Maaari kang mag-bookmark ng mga rehistradong skilled workers mula sa Main Dashboard.</p>
+                            <a href="{{ route('dashboard.Residential') }}" class="btn btn-primary"><i class="fa-solid fa-user-plus"></i> Maghanap ng Manggagawa</a>
                         </div>
                     @endif
                 </div>

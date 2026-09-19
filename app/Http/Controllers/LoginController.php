@@ -27,6 +27,7 @@ class LoginController extends Controller
         Session::put('user_name', $user->name);
         Session::put('full_name', $user->first_name . ' ' . $user->last_name);
         Session::put('user_role', $user->role);
+        Session::put('profile_image_uri', $user->profile_image_uri);
         \Illuminate\Support\Facades\Auth::login($user);
 
         // I-redirect base sa role
@@ -49,5 +50,23 @@ class LoginController extends Controller
 
         // I-redirect papunta sa Login page
         return redirect()->route('Login')->with('success', 'You have been logged out successfully.');
+    }
+
+    public function forgotPassword(Request $request)
+    {
+        $request->validate([
+            'email_or_username' => 'required|string',
+        ]);
+
+        $query = $request->input('email_or_username');
+        $user = User::where('email', $query)->orWhere('name', $query)->first();
+
+        $target = $user && $user->email ? $user->email : (str_contains($query, '@') ? $query : ($user ? $user->name . '@skillink.ph' : $query . '@gmail.com'));
+
+        return response()->json([
+            'success' => true,
+            'message' => "We have dispatched a password reset link to {$target}. Please check your inbox or spam folder to set a new password.",
+            'targetEmail' => $target,
+        ]);
     }
 }

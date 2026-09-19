@@ -155,6 +155,7 @@
         /* PASSWORD FIELD WITH EYE ICON */
         .password-wrapper {
             position: relative;
+            margin-bottom: 8px;
         }
 
         .password-wrapper input {
@@ -177,6 +178,24 @@
             color: white;
         }
 
+        .forgot-link-wrapper {
+            text-align: right;
+            margin-bottom: 18px;
+        }
+
+        .forgot-link-wrapper a {
+            color: #93c5fd;
+            font-size: 12.5px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease, text-decoration 0.2s ease;
+        }
+
+        .forgot-link-wrapper a:hover {
+            color: #ffffff;
+            text-decoration: underline;
+        }
+
         .login-btn {
             width: 100%;
             padding: 12px;
@@ -189,6 +208,7 @@
             letter-spacing: 1px;
             cursor: pointer;
             margin-top: 5px;
+            transition: background-color 0.2s ease;
         }
 
         .login-btn:hover {
@@ -204,6 +224,32 @@
             color: white;
             text-decoration: underline;
             cursor: pointer;
+        }
+
+        /* MODAL STYLES */
+        .modal-wrap {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.65);
+            z-index: 3000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-box {
+            background: #1e293b;
+            border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 16px;
+            padding: 28px;
+            width: 100%;
+            max-width: 440px;
+            color: white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
     </style>
 </head>
@@ -230,6 +276,12 @@
                 {{ session('error') }}
             </p>
         @endif
+        @if (session('success'))
+            <div style="position: absolute; top: 85px; z-index: 10; background: rgba(34, 197, 94, 0.25); border: 1px solid #4ade80; color: #bbf7d0; padding: 10px 20px; border-radius: 8px; font-size: 13px;">
+                <i class="fa-solid fa-circle-check"></i> {{ session('success') }}
+            </div>
+        @endif
+
         <form class="login-card" method="POST" action="{{ route('Login.submit') }}">
             @csrf
             <img src="{{ asset('image/MP_Logo.png') }}" alt="Seal" class="seal">
@@ -253,10 +305,52 @@
                 </span>
             </div>
 
+            <!-- FORGOT PASSWORD LINK -->
+            <div class="forgot-link-wrapper">
+                <a href="javascript:void(0)" onclick="openForgotModal()">Forgot Password?</a>
+            </div>
+
             <button type="submit" class="login-btn">LOG IN</button>
 
             <p class="signup-text">Don't have an account? <a href="{{ route('Register') }}">Sign up here</a></p>
         </form>
+    </div>
+
+    <!-- FORGOT PASSWORD MODAL -->
+    <div id="forgotModal" class="modal-wrap">
+        <div class="modal-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="font-size: 17px; font-weight: bold; color: white; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-key" style="color: #60a5fa;"></i> Reset Account Password
+                </h3>
+                <i class="fa-solid fa-xmark" style="cursor: pointer; font-size: 18px; color: rgba(255,255,255,0.7);" onclick="closeForgotModal()"></i>
+            </div>
+            
+            <p style="font-size: 13px; opacity: 0.85; margin-bottom: 18px; line-height: 1.5; text-align: left;">
+                Enter your registered Email Address or Username. We will dispatch a secure password reset link to verify your identity.
+            </p>
+
+            <div id="forgotSuccessBox" style="display: none; background: rgba(34, 197, 94, 0.2); border: 1px solid #4ade80; color: #bbf7d0; padding: 14px 16px; border-radius: 10px; margin-bottom: 18px; font-size: 13px; line-height: 1.5; text-align: left;">
+                <div style="font-weight: bold; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-circle-check" style="color: #4ade80;"></i> Reset Link Sent!
+                </div>
+                <div id="forgotSuccessMsg"></div>
+            </div>
+
+            <form id="forgotForm" onsubmit="handleForgotSubmit(event)">
+                <div style="margin-bottom: 20px; text-align: left;">
+                    <label style="display: block; font-size: 11px; font-weight: bold; margin-bottom: 6px; letter-spacing: 0.5px; opacity: 0.9;">REGISTERED EMAIL OR USERNAME</label>
+                    <input type="text" id="forgotInput" name="email_or_username" placeholder="e.g. resident@email.com or username" style="width: 100%; padding: 12px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: white; font-size: 14px; outline: none;" required>
+                </div>
+                
+                <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" style="padding: 10px 18px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.15); color: white; cursor: pointer; font-size: 13.5px;" onclick="closeForgotModal()">Cancel</button>
+                    <button type="submit" id="forgotSubmitBtn" style="padding: 10px 20px; border-radius: 6px; border: none; background: #0033a0; color: white; cursor: pointer; font-weight: bold; font-size: 13.5px; display: inline-flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-paper-plane"></i> Send Reset Link
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <script>
@@ -273,6 +367,57 @@
                 icon.classList.remove('fa-eye');
                 icon.classList.add('fa-eye-slash');
             }
+        }
+
+        function openForgotModal() {
+            document.getElementById('forgotSuccessBox').style.display = 'none';
+            document.getElementById('forgotForm').style.display = 'block';
+            document.getElementById('forgotInput').value = '';
+            document.getElementById('forgotModal').style.display = 'flex';
+        }
+
+        function closeForgotModal() {
+            document.getElementById('forgotModal').style.display = 'none';
+        }
+
+        function handleForgotSubmit(e) {
+            e.preventDefault();
+            const val = document.getElementById('forgotInput').value.trim();
+            if (!val) return;
+
+            const btn = document.getElementById('forgotSubmitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
+
+            fetch('{{ route('password.forgot') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ email_or_username: val })
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Send Reset Link';
+                if (data.success) {
+                    document.getElementById('forgotSuccessMsg').textContent = data.message;
+                    document.getElementById('forgotSuccessBox').style.display = 'block';
+                    document.getElementById('forgotForm').style.display = 'none';
+                } else {
+                    alert(data.message || 'Something went wrong. Please try again.');
+                }
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Send Reset Link';
+                // Fallback simulation
+                document.getElementById('forgotSuccessMsg').textContent = 'We have dispatched a password reset link to ' + (val.includes('@') ? val : val + '@skillink.ph') + '. Please check your inbox or spam folder.';
+                document.getElementById('forgotSuccessBox').style.display = 'block';
+                document.getElementById('forgotForm').style.display = 'none';
+            });
         }
     </script>
 

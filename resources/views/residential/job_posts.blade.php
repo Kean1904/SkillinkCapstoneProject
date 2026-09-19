@@ -317,7 +317,20 @@
                 </div>
                 <div style="margin-bottom: 16px;">
                     <label style="display: block; font-size: 12px; font-weight: bold; margin-bottom: 4px;">Barangay in Magalang</label>
-                    <input type="text" name="barangay" value="San Nicolas 1st" style="width: 100%; padding: 9px; border-radius: 6px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.4);" required>
+                    <select name="barangay" style="width: 100%; padding: 9px; border-radius: 6px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.4);" required>
+                        @php
+                            $barangays = [
+                                "Ayala", "Bucanan", "Camias", "Dolores", "Escaler", "La Paz", "Navaling",
+                                "San Agustin", "San Antonio", "San Francisco", "San Ildefonso", "San Isidro",
+                                "San Jose", "San Miguel", "San Nicolas 1st", "San Nicolas 2nd", "San Pablo",
+                                "San Pedro 1st", "San Pedro 2nd", "San Roque", "San Vicente", "Santa Cruz",
+                                "Santa Lucia", "Santa Maria", "Santo Niño", "Santo Rosario", "Turu"
+                            ];
+                        @endphp
+                        @foreach($barangays as $bgy)
+                            <option value="{{ $bgy }}" style="color: black;" {{ ($user->barangay ?? '') == $bgy ? 'selected' : '' }}>{{ $bgy }}</option>
+                        @endforeach
+                    </select>
                 </div>
                 <div style="display: flex; justify-content: flex-end; gap: 10px;">
                     <button type="button" class="btn" style="background: rgba(255,255,255,0.2); color: white;" onclick="closePostJobModal()">Cancel</button>
@@ -338,6 +351,12 @@
         function closePostJobModal() {
             document.getElementById('postJobModal').style.display = 'none';
         }
+
+        @if(request('action') === 'create')
+            window.addEventListener('DOMContentLoaded', function() {
+                openPostJobModal();
+            });
+        @endif
     </script>
 </body>
 </html>

@@ -494,27 +494,62 @@
                     </div>
 
                     <!-- CREATE A SERVICE OFFER -->
-                    <div class="create-offer-btn" onclick="window.location.href='#'">
+                    <div class="create-offer-btn" onclick="window.location.href='{{ route('skilled_worker.my_services') }}'" style="cursor: pointer;" title="Manage Your Skills and Service Catalog">
                         <div class="plus-icon"><i class="fa-solid fa-plus"></i></div>
                         <span>CREATE A SERVICE OFFER</span>
                     </div>
 
+                    @if(session('success'))
+                        <div style="background: rgba(34, 197, 94, 0.25); border: 1px solid #4ade80; color: #bbf7d0; padding: 10px 16px; border-radius: 8px; margin-bottom: 12px; font-size: 13px;">
+                            <i class="fa-solid fa-circle-check"></i> {{ session('success') }}
+                        </div>
+                    @endif
+
+                    @if(session('error'))
+                        <div style="background: rgba(239, 68, 68, 0.25); border: 1px solid #f87171; color: #fecaca; padding: 10px 16px; border-radius: 8px; margin-bottom: 12px; font-size: 13px;">
+                            <i class="fa-solid fa-triangle-exclamation"></i> {{ session('error') }}
+                        </div>
+                    @endif
+
                     <!-- AVAILABLE JOBS LIST -->
                     <div class="panel">
-                        <h3>AVAILABLE JOBS</h3>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h3>AVAILABLE JOBS</h3>
+                            <a href="{{ route('skilled_worker.tracking_service') }}" style="color: #93c5fd; font-size: 12px; text-decoration: none;"><i class="fa-solid fa-list-check"></i> Tracking Service</a>
+                        </div>
                         <hr>
                         @if(isset($jobsList) && count($jobsList) > 0)
                             @foreach($jobsList as $job)
-                                <div style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; margin-bottom: 10px; border-left: 4px solid #3b82f6;">
-                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 14px; margin-bottom: 12px; border-left: 4px solid #3b82f6;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
                                         <strong style="font-size: 14px;">{{ $job->title }}</strong>
-                                        <span style="font-size: 11px; background: rgba(37,99,235,0.3); padding: 2px 8px; border-radius: 12px;">{{ $job->category }}</span>
+                                        <span style="font-size: 11px; background: rgba(37,99,235,0.3); padding: 2px 8px; border-radius: 12px; border: 1px solid #3b82f6;">{{ $job->category }}</span>
                                     </div>
-                                    <p style="font-size: 12px; opacity: 0.85; margin: 5px 0;">{{ $job->description }}</p>
-                                    <div style="font-size: 11px; opacity: 0.7; display: flex; gap: 15px;">
-                                        <span><i class="fa-solid fa-location-dot"></i> {{ $job->barangay }}</span>
-                                        <span><i class="fa-regular fa-calendar"></i> {{ $job->date_posted }}</span>
-                                        <span><i class="fa-solid fa-user"></i> {{ $job->posted_by }}</span>
+                                    <p style="font-size: 12px; opacity: 0.85; margin: 6px 0;">{{ $job->description }}</p>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 8px;">
+                                        <div style="font-size: 11px; opacity: 0.75; display: flex; gap: 14px;">
+                                            <span><i class="fa-solid fa-location-dot"></i> {{ $job->barangay }}</span>
+                                            <span><i class="fa-regular fa-calendar"></i> {{ $job->date_posted }}</span>
+                                            <span><i class="fa-solid fa-user"></i> {{ $job->posted_by }}</span>
+                                        </div>
+                                        <div>
+                                            @if($job->applicant_username === session('user_name'))
+                                                <span style="background: rgba(34,197,94,0.3); color: #86efac; border: 1px solid #22c55e; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: bold;">
+                                                    <i class="fa-solid fa-check"></i> Applied
+                                                </span>
+                                            @elseif(!empty($job->applicant_username))
+                                                <span style="background: rgba(234,179,8,0.25); color: #fef08a; border: 1px solid #eab308; padding: 4px 8px; border-radius: 6px; font-size: 11px;">
+                                                    <i class="fa-solid fa-hourglass-half"></i> Under Review
+                                                </span>
+                                            @else
+                                                <form method="POST" action="{{ route('skilled_worker.job.apply', $job->request_id ?? $job->getKey()) }}" style="display: inline;">
+                                                    @csrf
+                                                    <button type="submit" style="background: #2563eb; color: white; border: none; padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
+                                                        <i class="fa-solid fa-paper-plane"></i> Apply for Job
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        </div>
                                     </div>
                                 </div>
                             @endforeach

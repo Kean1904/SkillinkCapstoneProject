@@ -26,7 +26,6 @@ class ResidentialWebController extends Controller
     {
         $user = $this->getCurrentUser();
         $bookings = Booking::where('client_username', $user->name)
-            ->orWhereNotNull('booking_reference')
             ->latest('created_at')
             ->get();
 
@@ -94,8 +93,34 @@ class ResidentialWebController extends Controller
     public function savedWorkers()
     {
         $user = $this->getCurrentUser();
-        $workers = User::where('role', 'skilled worker')->get();
+        $savedWorkerIds = DB::table('saved_workers')->where('user_id', $user->user_id)->pluck('worker_id');
+        $workers = User::whereIn('user_id', $savedWorkerIds)->get();
         return view('residential.saved_workers', compact('user', 'workers'));
+    }
+
+    public function toggleSaveWorker(Request $request, $workerId)
+    {
+        $user = $this->getCurrentUser();
+        $existing = DB::table('saved_workers')
+            ->where('user_id', $user->user_id)
+            ->where('worker_id', $workerId)
+            ->first();
+
+        if ($existing) {
+            DB::table('saved_workers')
+                ->where('user_id', $user->user_id)
+                ->where('worker_id', $workerId)
+                ->delete();
+            return back()->with('success', 'Worker removed from your saved bookmarks.');
+        } else {
+            DB::table('saved_workers')->insert([
+                'user_id' => $user->user_id,
+                'worker_id' => $workerId,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+            return back()->with('success', 'Worker saved to your bookmarks!');
+        }
     }
 
     public function createBooking(Request $request)
@@ -139,8 +164,52 @@ class ResidentialWebController extends Controller
     public function jobPosts()
     {
         $user = $this->getCurrentUser();
-        $jobs = JobPost::latest()->get();
+        $jobs = JobPost::where('client_id', $user->user_id)
+            ->orWhere('posted_by', $user->name)
+            ->latest('created_at')
+            ->get();
         return view('residential.job_posts', compact('user', 'jobs'));
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $user = $this->getCurrentUser();
+
+        $request->validate([
+            'first_name' => 'required|string|max:100',
+            'last_name' => 'required|string|max:100',
+            'contact_number' => 'nullable|string|max:50',
+            'barangay' => 'required|string|max:100',
+            'address' => 'nullable|string|max:255',
+            'age' => 'nullable|integer|min:15|max:120',
+            'gender' => 'nullable|string|max:20',
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:4096',
+        ]);
+
+        $user->first_name = $request->first_name;
+        $user->last_name = $request->last_name;
+        $user->contact_number = $request->contact_number;
+        $user->barangay = $request->barangay;
+        $user->address = $request->address;
+        if ($request->filled('age')) $user->age = $request->age;
+        if ($request->filled('gender')) $user->gender = $request->gender;
+
+        if ($request->hasFile('avatar')) {
+            $avatar = $request->file('avatar');
+            $filename = 'avatar_' . $user->user_id . '_' . time() . '.' . $avatar->getClientOriginalExtension();
+            $destinationPath = public_path('uploads/avatars');
+            if (!file_exists($destinationPath)) {
+                mkdir($destinationPath, 0777, true);
+            }
+            $avatar->move($destinationPath, $filename);
+            $user->profile_image_uri = 'uploads/avatars/' . $filename;
+            Session::put('profile_image_uri', $user->profile_image_uri);
+        }
+
+        $user->save();
+        Session::put('full_name', $user->first_name . ' ' . $user->last_name);
+
+        return back()->with('success', 'Your profile details have been successfully updated!');
     }
 
     public function createJob(Request $request)

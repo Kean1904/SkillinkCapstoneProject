@@ -1,7 +1,7 @@
 <!-- PESO STAFF SIDEBAR PARTIAL (COMPACT ADMIN STYLE) -->
 <div class="sidebar" id="sidebar">
     <div class="sidebar-profile">
-        <img src="{{ asset('image/MP_Profile.png') }}" alt="Profile" class="sidebar-avatar" onerror="this.outerHTML='<div class=\'sidebar-avatar-fallback\'><i class=\'fa-solid fa-user\'></i></div>'">
+        <img src="{{ session('profile_image_uri') ? asset(session('profile_image_uri')) : asset('image/MP_Profile.png') }}" alt="Profile" class="sidebar-avatar" onerror="this.outerHTML='<div class=\'sidebar-avatar-fallback\'><i class=\'fa-solid fa-user\'></i></div>'">
         <p class="name">{{ session('full_name') ?? 'PESO Officer' }}</p>
         <p class="role"><span class="role-badge" style="background: #10b981;">VERIFIED PESO OFFICIAL</span></p>
     </div>
