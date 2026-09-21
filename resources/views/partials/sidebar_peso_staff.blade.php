@@ -22,3 +22,4 @@
     </div>
 </div>
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+@include('partials.idle_timeout')

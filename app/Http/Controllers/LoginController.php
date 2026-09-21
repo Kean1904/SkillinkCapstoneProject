@@ -48,8 +48,12 @@ class LoginController extends Controller
         // I-regenerate ang session ID (security best practice)
         $request->session()->regenerate();
 
-        // I-redirect papunta sa Login page
-        return redirect()->route('Login')->with('success', 'You have been logged out successfully.');
+        // I-redirect papunta sa Main Dashboard
+        if ($request->query('redirect') === 'dashboard' || $request->query('reason') === 'idle') {
+            return redirect()->route('home')->with('info', 'Session ended due to inactivity. You have been safely logged out to prevent unauthorized access and data leakage.');
+        }
+
+        return redirect()->route('home')->with('success', 'You have been logged out successfully.');
     }
 
     public function forgotPassword(Request $request)

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>SKILLINK - Municipality of Magalang</title>
       <link rel="icon" type="image/png" href="{{ asset('image/MP_Logo.png') }}">
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -229,6 +230,20 @@
         </div>
         <a href="{{ route('Login') }}" class="login-btn">Login</a>
     </div>
+
+    @if(session('info') || request('reason') === 'idle')
+    <div id="idleNoticeBanner" style="position: fixed; top: 75px; left: 50%; transform: translateX(-50%); z-index: 2000; background: linear-gradient(135deg, rgba(220, 38, 38, 0.95), rgba(153, 27, 27, 0.95)); color: white; padding: 12px 24px; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 600; animation: bounceIn 0.5s ease;">
+        <i class="fa-solid fa-shield-halved" style="font-size: 18px;"></i>
+        <span>{{ session('info') ?? 'Awtomatikong na-logout dahil walang aktibidad upang maprotektahan ang data privacy.' }}</span>
+        <button onclick="document.getElementById('idleNoticeBanner').style.display='none'" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer; padding: 0 0 0 8px; line-height: 1;">&times;</button>
+    </div>
+    @elseif(session('success'))
+    <div id="logoutNoticeBanner" style="position: fixed; top: 75px; left: 50%; transform: translateX(-50%); z-index: 2000; background: linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(5, 150, 105, 0.95)); color: white; padding: 12px 24px; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 600; animation: bounceIn 0.5s ease;">
+        <i class="fa-solid fa-circle-check" style="font-size: 18px;"></i>
+        <span>{{ session('success') }}</span>
+        <button onclick="document.getElementById('logoutNoticeBanner').style.display='none'" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer; padding: 0 0 0 8px; line-height: 1;">&times;</button>
+    </div>
+    @endif
 
     <!-- HERO SECTION -->
     <div class="hero">
