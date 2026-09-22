@@ -180,6 +180,8 @@ class AuthApiController extends Controller
      */
     public function forgotPassword(Request $request)
     {
+        @set_time_limit(60);
+
         $input = $request->input('email_or_username') ?? $request->input('email') ?? $request->input('username');
 
         if (empty($input)) {

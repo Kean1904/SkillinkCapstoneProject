@@ -66,6 +66,8 @@ class LoginController extends Controller
      */
     public function forgotPassword(Request $request)
     {
+        @set_time_limit(60);
+
         $request->validate([
             'email_or_username' => 'required|string',
         ]);
