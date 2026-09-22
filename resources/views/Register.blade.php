@@ -551,37 +551,6 @@
                 return false;
             }
 
-            const firstName = form.querySelector('[name="first_name"]').value.trim();
-            const lastName = form.querySelector('[name="last_name"]').value.trim();
-            const age = form.querySelector('[name="age"]').value.trim();
-            const gender = form.querySelector('[name="gender"]').value;
-            const address = form.querySelector('[name="address"]').value.trim();
-            const barangay = form.querySelector('[name="barangay"]').value;
-            const email = form.querySelector('[name="email"]').value.trim();
-            const cellphone = form.querySelector('[name="cellphone"]').value.trim();
-            const role = form.querySelector('[name="role"]').value;
-            const skills = form.querySelector('[name="skills"]') ? form.querySelector('[name="skills"]').value.trim() : '';
-
-            document.getElementById('summaryFullName').textContent = firstName + ' ' + lastName;
-            document.getElementById('summaryAgeGender').textContent = age + ' anyos / ' + (gender || 'N/A');
-            document.getElementById('summaryAddress').textContent = address + ', Brgy. ' + (barangay || 'N/A') + ', Magalang';
-            document.getElementById('summaryPhone').textContent = cellphone;
-            document.getElementById('summaryEmail').textContent = email;
-            document.getElementById('summaryRole').textContent = role;
-
-            const skillsRow = document.getElementById('summarySkillsRow');
-            if (role === 'Skilled Worker' && skills) {
-                skillsRow.style.display = 'flex';
-                document.getElementById('summarySkills').textContent = skills;
-            } else {
-                skillsRow.style.display = 'none';
-            }
-
-            // Reset checkbox and confirm button
-            const chk = document.getElementById('consentCheckbox');
-            chk.checked = false;
-            toggleConsentButton();
-
             document.getElementById('consentModal').style.display = 'flex';
             return false;
         }
@@ -590,26 +559,7 @@
             document.getElementById('consentModal').style.display = 'none';
         }
 
-        function toggleConsentButton() {
-            const chk = document.getElementById('consentCheckbox');
-            const btn = document.getElementById('btnConfirmSubmit');
-            if (chk.checked) {
-                btn.disabled = false;
-                btn.style.opacity = '1';
-                btn.style.cursor = 'pointer';
-            } else {
-                btn.disabled = true;
-                btn.style.opacity = '0.5';
-                btn.style.cursor = 'not-allowed';
-            }
-        }
-
         function confirmRegistration() {
-            const chk = document.getElementById('consentCheckbox');
-            if (!chk.checked) {
-                alert('Paki-tsek ang kahon upang kumpirmahin ang iyong pahintulot.');
-                return;
-            }
             isConsentConfirmed = true;
             document.getElementById('registerForm').submit();
         }
@@ -619,91 +569,53 @@
         });
     </script>
 
-    <!-- DATA PRIVACY & REGISTRATION CONFIRMATION MODAL -->
-    <div id="consentModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 10, 30, 0.75); backdrop-filter: blur(4px); z-index: 99999; justify-content: center; align-items: center; padding: 15px; box-sizing: border-box;">
-        <div style="background: #ffffff; color: #1e293b; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; border-radius: 14px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); border-top: 5px solid #0033a0; display: flex; flex-direction: column;">
+    <!-- COMPACT POP-UP CONFIRMATION BAR (Matching User Image Design) -->
+    <div id="consentModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px); z-index: 99999; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;">
+        <div style="background: #ffffff; color: #1e293b; width: 100%; max-width: 380px; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1); padding: 24px; box-sizing: border-box; position: relative; animation: popIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);">
             
-            <!-- Modal Header -->
-            <div style="padding: 20px 24px 16px 24px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <img src="{{ asset('image/MP_Logo.png') }}" alt="Logo" style="width: 36px; height: 36px; object-fit: contain;">
-                    <div>
-                        <h3 style="margin: 0; font-size: 17px; font-weight: 700; color: #0033a0; line-height: 1.2;">Kumpirmasyon at Pahintulot</h3>
-                        <p style="margin: 2px 0 0 0; font-size: 12px; color: #64748b;">Data Privacy Consent & Review (Web & Mobile)</p>
-                    </div>
+            <!-- Top Row: Round Icon & Top-Right Close Button -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px;">
+                <div style="width: 46px; height: 46px; border-radius: 50%; background: #ecfdf5; border: 1px solid #a7f3d0; display: flex; align-items: center; justify-content: center; color: #10b981; font-size: 20px;">
+                    <i class="fa-solid fa-check"></i>
                 </div>
-                <button type="button" onclick="closeConsentModal()" style="background: none; border: none; font-size: 20px; color: #94a3b8; cursor: pointer; padding: 4px 8px; line-height: 1;">&times;</button>
-            </div>
-
-            <!-- Modal Body -->
-            <div style="padding: 20px 24px; font-size: 13px; line-height: 1.5; color: #334155;">
-                <p style="margin-top: 0; margin-bottom: 14px; color: #475569;">
-                    Bago magpatuloy, mangyaring suriin nang maigi ang iyong mga impormasyon upang matiyak na tama ang lahat:
-                </p>
-
-                <!-- Information Summary Table / Card -->
-                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 16px; margin-bottom: 18px;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px dashed #cbd5e1;">
-                        <span style="font-weight: 600; color: #64748b;">Pangalan (Full Name):</span>
-                        <span id="summaryFullName" style="font-weight: 700; color: #0f172a; text-align: right;"></span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px dashed #cbd5e1;">
-                        <span style="font-weight: 600; color: #64748b;">Edad at Kasarian:</span>
-                        <span id="summaryAgeGender" style="color: #0f172a; text-align: right;"></span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px dashed #cbd5e1;">
-                        <span style="font-weight: 600; color: #64748b;">Tirahan (Address):</span>
-                        <span id="summaryAddress" style="color: #0f172a; text-align: right; max-width: 60%;"></span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px dashed #cbd5e1;">
-                        <span style="font-weight: 600; color: #64748b;">Cellphone No.:</span>
-                        <span id="summaryPhone" style="color: #0f172a; text-align: right;"></span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px dashed #cbd5e1;">
-                        <span style="font-weight: 600; color: #64748b;">Email Address:</span>
-                        <span id="summaryEmail" style="color: #0f172a; text-align: right;"></span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px dashed #cbd5e1;">
-                        <span style="font-weight: 600; color: #64748b;">Rehistradong Tungkulin:</span>
-                        <span id="summaryRole" style="font-weight: 700; color: #0033a0; text-align: right;"></span>
-                    </div>
-                    <div id="summarySkillsRow" style="display: none; justify-content: space-between;">
-                        <span style="font-weight: 600; color: #64748b;">Kakayahan / Trabaho:</span>
-                        <span id="summarySkills" style="font-weight: 600; color: #047857; text-align: right;"></span>
-                    </div>
-                </div>
-
-                <!-- Legal / Data Privacy Consent Box -->
-                <div style="background: #eff6ff; border-left: 4px solid #2563eb; padding: 12px 14px; border-radius: 0 6px 6px 0; margin-bottom: 16px;">
-                    <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #1e40af; margin-bottom: 6px;">
-                        <i class="fa-solid fa-shield-halved"></i> Kasunduan sa Data Privacy (RA 10173)
-                    </div>
-                    <p style="margin: 0; font-size: 12px; color: #1e3a8a; line-height: 1.5;">
-                        Alinsunod sa <strong>Data Privacy Act of 2012 (Republic Act No. 10173)</strong>, ako ay buong pusong nagbibigay ng pahintulot sa <strong>SKILLINK</strong> (sa parehong <strong>Web System</strong> at <strong>Mobile Application</strong>) at sa <strong>PESO Magalang</strong> na ligtas na kolektahin, itala, at gamitin ang aking mga personal na impormasyon para sa opisyal na pag-verify ng pagkakakilanlan, komunikasyon, at pagsasaayos ng oportunidad sa trabaho at serbisyo.
-                    </p>
-                </div>
-
-                <!-- Consent Checkbox -->
-                <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; user-select: none; background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; padding: 10px 12px;">
-                    <input type="checkbox" id="consentCheckbox" onchange="toggleConsentButton()" style="width: 18px; height: 18px; margin-top: 2px; accent-color: #0033a0; cursor: pointer;">
-                    <span style="font-size: 12.5px; color: #92400e; font-weight: 600; line-height: 1.4;">
-                        Kinukumpirma ko na tama ang lahat ng aking impormasyon at pinahihintulutan ko ang paggamit nito ng Web at Mobile application ng SKILLINK.
-                    </span>
-                </label>
-            </div>
-
-            <!-- Modal Footer Buttons -->
-            <div style="padding: 14px 24px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 10px;">
-                <button type="button" onclick="closeConsentModal()" style="padding: 10px 16px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;">
-                    Bumalik at I-edit
+                <button type="button" onclick="closeConsentModal()" style="width: 30px; height: 30px; border-radius: 8px; border: 1px solid #e5e7eb; background: #ffffff; color: #9ca3af; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.color='#111827'; this.style.borderColor='#cbd5e1';" onmouseout="this.style.color='#9ca3af'; this.style.borderColor='#e5e7eb';">
+                    <i class="fa-solid fa-xmark"></i>
                 </button>
-                <button type="button" id="btnConfirmSubmit" onclick="confirmRegistration()" disabled style="padding: 10px 20px; border: none; background: #0033a0; color: #ffffff; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: not-allowed; opacity: 0.5; display: flex; align-items: center; gap: 8px;">
-                    <i class="fa-solid fa-check-circle"></i> Kumpirmahin at I-rehistro
+            </div>
+
+            <!-- Title & Description -->
+            <h3 style="margin: 0 0 8px 0; font-size: 16.5px; font-weight: 700; color: #111827; text-align: left; line-height: 1.3;">
+                Kumpirmahin ang Rehistrasyon
+            </h3>
+            <p style="margin: 0 0 22px 0; font-size: 13px; color: #6b7280; line-height: 1.5; text-align: left;">
+                Nais mo bang ituloy ang pag-sign up? Pinapahintulutan mo ang SKILLINK (Web at Mobile) at PESO Magalang na gamitin ang iyong impormasyon alinsunod sa Data Privacy Act (RA 10173).
+            </p>
+
+            <!-- Buttons: Side by Side (Cancel & Confirm) -->
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button type="button" onclick="closeConsentModal()" style="flex: 1; padding: 10px 16px; border: 1px solid #e5e7eb; background: #ffffff; color: #374151; border-radius: 8px; font-size: 13.5px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.2s;" onmouseover="this.style.background='#f9fafb';" onmouseout="this.style.background='#ffffff';">
+                    <i class="fa-solid fa-xmark"></i> Cancel
+                </button>
+                <button type="button" onclick="confirmRegistration()" style="flex: 1; padding: 10px 16px; border: none; background: #4f46e5; color: #ffffff; border-radius: 8px; font-size: 13.5px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 2px 6px rgba(79, 70, 229, 0.35); transition: background 0.2s;" onmouseover="this.style.background='#4338ca';" onmouseout="this.style.background='#4f46e5';">
+                    <i class="fa-solid fa-check"></i> Confirm
                 </button>
             </div>
 
         </div>
     </div>
+
+    <style>
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: scale(0.92);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+    </style>
 
 </body>
 </html>

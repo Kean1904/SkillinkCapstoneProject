@@ -277,9 +277,50 @@
             </p>
         @endif
         @if (session('success'))
-            <div style="position: absolute; top: 85px; z-index: 10; background: rgba(34, 197, 94, 0.25); border: 1px solid #4ade80; color: #bbf7d0; padding: 10px 20px; border-radius: 8px; font-size: 13px;">
-                <i class="fa-solid fa-circle-check"></i> {{ session('success') }}
+            <!-- COMPACT REGISTRATION SUCCESS POP-UP BAR (Matching User Design) -->
+            <div id="successPopupModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px); z-index: 99999; display: flex; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;">
+                <div style="background: #ffffff; color: #1e293b; width: 100%; max-width: 380px; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1); padding: 24px; box-sizing: border-box; position: relative; animation: popIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);">
+                    
+                    <!-- Top Row: Round Icon & Top-Right Close Button -->
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px;">
+                        <div style="width: 46px; height: 46px; border-radius: 50%; background: #ecfdf5; border: 1px solid #a7f3d0; display: flex; align-items: center; justify-content: center; color: #10b981; font-size: 20px;">
+                            <i class="fa-solid fa-check"></i>
+                        </div>
+                        <button type="button" onclick="document.getElementById('successPopupModal').remove()" style="width: 30px; height: 30px; border-radius: 8px; border: 1px solid #e5e7eb; background: #ffffff; color: #9ca3af; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.color='#111827'; this.style.borderColor='#cbd5e1';" onmouseout="this.style.color='#9ca3af'; this.style.borderColor='#e5e7eb';">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+
+                    <!-- Title & Message -->
+                    <h3 style="margin: 0 0 8px 0; font-size: 16.5px; font-weight: 700; color: #111827; text-align: left; line-height: 1.3;">
+                        Matagumpay ang Pag-rehistro!
+                    </h3>
+                    <p style="margin: 0 0 22px 0; font-size: 13px; color: #6b7280; line-height: 1.5; text-align: left;">
+                        {{ session('success') }}
+                    </p>
+
+                    <!-- Button: Confirm / Sige -->
+                    <div style="display: flex; justify-content: flex-end;">
+                        <button type="button" onclick="document.getElementById('successPopupModal').remove()" style="width: 100%; padding: 10px 16px; border: none; background: #4f46e5; color: #ffffff; border-radius: 8px; font-size: 13.5px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 2px 6px rgba(79, 70, 229, 0.35); transition: background 0.2s;" onmouseover="this.style.background='#4338ca';" onmouseout="this.style.background='#4f46e5';">
+                            <i class="fa-solid fa-check"></i> Sige, Mag-log in
+                        </button>
+                    </div>
+
+                </div>
             </div>
+
+            <style>
+                @keyframes popIn {
+                    from {
+                        opacity: 0;
+                        transform: scale(0.92);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: scale(1);
+                    }
+                }
+            </style>
         @endif
 
         <form class="login-card" method="POST" action="{{ route('Login.submit') }}">

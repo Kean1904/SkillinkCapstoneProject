@@ -4,78 +4,34 @@
 @endphp
 
 @if($needsConsent)
-<div id="dashboardConsentModal" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 15, 45, 0.82); backdrop-filter: blur(6px); z-index: 999999; display: flex; justify-content: center; align-items: center; padding: 16px; box-sizing: border-box;">
-    <div style="background: #ffffff; color: #1e293b; width: 100%; max-width: 580px; max-height: 92vh; overflow-y: auto; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4); border-top: 6px solid #0033a0; display: flex; flex-direction: column;">
+<div id="dashboardConsentModal" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px); z-index: 999999; display: flex; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;">
+    <div style="background: #ffffff; color: #1e293b; width: 100%; max-width: 380px; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1); padding: 24px; box-sizing: border-box; position: relative; animation: popIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);">
         
-        <!-- Header -->
-        <div style="padding: 22px 26px 16px 26px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; gap: 14px;">
-            <img src="{{ asset('image/MP_Logo.png') }}" alt="Logo" style="width: 44px; height: 44px; object-fit: contain;">
-            <div>
-                <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #0033a0; letter-spacing: -0.2px;">Pahintulot sa Data Privacy at Paggamit ng Impormasyon</h3>
-                <p style="margin: 3px 0 0 0; font-size: 12px; color: #64748b; font-weight: 500;">SKILLINK (Web at Mobile) &bull; PESO Magalang</p>
+        <!-- Top Row: Round Icon & Top-Right Close / Logout Button -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px;">
+            <div style="width: 46px; height: 46px; border-radius: 50%; background: #eff6ff; border: 1px solid #bfdbfe; display: flex; align-items: center; justify-content: center; color: #3b82f6; font-size: 20px;">
+                <i class="fa-solid fa-shield-halved"></i>
             </div>
-        </div>
-
-        <!-- Body -->
-        <div style="padding: 22px 26px; font-size: 13.5px; line-height: 1.55; color: #334155;">
-            <p style="margin-top: 0; margin-bottom: 14px;">
-                Kumusta, <strong>{{ $modalUser->first_name ?? $modalUser->name }}</strong>! Upang patuloy na magamit ang mga serbisyo ng SKILLINK sa Web at Mobile, kinakailangan ang iyong kumpirmasyon at pahintulot sa paggamit ng iyong personal na data alinsunod sa batas.
-            </p>
-
-            <!-- User Info Summary Box -->
-            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 18px; margin-bottom: 18px;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px dashed #cbd5e1;">
-                    <span style="font-weight: 600; color: #64748b;">Buong Pangalan:</span>
-                    <span style="font-weight: 700; color: #0f172a;">{{ $modalUser->first_name }} {{ $modalUser->last_name }}</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px dashed #cbd5e1;">
-                    <span style="font-weight: 600; color: #64748b;">Username:</span>
-                    <span style="color: #0f172a; font-weight: 600;">{{ $modalUser->name }}</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px dashed #cbd5e1;">
-                    <span style="font-weight: 600; color: #64748b;">Email Address:</span>
-                    <span style="color: #0f172a;">{{ $modalUser->email ?? 'N/A' }}</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px dashed #cbd5e1;">
-                    <span style="font-weight: 600; color: #64748b;">Cellphone:</span>
-                    <span style="color: #0f172a;">{{ $modalUser->cellphone ?? 'N/A' }}</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px dashed #cbd5e1;">
-                    <span style="font-weight: 600; color: #64748b;">Tirahan (Address):</span>
-                    <span style="color: #0f172a; text-align: right; max-width: 65%;">{{ $modalUser->address ?? 'N/A' }} {{ !empty($modalUser->barangay) ? ', Brgy. ' . $modalUser->barangay : '' }}, Magalang</span>
-                </div>
-                <div style="display: flex; justify-content: space-between;">
-                    <span style="font-weight: 600; color: #64748b;">Uri ng Account (Role):</span>
-                    <span style="font-weight: 700; color: #0033a0; text-transform: uppercase;">{{ $modalUser->role }}</span>
-                </div>
-            </div>
-
-            <!-- Legal Privacy Act Statement -->
-            <div style="background: #eff6ff; border-left: 4px solid #2563eb; padding: 14px 16px; border-radius: 0 8px 8px 0; margin-bottom: 18px;">
-                <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #1e40af; margin-bottom: 6px; font-size: 13px;">
-                    <i class="fa-solid fa-shield-halved"></i> Data Privacy Act of 2012 (RA 10173)
-                </div>
-                <p style="margin: 0; font-size: 12px; color: #1e3a8a; line-height: 1.5;">
-                    Alinsunod sa <strong>Republic Act No. 10173</strong>, ako ay nagbibigay ng kusang-loob at malinaw na pahintulot sa <strong>SKILLINK</strong> (sa <strong>Web System</strong> at <strong>Mobile App</strong>) at sa <strong>PESO Magalang</strong> upang gamitin, iproseso, at itala ang aking mga personal na impormasyon para sa layunin ng pagpapatunay ng aking profile, pag-ugnay sa trabaho at serbisyo, at mga opisyal na operasyon ng munisipalidad.
-                </p>
-            </div>
-
-            <!-- Checkbox -->
-            <label style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer; user-select: none; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 12px 14px;">
-                <input type="checkbox" id="dashboardConsentCheckbox" onchange="toggleDashboardConsentBtn()" style="width: 19px; height: 19px; margin-top: 2px; accent-color: #0033a0; cursor: pointer;">
-                <span style="font-size: 13px; color: #92400e; font-weight: 600; line-height: 1.45;">
-                    Pinatutunayan ko na akin ang impormasyong nasa itaas at pinapahintulutan ko ang paggamit nito sa Web at Mobile application ng SKILLINK.
-                </span>
-            </label>
-        </div>
-
-        <!-- Footer -->
-        <div style="padding: 16px 26px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
-            <a href="{{ route('logout') }}" style="text-decoration: none; padding: 10px 16px; border: 1px solid #cbd5e1; background: #ffffff; color: #64748b; border-radius: 6px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
-                <i class="fa-solid fa-right-from-bracket"></i> Mag-logout
+            <a href="{{ route('logout') }}" title="Mag-logout" style="width: 30px; height: 30px; border-radius: 8px; border: 1px solid #e5e7eb; background: #ffffff; color: #9ca3af; font-size: 13px; text-decoration: none; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.color='#111827'; this.style.borderColor='#cbd5e1';" onmouseout="this.style.color='#9ca3af'; this.style.borderColor='#e5e7eb';">
+                <i class="fa-solid fa-xmark"></i>
             </a>
-            <button type="button" id="dashboardConsentSubmitBtn" onclick="submitDashboardConsent()" disabled style="padding: 11px 22px; border: none; background: #0033a0; color: #ffffff; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: not-allowed; opacity: 0.5; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s;">
-                <i class="fa-solid fa-check-circle"></i> Tanggapin at Magpatuloy
+        </div>
+
+        <!-- Title & Message -->
+        <h3 style="margin: 0 0 8px 0; font-size: 16.5px; font-weight: 700; color: #111827; text-align: left; line-height: 1.3;">
+            Pahintulot sa Data Privacy
+        </h3>
+        <p style="margin: 0 0 22px 0; font-size: 13px; color: #6b7280; line-height: 1.5; text-align: left;">
+            Kumusta, <strong>{{ $modalUser->first_name ?? $modalUser->name }}</strong>! Alinsunod sa <strong>Data Privacy Act (RA 10173)</strong>, pinapahintulutan mo ba ang SKILLINK (Web at Mobile) at PESO Magalang na gamitin ang iyong impormasyon para sa mga opisyal na serbisyo?
+        </p>
+
+        <!-- Buttons: Side by Side (Cancel/Logout & Confirm) -->
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <a href="{{ route('logout') }}" style="flex: 1; padding: 10px 16px; border: 1px solid #e5e7eb; background: #ffffff; color: #374151; border-radius: 8px; font-size: 13.5px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.2s;" onmouseover="this.style.background='#f9fafb';" onmouseout="this.style.background='#ffffff';">
+                <i class="fa-solid fa-xmark"></i> Cancel
+            </a>
+            <button type="button" id="dashboardConsentSubmitBtn" onclick="submitDashboardConsent()" style="flex: 1; padding: 10px 16px; border: none; background: #4f46e5; color: #ffffff; border-radius: 8px; font-size: 13.5px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 2px 6px rgba(79, 70, 229, 0.35); transition: background 0.2s;" onmouseover="this.style.background='#4338ca';" onmouseout="this.style.background='#4f46e5';">
+                <i class="fa-solid fa-check"></i> Confirm
             </button>
         </div>
 
@@ -83,24 +39,12 @@
 </div>
 
 <script>
-function toggleDashboardConsentBtn() {
-    const chk = document.getElementById('dashboardConsentCheckbox');
-    const btn = document.getElementById('dashboardConsentSubmitBtn');
-    if (chk && chk.checked) {
-        btn.disabled = false;
-        btn.style.opacity = '1';
-        btn.style.cursor = 'pointer';
-    } else {
-        btn.disabled = true;
-        btn.style.opacity = '0.5';
-        btn.style.cursor = 'not-allowed';
-    }
-}
-
 function submitDashboardConsent() {
     const btn = document.getElementById('dashboardConsentSubmitBtn');
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sine-save...';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ...';
+    }
 
     fetch("{{ route('user.consent.accept') }}", {
         method: "POST",
@@ -116,22 +60,24 @@ function submitDashboardConsent() {
         if (data.success) {
             const modal = document.getElementById('dashboardConsentModal');
             if (modal) {
-                modal.style.transition = 'opacity 0.3s ease';
+                modal.style.transition = 'opacity 0.25s ease';
                 modal.style.opacity = '0';
-                setTimeout(() => modal.remove(), 300);
+                setTimeout(() => modal.remove(), 250);
             }
         } else {
-            alert(data.message || 'May naganap na error. Pakisubukang muli.');
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Tanggapin at Magpatuloy';
+            alert(data.message || 'May naganap na error.');
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Confirm';
+            }
         }
     })
     .catch(err => {
         console.error('Consent error:', err);
-        alert('Hindi ma-save ang pahintulot. Pakisubukan muli o mag-refresh.');
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Tanggapin at Magpatuloy';
+        const modal = document.getElementById('dashboardConsentModal');
+        if (modal) modal.remove();
     });
 }
 </script>
 @endif
+
