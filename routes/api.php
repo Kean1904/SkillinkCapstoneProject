@@ -18,6 +18,15 @@ Route::post('/register', [AuthApiController::class, 'register']);
 Route::post('/login', [AuthApiController::class, 'login']);
 Route::post('/password/forgot', [AuthApiController::class, 'forgotPassword']);
 Route::post('/password/reset', [AuthApiController::class, 'resetPassword']);
+Route::get('/mail-health', function () {
+    $brevoKey = config('services.brevo.key') ?: env('BREVO_API_KEY');
+    $sender = config('services.brevo.sender_email') ?: env('BREVO_SENDER_EMAIL');
+    return response()->json([
+        'status' => 'ok',
+        'brevo_key_prefix' => substr($brevoKey ?? '', 0, 15) . '...',
+        'brevo_sender' => $sender,
+    ]);
+});
 
 // Citizens & Workers
 Route::get('/workers', [CitizenApiController::class, 'getWorkers']);
