@@ -672,8 +672,9 @@
                     <p>Municipal Employment & Service Oversight Panel &bull; Municipality of Magalang, Pampanga</p>
                 </div>
                 <div>
-                    <span style="background: rgba(37, 99, 235, 0.25); border: 1px solid #3b82f6; color: #bfdbfe; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600;">
-                        <i class="fa-solid fa-server"></i> Database: MariaDB / MySQL Active
+                    <span style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #4ade80; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
+                        <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block; box-shadow: 0 0 8px #10b981;"></span>
+                        Live Cloud Sync
                     </span>
                 </div>
             </div>
@@ -683,7 +684,7 @@
                 <div class="stat-card">
                     <p class="label"><i class="fa-solid fa-briefcase" style="color: #60a5fa;"></i> TOTAL JOBS</p>
                     <div class="value-row">
-                        <span class="stat-number">{{ $numberOfJobs ?? 0 }}</span>
+                        <span class="stat-number" id="statAdminTotalJobs">{{ $numberOfJobs ?? 0 }}</span>
                         <div class="stat-icon" style="color: #60a5fa;"><i class="fa-solid fa-briefcase"></i></div>
                     </div>
                 </div>
@@ -691,7 +692,7 @@
                 <div class="stat-card">
                     <p class="label"><i class="fa-solid fa-circle-check" style="color: #4ade80;"></i> DONE JOBS</p>
                     <div class="value-row">
-                        <span class="stat-number">{{ $doneJobs ?? 0 }}</span>
+                        <span class="stat-number" id="statAdminDoneJobs">{{ $doneJobs ?? 0 }}</span>
                         <div class="stat-icon" style="color: #4ade80;"><i class="fa-solid fa-circle-check"></i></div>
                     </div>
                 </div>
@@ -699,7 +700,7 @@
                 <div class="stat-card">
                     <p class="label"><i class="fa-solid fa-user-gear" style="color: #38bdf8;"></i> SKILLED WORKERS</p>
                     <div class="value-row">
-                        <span class="stat-number">{{ $skilledWorkers ?? 0 }}</span>
+                        <span class="stat-number" id="statAdminSkilledWorkers">{{ $skilledWorkers ?? 0 }}</span>
                         <div class="stat-icon" style="color: #38bdf8;"><i class="fa-solid fa-user-gear"></i></div>
                     </div>
                 </div>
@@ -707,7 +708,7 @@
                 <div class="stat-card">
                     <p class="label"><i class="fa-solid fa-house-chimney" style="color: #34d399;"></i> RESIDENTS</p>
                     <div class="value-row">
-                        <span class="stat-number">{{ $residential ?? 0 }}</span>
+                        <span class="stat-number" id="statAdminResidents">{{ $residential ?? 0 }}</span>
                         <div class="stat-icon" style="color: #34d399;"><i class="fa-solid fa-house-chimney"></i></div>
                     </div>
                 </div>
@@ -715,7 +716,7 @@
                 <div class="stat-card">
                     <p class="label"><i class="fa-solid fa-triangle-exclamation" style="color: #f87171;"></i> COMPLAINTS</p>
                     <div class="value-row">
-                        <span class="stat-number">{{ $complaints ?? 0 }}</span>
+                        <span class="stat-number" id="statAdminComplaints">{{ $complaints ?? 0 }}</span>
                         <div class="stat-icon" style="color: #f87171;"><i class="fa-solid fa-triangle-exclamation"></i></div>
                     </div>
                 </div>
@@ -723,7 +724,7 @@
                 <div class="stat-card">
                     <p class="label"><i class="fa-solid fa-file-shield" style="color: #c084fc;"></i> AUDIT TRAIL LOGS</p>
                     <div class="value-row">
-                        <span class="stat-number">{{ $auditLogsCount ?? 0 }}</span>
+                        <span class="stat-number" id="statAdminAuditLogs">{{ $auditLogsCount ?? 0 }}</span>
                         <div class="stat-icon" style="color: #c084fc;"><i class="fa-solid fa-file-shield"></i></div>
                     </div>
                 </div>
@@ -888,6 +889,47 @@
             if (sidebar) sidebar.classList.toggle('active');
             if (overlay) overlay.classList.toggle('active');
         }
+
+        // Live Cloudbase Stats Synchronizer for Admin Dashboard (5-second interval)
+        function pollAdminLiveStats() {
+            fetch("{{ route('dashboard.live_stats') }}", {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (!data || !data.success) return;
+
+                const updateStat = (id, newVal, highlightColor) => {
+                    const el = document.getElementById(id);
+                    if (el && newVal !== undefined) {
+                        if (parseInt(el.textContent.trim(), 10) !== newVal) {
+                            el.textContent = newVal;
+                            if (el.parentElement && el.parentElement.parentElement) {
+                                const card = el.parentElement.parentElement;
+                                card.style.transition = 'all 0.3s ease';
+                                card.style.boxShadow = `0 0 20px ${highlightColor}`;
+                                setTimeout(() => { card.style.boxShadow = ''; }, 1200);
+                            }
+                        }
+                    }
+                };
+
+                updateStat('statAdminTotalJobs', data.totalJobs, '#60a5fa');
+                updateStat('statAdminDoneJobs', data.completedJobs, '#4ade80');
+                updateStat('statAdminSkilledWorkers', data.totalWorkers, '#38bdf8');
+                updateStat('statAdminResidents', data.residential, '#34d399');
+                updateStat('statAdminComplaints', data.complaints, '#f87171');
+                updateStat('statAdminAuditLogs', data.auditLogsCount, '#c084fc');
+            })
+            .catch(err => {
+                console.debug('Admin live sync error:', err);
+            });
+        }
+
+        setInterval(pollAdminLiveStats, 5000);
     </script>
 
     @include('partials.privacy_consent_modal')

@@ -25,21 +25,35 @@ class JobApiController extends Controller
         }
 
         if ($request->has('status') && $request->status) {
-            $query->where('status', $request->status);
+            $status = strtolower($request->status);
+            if ($status === 'available') {
+                $query->where(function ($q) {
+                    $q->whereNull('applicant_username')
+                      ->orWhere('applicant_username', '');
+                })->whereNotIn('status', ['Completed', 'Cancelled']);
+            } elseif ($status === 'applied') {
+                $query->whereNotNull('applicant_username')->where('status', 'Applied');
+            } else {
+                $query->where('status', $request->status);
+            }
         }
 
         $jobs = $query->get()->map(function ($job) {
+            $isAvailable = empty($job->applicant_username) && !in_array($job->status, ['Completed', 'Cancelled']);
             return [
-                'id' => (string) $job->request_id,
-                'title' => $job->title ?? 'Service Requirement',
-                'description' => $job->description ?? '',
-                'category' => $job->category ?? 'General Repair',
-                'barangay' => $job->barangay ?? 'San Nicolas 1st',
-                'postedBy' => $job->posted_by ?? 'Resident',
-                'status' => $job->status ?? 'Pending',
+                'id'                => (string) $job->request_id,
+                'title'             => $job->title ?? 'Service Requirement',
+                'description'       => $job->description ?? '',
+                'category'          => $job->category ?? 'General Repair',
+                'barangay'          => $job->barangay ?? 'San Nicolas 1st',
+                'postedBy'          => $job->posted_by ?? 'Resident',
+                'status'            => $job->status ?? 'Pending',
                 'applicantUsername' => $job->applicant_username,
-                'datePosted' => $job->date_posted,
-                'timestamp' => $job->created_at ? $job->created_at->timestamp * 1000 : now()->timestamp * 1000,
+                'isAvailable'       => $isAvailable,
+                'isTaken'           => !empty($job->applicant_username),
+                'canApply'          => $isAvailable,
+                'datePosted'        => $job->date_posted,
+                'timestamp'         => $job->created_at ? $job->created_at->timestamp * 1000 : now()->timestamp * 1000,
             ];
         });
 

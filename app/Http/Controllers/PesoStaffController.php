@@ -27,8 +27,16 @@ class PesoStaffController extends Controller
 
     public function index(Request $request)
     {
-        $availableJobs = JobPost::where('status', '!=', 'Completed')->count();
-        $pendingJobs = JobPost::where('status', 'Pending')->count();
+        $availableJobs = JobPost::where(function ($q) {
+            $q->whereNull('applicant_username')
+              ->orWhere('applicant_username', '');
+        })->whereNotIn('status', ['Completed', 'Cancelled'])->count();
+
+        $pendingJobs = JobPost::whereNotNull('applicant_username')
+            ->where('applicant_username', '!=', '')
+            ->whereNotIn('status', ['Completed', 'Cancelled'])
+            ->count();
+
         $skilledWorkers = User::where('role', 'skilled worker')->count();
         $residential = User::where('role', 'residential')->count();
         $complaintsCount = Complaint::where('status', '!=', 'Resolved')->count();

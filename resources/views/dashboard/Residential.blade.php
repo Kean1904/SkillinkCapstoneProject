@@ -475,7 +475,13 @@
         <div class="overlay"></div>
         <div class="page-inner">
 
-            <h2 class="page-title">RESIDENTIAL</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                <h2 class="page-title" style="margin-bottom: 0;">RESIDENTIAL</h2>
+                <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; padding: 5px 14px; border-radius: 20px; font-size: 11.5px; color: #6ee7b7; font-weight: 600;">
+                    <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block; box-shadow: 0 0 8px #10b981;"></span>
+                    <span>Live Cloud Sync</span>
+                </div>
+            </div>
 
             <div class="dashboard-grid">
 
@@ -488,7 +494,7 @@
                             <p class="label">AVAILABLE SKILLED WORKER</p>
                             <div class="value-row">
                                 <div class="stat-icon"><i class="fa-solid fa-user-group"></i></div>
-                                <span class="stat-number">{{ $availableWorkers ?? 0 }}</span>
+                                <span class="stat-number" id="statAvailableWorkers">{{ $availableWorkers ?? 0 }}</span>
                             </div>
                         </div>
 
@@ -496,7 +502,7 @@
                             <p class="label">POST JOB</p>
                             <div class="value-row">
                                 <div class="stat-icon"><i class="fa-solid fa-briefcase"></i></div>
-                                <span class="stat-number">{{ $postedJobs ?? 0 }}</span>
+                                <span class="stat-number" id="statPostedJobs">{{ $postedJobs ?? 0 }}</span>
                             </div>
                         </div>
                     </div>
@@ -568,6 +574,52 @@
         document.getElementById('sidebar').classList.toggle('active');
         document.getElementById('sidebarOverlay').classList.toggle('active');
     }
+
+    // Live Cloudbase Stats Synchronizer for Residential Dashboard (5-second interval)
+    function pollResidentialLiveStats() {
+        fetch("{{ route('dashboard.live_stats') }}?username={{ urlencode(session('user_name') ?? '') }}", {
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (!data || !data.success) return;
+
+            const elWorkers = document.getElementById('statAvailableWorkers');
+            const elPosted = document.getElementById('statPostedJobs');
+
+            if (elWorkers && data.availableWorkers !== undefined) {
+                if (parseInt(elWorkers.textContent.trim(), 10) !== data.availableWorkers) {
+                    elWorkers.textContent = data.availableWorkers;
+                    if (elWorkers.parentElement && elWorkers.parentElement.parentElement) {
+                        const card = elWorkers.parentElement.parentElement;
+                        card.style.transition = 'all 0.3s ease';
+                        card.style.boxShadow = '0 0 20px #10b981';
+                        setTimeout(() => { card.style.boxShadow = ''; }, 1200);
+                    }
+                }
+            }
+
+            if (elPosted && data.myPostedJobs !== undefined) {
+                if (parseInt(elPosted.textContent.trim(), 10) !== data.myPostedJobs) {
+                    elPosted.textContent = data.myPostedJobs;
+                    if (elPosted.parentElement && elPosted.parentElement.parentElement) {
+                        const card = elPosted.parentElement.parentElement;
+                        card.style.transition = 'all 0.3s ease';
+                        card.style.boxShadow = '0 0 20px #3b82f6';
+                        setTimeout(() => { card.style.boxShadow = ''; }, 1200);
+                    }
+                }
+            }
+        })
+        .catch(err => {
+            console.debug('Residential live sync error:', err);
+        });
+    }
+
+    setInterval(pollResidentialLiveStats, 5000);
     </script>
 
     @include('partials.privacy_consent_modal')

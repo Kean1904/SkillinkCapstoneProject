@@ -470,14 +470,15 @@
         <div class="overlay"></div>
         <div class="page-inner">
 
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
                 <div>
                     <h2 class="page-title" style="margin-bottom: 4px;">PESO Staff Dashboard</h2>
                     <p style="color: rgba(255,255,255,0.8); font-size: 13px;">Public Employment Service Office — Municipality of Magalang</p>
                 </div>
                 <div>
-                    <span style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #4ade80; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: bold;">
-                        <i class="fa-solid fa-shield-halved"></i> Official PESO Portal
+                    <span style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #4ade80; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; display: inline-flex; align-items: center; gap: 8px;">
+                        <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block; box-shadow: 0 0 8px #10b981;"></span>
+                        Live Cloud Sync
                     </span>
                 </div>
             </div>
@@ -499,7 +500,7 @@
                             <p class="label">AVAILABLE JOBS</p>
                             <div class="value-row">
                                 <div class="stat-icon"><i class="fa-solid fa-briefcase"></i></div>
-                                <span class="stat-number">{{ $availableJobs ?? 0 }}</span>
+                                <span class="stat-number" id="statAvailableJobs">{{ $availableJobs ?? 0 }}</span>
                             </div>
                         </div>
 
@@ -507,7 +508,7 @@
                             <p class="label">PENDING JOBS</p>
                             <div class="value-row">
                                 <div class="stat-icon"><i class="fa-solid fa-clock"></i></div>
-                                <span class="stat-number">{{ $pendingJobs ?? 0 }}</span>
+                                <span class="stat-number" id="statPendingJobs">{{ $pendingJobs ?? 0 }}</span>
                             </div>
                         </div>
 
@@ -515,7 +516,7 @@
                             <p class="label">SKILLED WORKERS</p>
                             <div class="value-row">
                                 <div class="stat-icon"><i class="fa-solid fa-user-gear"></i></div>
-                                <span class="stat-number">{{ $skilledWorkers ?? 0 }}</span>
+                                <span class="stat-number" id="statSkilledWorkers">{{ $skilledWorkers ?? 0 }}</span>
                             </div>
                         </div>
 
@@ -523,7 +524,7 @@
                             <p class="label">RESIDENTIAL</p>
                             <div class="value-row">
                                 <div class="stat-icon"><i class="fa-solid fa-house-chimney"></i></div>
-                                <span class="stat-number">{{ $residential ?? 0 }}</span>
+                                <span class="stat-number" id="statResidential">{{ $residential ?? 0 }}</span>
                             </div>
                         </div>
                     </div>
@@ -694,6 +695,45 @@
         document.getElementById('sidebar').classList.toggle('active');
         document.getElementById('sidebarOverlay').classList.toggle('active');
     }
+
+    // Live Cloudbase Stats Synchronizer for PESO Staff Dashboard (5-second interval)
+    function pollPesoStaffLiveStats() {
+        fetch("{{ route('dashboard.live_stats') }}", {
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (!data || !data.success) return;
+
+            const updateStat = (id, newVal, highlightColor) => {
+                const el = document.getElementById(id);
+                if (el && newVal !== undefined) {
+                    if (parseInt(el.textContent.trim(), 10) !== newVal) {
+                        el.textContent = newVal;
+                        if (el.parentElement && el.parentElement.parentElement) {
+                            const card = el.parentElement.parentElement;
+                            card.style.transition = 'all 0.3s ease';
+                            card.style.boxShadow = `0 0 20px ${highlightColor}`;
+                            setTimeout(() => { card.style.boxShadow = ''; }, 1200);
+                        }
+                    }
+                }
+            };
+
+            updateStat('statAvailableJobs', data.availableJobs, '#60a5fa');
+            updateStat('statPendingJobs', data.pendingJobs, '#eab308');
+            updateStat('statSkilledWorkers', data.totalWorkers, '#38bdf8');
+            updateStat('statResidential', data.residential, '#34d399');
+        })
+        .catch(err => {
+            console.debug('PESO Staff live sync error:', err);
+        });
+    }
+
+    setInterval(pollPesoStaffLiveStats, 5000);
     </script>
 
     @include('partials.privacy_consent_modal')

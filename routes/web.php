@@ -7,12 +7,16 @@ use App\Http\Controllers\PesoStaffController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\SkilledWorkerWebController;
 use App\Http\Controllers\ResidentialWebController;
+use App\Http\Controllers\DashboardStatsController;
 
 /*
 |--------------------------------------------------------------------------
 | Web Routes
 |--------------------------------------------------------------------------
 */
+
+// Live Dashboard Stats Polling Endpoint (Shared with mobile & all web dashboards)
+Route::get('/dashboard/live-stats', [DashboardStatsController::class, 'getLiveStats'])->name('dashboard.live_stats');
 
 // Landing / Home page
 Route::get('/', function () {
@@ -49,9 +53,17 @@ Route::post('/user/consent/accept', [LoginController::class, 'acceptConsent'])->
 |--------------------------------------------------------------------------
 */
 Route::get('/dashboard/SkilledWorker', function () {
-    $availableJobs = \App\Models\JobPost::where('status', '!=', 'Completed')->count();
-    $pendingJobs = \App\Models\JobPost::where('status', 'Pending')->count();
-    $jobsList = \App\Models\JobPost::where('status', '!=', 'Completed')->latest()->take(10)->get();
+    $availableJobs = \App\Models\JobPost::where(function ($q) {
+        $q->whereNull('applicant_username')
+          ->orWhere('applicant_username', '');
+    })->whereNotIn('status', ['Completed', 'Cancelled'])->count();
+
+    $pendingJobs = \App\Models\JobPost::whereNotNull('applicant_username')
+        ->where('applicant_username', '!=', '')
+        ->whereNotIn('status', ['Completed', 'Cancelled'])
+        ->count();
+
+    $jobsList = \App\Models\JobPost::whereNotIn('status', ['Completed', 'Cancelled'])->latest('created_at')->take(10)->get();
     return view('dashboard.SkilledWorker', compact('availableJobs', 'pendingJobs', 'jobsList'));
 })->name('dashboard.SkilledWorker');
 
