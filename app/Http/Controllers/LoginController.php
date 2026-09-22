@@ -34,6 +34,7 @@ class LoginController extends Controller
         Session::put('full_name', $user->first_name . ' ' . $user->last_name);
         Session::put('user_role', $user->role);
         Session::put('profile_image_uri', $user->profile_image_uri);
+        Session::put('privacy_consent_accepted', (bool) $user->privacy_consent_accepted);
         \Illuminate\Support\Facades\Auth::login($user);
 
         // I-redirect base sa role
@@ -44,6 +45,33 @@ class LoginController extends Controller
             'residential'    => redirect()->route('dashboard.Residential'),
             default          => redirect()->route('Login')->withErrors(['username' => 'Unknown role.']),
         };
+    }
+
+    /**
+     * Accept Data Privacy Consent from the dashboard barrier modal.
+     */
+    public function acceptConsent(Request $request)
+    {
+        $userId = Session::get('user_id') ?? (\Illuminate\Support\Facades\Auth::id());
+        if (!$userId) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized. Mangyaring mag-login muli.'], 401);
+        }
+
+        $user = User::where('user_id', $userId)->first();
+        if ($user) {
+            $user->privacy_consent_accepted = true;
+            $user->privacy_consent_accepted_at = now();
+            $user->save();
+
+            Session::put('privacy_consent_accepted', true);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Matagumpay na naitala ang iyong pahintulot sa Data Privacy.',
+            ]);
+        }
+
+        return response()->json(['success' => false, 'message' => 'User not found.'], 404);
     }
 
     public function logout(Request $request)

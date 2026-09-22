@@ -76,6 +76,8 @@ class AuthApiController extends Controller
             'is_verified'       => $isSkilled ? false : true,
             'rating'            => 5.00,
             'status'            => 'active',
+            'privacy_consent_accepted'    => true,
+            'privacy_consent_accepted_at' => now(),
         ]);
 
         if ($isSkilled) {
@@ -98,23 +100,26 @@ class AuthApiController extends Controller
             'message' => 'Account created successfully!',
             'token'   => $token,
             'user'    => [
-                'user_id'          => $user->user_id,
-                'id'               => $user->user_id,
-                'fullName'         => $user->full_name,
-                'full_name'        => $user->full_name,
-                'firstName'        => $user->first_name,
-                'lastName'         => $user->last_name,
-                'username'         => $user->name,
-                'email'            => $user->email,
-                'role'             => $user->role,
-                'barangay'         => $user->barangay,
-                'cellphone'        => $user->contact_number,
-                'phoneNumber'      => $user->contact_number,
-                'skills'           => $user->skills,
-                'certificateProof' => $user->certificate_proof,
-                'isVerified'       => (bool) $user->is_verified,
-                'rating'           => (float) ($user->rating ?? 5.0),
-                'profileImageUri'  => $user->profile_image_uri,
+                'user_id'                 => $user->user_id,
+                'id'                      => $user->user_id,
+                'fullName'                => $user->full_name,
+                'full_name'               => $user->full_name,
+                'firstName'               => $user->first_name,
+                'lastName'                => $user->last_name,
+                'username'                => $user->name,
+                'email'                   => $user->email,
+                'role'                    => $user->role,
+                'barangay'                => $user->barangay,
+                'cellphone'               => $user->contact_number,
+                'phoneNumber'             => $user->contact_number,
+                'skills'                  => $user->skills,
+                'certificateProof'        => $user->certificate_proof,
+                'isVerified'              => (bool) $user->is_verified,
+                'rating'                  => (float) ($user->rating ?? 5.0),
+                'profileImageUri'         => $user->profile_image_uri,
+                'isConsentAccepted'       => true,
+                'privacyConsentAccepted'  => true,
+                'privacy_consent_accepted'=> true,
             ],
         ], 201);
     }
@@ -143,25 +148,64 @@ class AuthApiController extends Controller
             'message' => 'Login successful!',
             'token'   => $token,
             'user'    => [
-                'user_id'          => $user->user_id,
-                'id'               => $user->user_id,
-                'fullName'         => $user->full_name,
-                'full_name'        => $user->full_name,
-                'firstName'        => $user->first_name,
-                'lastName'         => $user->last_name,
-                'username'         => $user->name,
-                'email'            => $user->email,
-                'role'             => $user->role,
-                'barangay'         => $user->barangay,
-                'cellphone'        => $user->contact_number,
-                'phoneNumber'      => $user->contact_number,
-                'skills'           => $user->skills,
-                'certificateProof' => $user->certificate_proof,
-                'isVerified'       => (bool) $user->is_verified,
-                'rating'           => (float) ($user->rating ?? 5.0),
-                'profileImageUri'  => $user->profile_image_uri,
+                'user_id'                 => $user->user_id,
+                'id'                      => $user->user_id,
+                'fullName'                => $user->full_name,
+                'full_name'               => $user->full_name,
+                'firstName'               => $user->first_name,
+                'lastName'                => $user->last_name,
+                'username'                => $user->name,
+                'email'                   => $user->email,
+                'role'                    => $user->role,
+                'barangay'                => $user->barangay,
+                'cellphone'               => $user->contact_number,
+                'phoneNumber'             => $user->contact_number,
+                'skills'                  => $user->skills,
+                'certificateProof'        => $user->certificate_proof,
+                'isVerified'              => (bool) $user->is_verified,
+                'rating'                  => (float) ($user->rating ?? 5.0),
+                'profileImageUri'         => $user->profile_image_uri,
+                'isConsentAccepted'       => (bool) $user->privacy_consent_accepted,
+                'privacyConsentAccepted'  => (bool) $user->privacy_consent_accepted,
+                'privacy_consent_accepted'=> (bool) $user->privacy_consent_accepted,
             ],
         ], 200);
+    }
+
+    /**
+     * Mobile API: Update Data Privacy Consent for User
+     */
+    public function updateConsent(Request $request)
+    {
+        $user = $request->user();
+        if (!$user) {
+            $identifier = $request->input('user_id') ?? $request->input('username') ?? $request->input('email');
+            if ($identifier) {
+                $user = User::where('user_id', $identifier)
+                    ->orWhere('name', $identifier)
+                    ->orWhere('email', $identifier)
+                    ->first();
+            }
+        }
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not found.',
+            ], 404);
+        }
+
+        $user->privacy_consent_accepted = true;
+        $user->privacy_consent_accepted_at = now();
+        $user->save();
+
+        return response()->json([
+            'success'                => true,
+            'message'                => 'Matagumpay na naitala ang iyong pahintulot sa Data Privacy.',
+            'isConsentAccepted'      => true,
+            'privacyConsentAccepted' => true,
+            'privacy_consent_accepted' => true,
+        ]);
     }
 
     // LOGOUT

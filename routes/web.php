@@ -41,6 +41,7 @@ Route::get('/password/reset/{token}', [LoginController::class, 'showResetPasswor
 Route::post('/password/reset', [LoginController::class, 'updatePasswordWithToken'])->name('password.reset.submit');
 
 Route::get('/logout', [LoginController::class, 'logout'])->name('logout');
+Route::post('/user/consent/accept', [LoginController::class, 'acceptConsent'])->name('user.consent.accept');
 
 /*
 |--------------------------------------------------------------------------

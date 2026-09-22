@@ -889,5 +889,7 @@
             if (overlay) overlay.classList.toggle('active');
         }
     </script>
+
+    @include('partials.privacy_consent_modal')
 </body>
 </html>

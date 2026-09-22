@@ -31,6 +31,8 @@ class User extends Authenticatable
         'profile_image_uri',
         'location_tag',
         'status',
+        'privacy_consent_accepted',
+        'privacy_consent_accepted_at',
     ];
 
     protected $hidden = [
@@ -41,6 +43,8 @@ class User extends Authenticatable
         'is_verified' => 'boolean',
         'rating' => 'float',
         'age' => 'integer',
+        'privacy_consent_accepted' => 'boolean',
+        'privacy_consent_accepted_at' => 'datetime',
     ];
 
     public function getAuthPassword()

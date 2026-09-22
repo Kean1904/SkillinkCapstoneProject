@@ -70,8 +70,10 @@ class RegisterController extends Controller
             'skills'            => $request->input('skills', $isSkilledWorker ? 'General Handyman' : null),
             'certificate_proof' => $request->input('certificate_proof', null),
             'is_verified'       => $isSkilledWorker ? false : true, // Skilled workers await PESO accreditation
-            'rating'            => 5.00,
-            'status'            => 'active',
+            'rating'                      => 5.00,
+            'status'                      => 'active',
+            'privacy_consent_accepted'    => (bool) $request->input('privacy_consent_accepted', true),
+            'privacy_consent_accepted_at' => now(),
         ]);
 
         // 3. Create worker_profile if skilled worker

@@ -696,5 +696,7 @@
     }
     </script>
 
+    @include('partials.privacy_consent_modal')
+
 </body>
 </html>
