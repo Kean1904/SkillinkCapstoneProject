@@ -27,6 +27,27 @@ Route::get('/mail-health', function () {
         'brevo_sender' => $sender,
     ]);
 });
+Route::get('/mail-test', function () {
+    $brevoKey = config('services.brevo.key') ?: env('BREVO_API_KEY');
+    $sender = config('services.brevo.sender_email') ?: env('BREVO_SENDER_EMAIL', 'torreskeanashleym2021@gmail.com');
+    
+    $res = \Illuminate\Support\Facades\Http::timeout(10)->withHeaders([
+        'api-key' => $brevoKey,
+        'Content-Type' => 'application/json',
+        'Accept' => 'application/json',
+    ])->post('https://api.brevo.com/v3/smtp/email', [
+        'sender' => ['name' => 'PESO Magalang - SKILLINK', 'email' => $sender],
+        'to' => [['email' => 'keant5104@gmail.com']],
+        'subject' => 'Railway Live Diagnostic Test',
+        'htmlContent' => '<p>Direct call from Railway container</p>',
+    ]);
+
+    return response()->json([
+        'brevo_status' => $res->status(),
+        'brevo_body' => $res->json() ?? $res->body(),
+        'used_key_suffix' => substr($brevoKey ?? '', -8),
+    ]);
+});
 
 // Citizens & Workers
 Route::get('/workers', [CitizenApiController::class, 'getWorkers']);
