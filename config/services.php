@@ -32,7 +32,7 @@ return [
     ],
 
     'brevo' => [
-        'key' => env('BREVO_API_KEY', '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'),
+        'key' => env('BREVO_API_KEY', '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'),
         'sender_email' => env('BREVO_SENDER_EMAIL', 'torreskeanashleym2021@gmail.com'),
     ],
 
