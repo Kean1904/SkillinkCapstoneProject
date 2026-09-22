@@ -10,7 +10,7 @@ use Illuminate\Mail\Mailable;
 class ResendMailService
 {
     /**
-     * Send email using Resend HTTPS REST API (Port 443), with automatic fallback to Laravel SMTP.
+     * Send email using Brevo or Resend HTTPS REST API (Port 443), with automatic fallback to Laravel SMTP.
      *
      * @param string $to
      * @param Mailable $mailable
@@ -18,28 +18,66 @@ class ResendMailService
      */
     public static function sendMailable(string $to, Mailable $mailable): bool
     {
-        $apiKey = env('RESEND_API_KEY');
+        $brevoKey = env('BREVO_API_KEY');
+        $resendKey = env('RESEND_API_KEY');
 
-        if (!empty($apiKey)) {
-            try {
-                $html = $mailable->render();
+        $html = '';
+        $subject = 'SKILLINK Magalang Notification';
 
-                // Extract subject from envelope or property
-                $subject = 'SKILLINK Magalang Notification';
-                if (method_exists($mailable, 'envelope')) {
-                    $envelope = $mailable->envelope();
-                    if ($envelope && !empty($envelope->subject)) {
-                        $subject = $envelope->subject;
-                    }
-                } elseif (!empty($mailable->subject)) {
-                    $subject = $mailable->subject;
+        try {
+            $html = $mailable->render();
+
+            if (method_exists($mailable, 'envelope')) {
+                $envelope = $mailable->envelope();
+                if ($envelope && !empty($envelope->subject)) {
+                    $subject = $envelope->subject;
                 }
+            } elseif (!empty($mailable->subject)) {
+                $subject = $mailable->subject;
+            }
+        } catch (\Throwable $e) {
+            Log::error("Failed to render mailable before sending: " . $e->getMessage());
+        }
 
-                $fromName = config('mail.from.name', 'SKILLINK PESO Magalang');
+        $fromName = config('mail.from.name', 'PESO Magalang - SKILLINK');
+        $fromEmail = config('mail.from.address', 'torreskeanashleym2021@gmail.com');
+
+        // 🌟 TIER 1: Brevo HTTPS REST API (Supports sending to ANY recipient email over port 443)
+        if (!empty($brevoKey)) {
+            try {
+                $brevoRes = Http::timeout(10)->withHeaders([
+                    'api-key' => $brevoKey,
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json',
+                ])->post('https://api.brevo.com/v3/smtp/email', [
+                    'sender' => [
+                        'name' => $fromName,
+                        'email' => $fromEmail,
+                    ],
+                    'to' => [
+                        ['email' => $to]
+                    ],
+                    'subject' => $subject,
+                    'htmlContent' => $html,
+                ]);
+
+                if ($brevoRes->successful()) {
+                    Log::info("Brevo HTTPS API delivered email to {$to} [Subject: {$subject}]");
+                    return true;
+                } else {
+                    Log::warning("Brevo API failed for {$to} (Status {$brevoRes->status()}): " . $brevoRes->body());
+                }
+            } catch (\Throwable $e) {
+                Log::warning("Brevo API exception for {$to}: " . $e->getMessage());
+            }
+        }
+
+        // 🌟 TIER 2: Resend HTTPS REST API (Port 443)
+        if (!empty($resendKey)) {
+            try {
                 $fromHeader = "{$fromName} <onboarding@resend.dev>";
-
-                $response = Http::timeout(10)->withHeaders([
-                    'Authorization' => 'Bearer ' . $apiKey,
+                $resendRes = Http::timeout(10)->withHeaders([
+                    'Authorization' => 'Bearer ' . $resendKey,
                     'Content-Type' => 'application/json',
                 ])->post('https://api.resend.com/emails', [
                     'from' => $fromHeader,
@@ -48,20 +86,21 @@ class ResendMailService
                     'html' => $html,
                 ]);
 
-                if ($response->successful()) {
+                if ($resendRes->successful()) {
                     Log::info("Resend HTTPS API delivered email to {$to} [Subject: {$subject}]");
                     return true;
                 } else {
-                    Log::warning("Resend HTTPS API failed for {$to} (Status {$response->status()}): " . $response->body() . ". Attempting SMTP fallback...");
+                    Log::warning("Resend API failed for {$to} (Status {$resendRes->status()}): " . $resendRes->body());
                 }
             } catch (\Throwable $e) {
-                Log::warning("Resend HTTPS API exception for {$to}: " . $e->getMessage() . ". Attempting SMTP fallback...");
+                Log::warning("Resend API exception for {$to}: " . $e->getMessage());
             }
         }
 
-        // Fallback to standard Laravel SMTP Mail facade
+        // 🌟 TIER 3: Fallback to standard Laravel SMTP
         try {
             Mail::to($to)->send($mailable);
+            Log::info("Fallback SMTP delivered email to {$to}");
             return true;
         } catch (\Throwable $e) {
             Log::error("SMTP delivery also failed for {$to}: " . $e->getMessage());
