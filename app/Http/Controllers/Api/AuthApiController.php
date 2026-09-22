@@ -72,7 +72,9 @@ class AuthApiController extends Controller
             'address'           => $validated['address'],
             'location_tag'      => $validated['barangay'],
             'skills'            => $request->input('skills', $isSkilled ? 'General Handyman' : null),
-            'certificate_proof' => $request->input('certificateProof', $request->input('certificate_proof', null)),
+            'certificate_proof' => (($request->input('certificateProof') === 'Other' || $request->input('certificate_proof') === 'Other') && ($request->filled('otherCertificateProof') || $request->filled('other_certificate_proof')))
+                                    ? ($request->input('otherCertificateProof') ?? $request->input('other_certificate_proof'))
+                                    : $request->input('certificateProof', $request->input('certificate_proof', null)),
             'is_verified'       => $isSkilled ? false : true,
             'rating'            => 5.00,
             'status'            => 'active',

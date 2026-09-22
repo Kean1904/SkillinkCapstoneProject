@@ -68,7 +68,9 @@ class RegisterController extends Controller
             'address'           => $validated['address'],
             'location_tag'      => $validated['barangay'],
             'skills'            => $request->input('skills', $isSkilledWorker ? 'General Handyman' : null),
-            'certificate_proof' => $request->input('certificate_proof', null),
+            'certificate_proof' => ($request->input('certificate_proof') === 'Other' && $request->filled('other_certificate_proof'))
+                                    ? $request->input('other_certificate_proof')
+                                    : $request->input('certificate_proof', null),
             'is_verified'       => $isSkilledWorker ? false : true, // Skilled workers await PESO accreditation
             'rating'                      => 5.00,
             'status'                      => 'active',

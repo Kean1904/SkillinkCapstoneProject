@@ -1,3 +1,168 @@
+@php
+$tesdaCertificates = [
+    'Domestic Work NC II',
+    'Domestic Work NC II – Mobile Training Program',
+    'Household Services NC II',
+    'Housekeeping NC II',
+    'Housekeeping NC II – LEP',
+    'Housekeeping NC II – Mobile Training Program',
+    'Housekeeping NC II (BSHRM Course Exit point Ist Yr.-2nd Sem)',
+    'Housekeeping NC II (LEP)',
+    'Housekeeping NC III',
+    'Housekeeping NC III – Mobile Training Program',
+    'Housekeeping Services Leading to Housekeeping NC II',
+    'Driving (Articulated Vehicle) NC III',
+    'Driving (Bus Straight) NC III',
+    'Driving (Passenger Bus/Straight Truck) NC III – Mobile Training Program',
+    'Driving (Passenger/Bus/Straight Truck) NC III',
+    'Driving (Passenger/Straight Truck) NC III',
+    'Driving NC II',
+    'Driving NC II – Mobile Training Program',
+    'Driving NC III',
+    'Driving NC III – Mobile Training Program',
+    'Light Vehicle Driving NC II',
+    'Light Vehicle Driving NC II – Mobile Training Program',
+    'Train Driving Level II',
+    'Barista',
+    'Barista NC II',
+    'Barista NC II – Mobile Training Program',
+    'Bartending NC II',
+    'Bartending NC II – Mobile Training Program',
+    'Bartending NC II (BSHRM Course Exit point 1st Yr. -2nd Sem.)',
+    'Bartending NC II (LEP)',
+    'Bartending NC II EO358 (BSHRM Course Exit point 1st Yr. -2nd Sem.)',
+    'Bread and Pastry Production NC II',
+    'Bread and Pastry Production NC II – Mobile Training Program',
+    'Bread and Pastry Production NC II (BSHRM Course Ist Yr,-2nd Sem.)',
+    'Bread and Pastry Production NC II (LEP)',
+    'Bread and Pastry Production NC II EO358 (BSHRM Course Ist Yr,-2nd Sem.)',
+    'Bread/Pastry Production Services NC II',
+    'Computer Hardware Servicing NC II',
+    'Computer Hardware Servicing NC II – Mobile Training Program',
+    'Computer Hardware Servicing NC II (LEP – EO358 – BSCS Course exit point 1st yr., 2nd sem.)',
+    'Computer Hardware Servicing NC II (LEP Program BSCS Course)',
+    'Computer Hardware Servicing NC II (LEP Program BSCS/BSIT Course)',
+    'Computer Literacy',
+    'Computer Network Administration',
+    'Computer Network Administration II',
+    'Computer Network Administration Level III',
+    'Computer Network Administration lll',
+    'Computer Programming NC IV',
+    'Computer Secretarial',
+    'Computer System and Network Technology',
+    'Computer Systems Services – Bundled Programs (Computer Systems Servicing NC II- 280 hrs., Bookkeeping NC III-292 hrs.)',
+    'Computer Systems Servicing NC II',
+    'Computer Systems Servicing NC II – Mobile Training Program',
+    'Computer Systems Servicing NC II (DTS)',
+    'Configure and Test Mechatronics Devices Leading to Mechatronics Servicing NC II',
+    'Creative Web Design',
+    'Creative Web Design II',
+    'Creative Web Design Level II',
+    'Creative Web Design Level III',
+    'Creative Web Design Program',
+    'Creative Web Developer',
+    'Database Management and Applications Programmer',
+    'Career Entry Course for Software Developer NC IV Using Java',
+    'Career Entry Course for Software Developer NC IV Using Microsoft.Net',
+    'Career Entry Course for Software Developers – JAVA',
+    'Career Entry Course for Software Developers – Microsoft.Net',
+    'Career Entry Course for Software Developers – ORACLE',
+    'Career Entry Course for Software Developers NC IV Using Cobol',
+    'Career Entry Course for Software Developers NC IV Using Java',
+    'Career Entry Course for Software Developers NC IV Using Microsoft.Net',
+    'Career Entry Course for Software Developers NC IV Using Oracle',
+    'Career Entry Course for Software Developers NC IV Using RPG',
+    'Career Entry for Software Developers – Java NC IV',
+    'Career Entry for Software Developers – Microsoft.net NC IV',
+    'Career Entry for Software Developers – Oracle NC IV',
+    'Programming NC IV (LEP EO358 – BSCS Course exit point 2nd yr., 2nd sem)',
+    'Programming NC IV (LEP EO358 – BSIT Course exit point 2nd Yr.- 2nd sem)',
+    'Programming NC IV (LEP Program BSCS Course)',
+    'Programming NC IV (LEP Program BSCS/BSIT Course)',
+    'Programming NC IV -EO358 (BSCS Course Exit point 2nd Yr,-2nd Sem.)',
+    'Programming NC IV LEP -EO358 (BSCS Course Exit point 2nd Yr.-2nd Sem.)',
+    'Videography/Film Production',
+    'Visual Graphic Design NC III',
+    'Visual Graphic Design NC III – Mobile Training Program',
+    'Visual Graphic Design Services – Bundled Programs (Visual Graphic Design NC III- 487 hrs., Bookkeeping NC III-292 hrs.)',
+    'Visual Graphics Design NC II',
+    'Visual Graphics Design NC III',
+    'Web Application Development',
+    'Web Design',
+    'Web Design and Development',
+    'Web Design NC II',
+    'Web Development',
+    'Web Development II',
+    'Web Development Level II',
+    'Web Development Level III',
+    'Web Development Program',
+    '3-Year Welding Technology (Bundled Qualification in SMAW NC II, GMAW NC II, GTAW NC II, SMAW NC III)',
+    'Blasting/Painting',
+    'Building Care and Maintenance',
+    'Building Maintenance Contract Cleaner',
+    'Building Maintenance Handyman',
+    'Building Maintenance Supervision',
+    'Building Wiring Installation NC II',
+    'Carpentry NC II',
+    'Carpentry NC II – Mobile Training Program',
+    'Carpentry NC III',
+    'CNC Lathe Machine Operation NC III',
+    'CNC Machining',
+    'CNC Milling Machine Operation NC II',
+    'CNC Milling Operation NC II',
+    'CNC Milling Programming',
+    'Construction Painting NC II',
+    'Flux Cored Arc Welding (FCAW) NC I',
+    'Flux Cored Arc Welding (FCAW) NC II',
+    'Flux Cored Arc Welding (FCAW) NC II – Mobile Training Program',
+    'Furniture and Cabinet Making NC II',
+    'Furniture Making (Finishing) NC II',
+    'Golf Complex Operations',
+    'Grassroots Entrepreneurship & Management Program',
+    'Ground Equipment Operators',
+    'Gas Metal Arc Welding (GMAW) NC I',
+    'Gas Metal Arc Welding (GMAW) NC II',
+    'Gas Metal Arc Welding (GMAW) NC II – Mobile Training Program',
+    'Gas Metal Arc Welding (GMAW) NC III',
+    'Gas Metal Arc Welding (GMAW) NC III – Mobile Training Program',
+    'Gas Tungsten Arc Welding (GTAW) NC II',
+    'Gas Tungsten Arc Welding (GTAW) NC II – Mobile Training Program',
+    'Gas Welding NC I (LEP)',
+    'Gas Welding NC II',
+    'Gas Welding NC II – Mobile Training Program',
+    'Gas Welding NC II (LEP)',
+    'Horticulture NC II',
+    'Horticulture NC III',
+    'Landscape Installation & Maintenance (Softscape) NC II',
+    'Landscape Installation & Maintenance NC II',
+    'Landscape Installation and Maintenance (Sofscape) NC II',
+    'Masonry NC I',
+    'Masonry NC I – Mobile Training Program',
+    'Masonry NC II',
+    'Masonry NC II – Mobile Training Program',
+    'Masonry NC III',
+    'Pipe Insulation',
+    'Pipe-fitting NC II',
+    'Pipe-fitting NC II – Mobile Training Program',
+    'Plumbing NC I',
+    'Plumbing NC I – Mobile Training Program',
+    'Plumbing NC II – Mobile Training Program',
+    'Plumbing NC III',
+    'Shielded Metal Arc Welding (SMAW) NC I',
+    'Shielded Metal Arc Welding (SMAW) NC I – Mobile Training Program',
+    'Shielded Metal Arc Welding (SMAW) NC II',
+    'Shielded Metal Arc Welding (SMAW) NC II – Mobile Training Program',
+    'Shielded Metal Arc Welding (SMAW) NC III',
+    'Shielded Metal Arc Welding (SMAW) NC III – Mobile Training Program',
+    'Shielded Metal Arc Welding NC I',
+    'Shielded Metal Arc Welding NC I – Mobile Training Program',
+    'Shielded Metal Arc Welding NC II',
+    'Welding (SMAW) NC II',
+    'Welding and Fabrication Technology (Bundled Qualifications in SMAW NC I, SMAW NC II, GTAW NC II)',
+    'Welding NC II',
+    'Welding Technology (Bundled Qualifications in SMAW NC I and SMAW NC II)',
+];
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -379,8 +544,17 @@
                         <div class="input-group" style="margin-bottom: 10px;">
                             <input type="text" name="skills" placeholder="Skills / Trabaho (hal. Plumbing, Electrical, Carpentry)">
                         </div>
-                        <div class="input-group" style="margin-bottom: 0;">
-                            <input type="text" name="certificate_proof" placeholder="TESDA Certificate / Proof (hal. TESDA NC II - Plumbing)">
+                        <div class="input-group select-wrapper" style="margin-bottom: 10px;">
+                            <select name="certificate_proof" id="certificateSelect" onchange="onCertificateChange()">
+                                <option value="" disabled selected hidden>Pumili ng TESDA Certificate / Qualification</option>
+                                @foreach($tesdaCertificates as $cert)
+                                    <option value="{{ $cert }}" {{ old('certificate_proof') === $cert ? 'selected' : '' }}>{{ $cert }}</option>
+                                @endforeach
+                                <option value="Other" {{ old('certificate_proof') === 'Other' ? 'selected' : '' }}>Other</option>
+                            </select>
+                        </div>
+                        <div class="input-group" id="otherCertificateGroup" style="display: none; margin-bottom: 0;">
+                            <input type="text" name="other_certificate_proof" id="otherCertificateInput" placeholder="Pakilagay ang ibang TESDA Certificate / Qualification" value="{{ old('other_certificate_proof') }}">
                         </div>
                     </div>
 
@@ -431,10 +605,18 @@
             const role = roleSelect.value;
 
             // Show/hide skilled worker fields
+            const certSelect = document.getElementById('certificateSelect');
             if (role === 'Skilled Worker') {
                 skilledFields.style.display = 'block';
+                if (certSelect) certSelect.required = true;
+                onCertificateChange();
             } else {
                 skilledFields.style.display = 'none';
+                if (certSelect) certSelect.required = false;
+                const otherInput = document.getElementById('otherCertificateInput');
+                if (otherInput) {
+                    otherInput.required = false;
+                }
             }
 
             // Update placeholder at paalala ayon sa piniling role
@@ -455,6 +637,29 @@
             }
 
             checkUsernameExtension();
+        }
+
+        function onCertificateChange() {
+            const certSelect = document.getElementById('certificateSelect');
+            const otherGroup = document.getElementById('otherCertificateGroup');
+            const otherInput = document.getElementById('otherCertificateInput');
+            const roleSelect = document.getElementById('roleSelect');
+
+            if (roleSelect && roleSelect.value !== 'Skilled Worker') {
+                if (otherGroup) otherGroup.style.display = 'none';
+                if (otherInput) otherInput.required = false;
+                return;
+            }
+
+            if (certSelect && certSelect.value === 'Other') {
+                if (otherGroup) otherGroup.style.display = 'block';
+                if (otherInput) otherInput.required = true;
+            } else {
+                if (otherGroup) otherGroup.style.display = 'none';
+                if (otherInput) {
+                    otherInput.required = false;
+                }
+            }
         }
 
         function checkUsernameExtension() {
