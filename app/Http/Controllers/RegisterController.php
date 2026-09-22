@@ -26,7 +26,31 @@ class RegisterController extends Controller
             'password'    => 'required|string|min:6',
         ]);
 
-        $role = strtolower($validated['role']);
+        $role = strtolower(trim($validated['role']));
+        $username = trim($validated['username']);
+
+        // 🌟 Suffix / Extension Name Validation para sa Admin at PESO Staff
+        if ($role === 'admin') {
+            if (!str_ends_with(strtolower($username), '@admin')) {
+                return back()->withInput()->withErrors([
+                    'username' => 'Ang Admin username ay kinakailangang magtapos sa extension name na @admin o @Admin (halimbawa: ' . (str_contains($username, '@') ? explode('@', $username)[0] : $username) . '@Admin).'
+                ]);
+            }
+        } elseif ($role === 'peso staff' || $role === 'staff') {
+            if (!str_ends_with(strtolower($username), '@staff')) {
+                return back()->withInput()->withErrors([
+                    'username' => 'Ang PESO Staff username ay kinakailangang magtapos sa extension name na @staff o @Staff (halimbawa: ' . (str_contains($username, '@') ? explode('@', $username)[0] : $username) . '@Staff).'
+                ]);
+            }
+        } else {
+            // Residential at Skilled Worker ay bawal gumamit ng @admin o @staff
+            if (str_ends_with(strtolower($username), '@admin') || str_ends_with(strtolower($username), '@staff')) {
+                return back()->withInput()->withErrors([
+                    'username' => 'Ang extension na @admin at @staff ay nakalaan lamang para sa mga opisyal ng PESO at Administrator.'
+                ]);
+            }
+        }
+
         $isSkilledWorker = ($role === 'skilled worker');
 
         // 2. Save to database

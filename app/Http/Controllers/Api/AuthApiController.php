@@ -27,7 +27,30 @@ class AuthApiController extends Controller
             'password'    => 'required|string|min:6',
         ]);
 
-        $role = strtolower($validated['role']);
+        $role = strtolower(trim($validated['role']));
+        $username = trim($validated['username']);
+
+        // 🌟 Suffix / Extension Name Validation para sa Admin at PESO Staff
+        if ($role === 'admin') {
+            if (!str_ends_with(strtolower($username), '@admin')) {
+                return response()->json([
+                    'message' => 'Ang Admin username ay kinakailangang magtapos sa extension name na @admin o @Admin (hal. username@Admin).'
+                ], 422);
+            }
+        } elseif ($role === 'peso staff' || $role === 'staff') {
+            if (!str_ends_with(strtolower($username), '@staff')) {
+                return response()->json([
+                    'message' => 'Ang PESO Staff username ay kinakailangang magtapos sa extension name na @staff o @Staff (hal. username@Staff).'
+                ], 422);
+            }
+        } else {
+            if (str_ends_with(strtolower($username), '@admin') || str_ends_with(strtolower($username), '@staff')) {
+                return response()->json([
+                    'message' => 'Ang extension na @admin at @staff ay nakalaan lamang para sa mga opisyal ng PESO at Administrator.'
+                ], 422);
+            }
+        }
+
         $isSkilled = ($role === 'skilled worker');
 
         $user = User::create([

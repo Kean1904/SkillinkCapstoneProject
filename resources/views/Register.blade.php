@@ -279,6 +279,13 @@
                     <h2>SIGN UP</h2>
                     <p class="subtitle">Create a new account</p>
 
+                    @if (isset($errors) && $errors->any())
+                    <div style="background: rgba(220, 38, 38, 0.25); border: 1px solid #ef4444; color: #fca5a5; padding: 12px 16px; border-radius: 8px; font-size: 13px; margin-bottom: 20px; text-align: left; line-height: 1.4;">
+                        <i class="fa-solid fa-triangle-exclamation" style="color: #f87171; margin-right: 6px;"></i>
+                        <strong>Error:</strong> {{ $errors->first() }}
+                    </div>
+                    @endif
+
                     <!-- First name / Last name -->
                     <div class="form-row">
                         <div class="input-group">
@@ -378,8 +385,9 @@
 
                     <!-- Username -->
                     <div class="input-group">
-                        <input type="text" name="username" placeholder="Username" required>
+                        <input type="text" name="username" id="usernameInput" placeholder="Username" value="{{ old('username') }}" oninput="checkUsernameExtension()" required>
                     </div>
+                    <p id="usernameHint" style="display: none; font-size: 11px; margin-top: -10px; margin-bottom: 15px; text-align: left; line-height: 1.4;"></p>
 
                     <!-- Password with eye toggle -->
                     <!-- Password with eye toggle -->
@@ -417,10 +425,97 @@
         function onRoleChange() {
             const roleSelect = document.getElementById('roleSelect');
             const skilledFields = document.getElementById('skilledWorkerFields');
-            if (roleSelect.value === 'Skilled Worker') {
+            const usernameInput = document.getElementById('usernameInput');
+            const usernameHint = document.getElementById('usernameHint');
+            const role = roleSelect.value;
+
+            // Show/hide skilled worker fields
+            if (role === 'Skilled Worker') {
                 skilledFields.style.display = 'block';
             } else {
                 skilledFields.style.display = 'none';
+            }
+
+            // Update placeholder at paalala ayon sa piniling role
+            if (role === 'Admin') {
+                usernameInput.placeholder = "Username (kailangan ng @Admin o @admin)";
+                usernameHint.style.display = 'block';
+                usernameHint.style.color = '#fde047';
+                usernameHint.innerHTML = '<i class="fa-solid fa-circle-info"></i> <strong>Admin Requirement:</strong> Ang username ay dapat magtapos sa <strong>@admin</strong> o <strong>@Admin</strong> (hal. <code>juan@Admin</code>)';
+            } else if (role === 'Peso Staff') {
+                usernameInput.placeholder = "Username (kailangan ng @Staff o @staff)";
+                usernameHint.style.display = 'block';
+                usernameHint.style.color = '#93c5fd';
+                usernameHint.innerHTML = '<i class="fa-solid fa-circle-info"></i> <strong>PESO Staff Requirement:</strong> Ang username ay dapat magtapos sa <strong>@staff</strong> o <strong>@Staff</strong> (hal. <code>maria@Staff</code>)';
+            } else {
+                usernameInput.placeholder = "Username";
+                usernameHint.style.display = 'none';
+                usernameHint.innerHTML = '';
+            }
+
+            checkUsernameExtension();
+        }
+
+        function checkUsernameExtension() {
+            const roleSelect = document.getElementById('roleSelect');
+            const usernameInput = document.getElementById('usernameInput');
+            const usernameHint = document.getElementById('usernameHint');
+            const role = roleSelect.value;
+            const val = usernameInput.value.trim().toLowerCase();
+
+            if (!val) {
+                if (role === 'Admin' || role === 'Peso Staff') {
+                    return;
+                }
+                usernameHint.style.display = 'none';
+                return;
+            }
+
+            if (role === 'Admin') {
+                usernameHint.style.display = 'block';
+                if (val.endsWith('@admin')) {
+                    usernameHint.style.color = '#86efac';
+                    usernameHint.innerHTML = '<i class="fa-solid fa-circle-check"></i> <strong>Tamang format:</strong> May <code>@Admin</code> / <code>@admin</code> extension.';
+                    usernameInput.setCustomValidity('');
+                } else {
+                    usernameHint.style.color = '#fca5a5';
+                    usernameHint.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> <strong>Kulang ng extension:</strong> Ang Admin username ay dapat magtapos sa <strong>@admin</strong> o <strong>@Admin</strong> (hal. <code>' + (val.includes('@') ? val.split('@')[0] : val) + '@Admin</code>).';
+                    usernameInput.setCustomValidity('Ang Admin username ay dapat magtapos sa @admin o @Admin');
+                }
+            } else if (role === 'Peso Staff') {
+                usernameHint.style.display = 'block';
+                if (val.endsWith('@staff')) {
+                    usernameHint.style.color = '#86efac';
+                    usernameHint.innerHTML = '<i class="fa-solid fa-circle-check"></i> <strong>Tamang format:</strong> May <code>@Staff</code> / <code>@staff</code> extension.';
+                    usernameInput.setCustomValidity('');
+                } else {
+                    usernameHint.style.color = '#fca5a5';
+                    usernameHint.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> <strong>Kulang ng extension:</strong> Ang PESO Staff username ay dapat magtapos sa <strong>@staff</strong> o <strong>@Staff</strong> (hal. <code>' + (val.includes('@') ? val.split('@')[0] : val) + '@Staff</code>).';
+                    usernameInput.setCustomValidity('Ang PESO Staff username ay dapat magtapos sa @staff o @Staff');
+                }
+            } else {
+                if (val.endsWith('@admin') || val.endsWith('@staff')) {
+                    usernameHint.style.display = 'block';
+                    usernameHint.style.color = '#fca5a5';
+                    usernameHint.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Bawal gamitin ang extension na <strong>@admin</strong> o <strong>@staff</strong> para sa mga Residential o Skilled Worker.';
+                    usernameInput.setCustomValidity('Ang @admin at @staff ay para lamang sa mga opisyal.');
+                } else {
+                    usernameHint.style.display = 'none';
+                    usernameInput.setCustomValidity('');
+                }
+            }
+        }
+
+        function checkPasswordStrength() {
+            const passwordInput = document.getElementById('password');
+            const hint = document.getElementById('passwordHint');
+            const pattern = /^(?=.*[0-9])(?=.*[A-Z])(?=.*[@_.%$])[A-Za-z0-9@_.%$]{12,16}$/;
+            if (pattern.test(passwordInput.value)) {
+                hint.classList.remove('invalid');
+                hint.classList.add('valid');
+            } else {
+                hint.classList.remove('valid');
+                hint.classList.add('invalid');
             }
         }
 
@@ -438,6 +533,10 @@
                 eyeIcon.classList.add('fa-eye-slash');
             }
         }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            onRoleChange();
+        });
     </script>
 
 </body>
