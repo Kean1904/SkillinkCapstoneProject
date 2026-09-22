@@ -234,6 +234,7 @@ class AuthApiController extends Controller
                 'message' => "Failed to deliver password reset email to {$targetEmail}. Please try again later.",
                 'targetEmail' => $targetEmail,
                 'emailDispatched' => false,
+                'error_detail' => ResendMailService::$lastError,
             ], 500);
         }
 

@@ -9,6 +9,8 @@ use Illuminate\Mail\Mailable;
 
 class ResendMailService
 {
+    public static $lastError = null;
+
     /**
      * Send email using Brevo or Resend HTTPS REST API (Port 443), with automatic fallback to Laravel SMTP.
      *
@@ -18,6 +20,7 @@ class ResendMailService
      */
     public static function sendMailable(string $to, Mailable $mailable): bool
     {
+        self::$lastError = null;
         $brevoKey = config('services.brevo.key') ?: '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';
         $resendKey = config('services.resend.key') ?: env('RESEND_API_KEY');
 
@@ -37,11 +40,19 @@ class ResendMailService
             }
         } catch (\Throwable $e) {
             Log::error("Failed to render mailable before sending: " . $e->getMessage());
+            self::$lastError = "Render failed: " . $e->getMessage();
+        }
+
+        if (empty($html)) {
+            $html = '<div style="font-family: Arial, sans-serif; padding: 20px;">'
+                . '<h2>' . htmlspecialchars($subject) . '</h2>'
+                . '<p>Pakisuri ang iyong SKILLINK account para sa detalye.</p>'
+                . '</div>';
         }
 
         $fromName = config('mail.from.name', 'PESO Magalang - SKILLINK');
         // Brevo requires a sender address validated in your Brevo account (torreskeanashleym2021@gmail.com)
-        $brevoSenderEmail = config('services.brevo.sender_email') ?: env('BREVO_SENDER_EMAIL', 'torreskeanashleym2021@gmail.com');
+        $brevoSenderEmail = config('services.brevo.sender_email') ?: 'torreskeanashleym2021@gmail.com';
 
         // 🌟 TIER 1: Brevo HTTPS REST API (Supports sending to ANY recipient email over port 443)
         if (!empty($brevoKey)) {
@@ -64,11 +75,14 @@ class ResendMailService
 
                 if ($brevoRes->successful()) {
                     Log::info("Brevo HTTPS API delivered email to {$to} [Subject: {$subject}]");
+                    self::$lastError = null;
                     return true;
                 } else {
+                    self::$lastError = "Brevo failed (HTTP " . $brevoRes->status() . "): " . $brevoRes->body();
                     Log::warning("Brevo API failed for {$to} (Status {$brevoRes->status()}): " . $brevoRes->body());
                 }
             } catch (\Throwable $e) {
+                self::$lastError = "Brevo exception: " . $e->getMessage();
                 Log::warning("Brevo API exception for {$to}: " . $e->getMessage());
             }
         }
