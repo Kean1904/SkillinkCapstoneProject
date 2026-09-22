@@ -17,6 +17,9 @@ class DashboardStatsController extends Controller
     public function getLiveStats(Request $request)
     {
         $currentUsername = Session::get('user_name') ?? $request->query('username');
+        if (!empty($currentUsername)) {
+            User::where('name', $currentUsername)->update(['last_seen_at' => now()]);
+        }
 
         // 1. Available Jobs: Open jobs ready for application (no applicant assigned yet)
         $availableJobs = JobPost::where(function ($q) {

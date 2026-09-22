@@ -87,6 +87,10 @@ class CitizenApiController extends Controller
                 'isVerified' => (bool) $u->is_verified,
                 'rating' => (float) ($u->rating ?? 5.0),
                 'profileImageUri' => $u->profile_image_uri,
+                'createdAt' => $u->created_at_display,
+                'isOnline' => (bool) $u->is_online,
+                'status' => $u->status_label,
+                'lastActivityAt' => $u->last_seen_display,
             ];
         });
 
@@ -176,5 +180,32 @@ class CitizenApiController extends Controller
             'message' => 'Official complaint filed successfully! PESO Staff will investigate.',
             'complaint' => $complaint,
         ], 201);
+    }
+
+    public function heartbeat(Request $request)
+    {
+        $username = $request->input('username') ?? $request->input('name');
+        if (!$username && $request->user()) {
+            $username = $request->user()->name;
+        }
+
+        if ($username) {
+            $user = User::where('name', $username)->first();
+            if ($user) {
+                $user->update(['last_seen_at' => now()]);
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Heartbeat acknowledged',
+                    'username' => $username,
+                    'last_seen_at' => $user->last_seen_at->toIso8601String(),
+                    'isOnline' => true,
+                ]);
+            }
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'User not found or username not provided',
+        ], 404);
     }
 }

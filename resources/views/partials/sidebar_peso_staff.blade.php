@@ -8,6 +8,7 @@
 
     <ul class="sidebar-menu">
         <li><a href="{{ route('dashboard.PesoStaff') }}" class="{{ ($active ?? '') === 'dashboard' ? 'active' : '' }}"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
+        <li><a href="{{ route('peso_staff.users') }}" class="{{ ($active ?? '') === 'users' ? 'active' : '' }}"><i class="fa-solid fa-users"></i> User Management</a></li>
         <li><a href="{{ route('peso_staff.accreditation') }}" class="{{ ($active ?? '') === 'accreditation' ? 'active' : '' }}"><i class="fa-solid fa-certificate"></i> Worker Accreditation</a></li>
         <li><a href="{{ route('peso_staff.job_tracking') }}" class="{{ ($active ?? '') === 'job_tracking' ? 'active' : '' }}"><i class="fa-solid fa-location-dot"></i> Job Tracking</a></li>
         <li><a href="{{ route('peso_staff.complaints') }}" class="{{ ($active ?? '') === 'complaints' ? 'active' : '' }}"><i class="fa-solid fa-triangle-exclamation"></i> Complaints</a></li>

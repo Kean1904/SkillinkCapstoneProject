@@ -35,6 +35,7 @@ class LoginController extends Controller
         Session::put('user_role', $user->role);
         Session::put('profile_image_uri', $user->profile_image_uri);
         Session::put('privacy_consent_accepted', (bool) $user->privacy_consent_accepted);
+        $user->update(['last_seen_at' => now()]);
         \Illuminate\Support\Facades\Auth::login($user);
 
         // I-redirect base sa role
@@ -61,6 +62,7 @@ class LoginController extends Controller
         if ($user) {
             $user->privacy_consent_accepted = true;
             $user->privacy_consent_accepted_at = now();
+            $user->last_seen_at = now();
             $user->save();
 
             Session::put('privacy_consent_accepted', true);
@@ -76,6 +78,11 @@ class LoginController extends Controller
 
     public function logout(Request $request)
     {
+        $userId = Session::get('user_id') ?? (\Illuminate\Support\Facades\Auth::id());
+        if ($userId) {
+            User::where('user_id', $userId)->update(['last_seen_at' => null]);
+        }
+
         // Burahin lahat ng laman ng session
         Session::flush();
 

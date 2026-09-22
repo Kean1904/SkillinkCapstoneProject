@@ -109,6 +109,7 @@ Route::post('/residential/password/update', [ResidentialWebController::class, 'u
 |--------------------------------------------------------------------------
 */
 Route::get('/dashboard/PesoStaff', [PesoStaffController::class, 'index'])->name('dashboard.PesoStaff');
+Route::get('/peso-staff/users', [PesoStaffController::class, 'users'])->name('peso_staff.users');
 Route::get('/peso-staff/accreditation', [PesoStaffController::class, 'accreditation'])->name('peso_staff.accreditation');
 Route::post('/dashboard/PesoStaff/accredit/{id}', [PesoStaffController::class, 'accreditWorker'])->name('peso.accredit');
 Route::get('/peso-staff/job-tracking', [PesoStaffController::class, 'jobTracking'])->name('peso_staff.job_tracking');

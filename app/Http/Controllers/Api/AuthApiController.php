@@ -142,6 +142,8 @@ class AuthApiController extends Controller
             ], 401);
         }
 
+        $user->update(['last_seen_at' => now()]);
+
         $token = $user->createToken('android-app')->plainTextToken;
 
         return response()->json([

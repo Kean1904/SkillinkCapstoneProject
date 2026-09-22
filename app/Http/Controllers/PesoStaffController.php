@@ -231,4 +231,10 @@ class PesoStaffController extends Controller
 
         return back()->with('success', "Incident complaint #{$complaint->complaint_id} marked as RESOLVED.");
     }
+
+    public function users()
+    {
+        $users = User::latest()->get();
+        return view('peso_staff.user_management', compact('users'));
+    }
 }
