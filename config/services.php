@@ -31,4 +31,13 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'brevo' => [
+        'key' => env('BREVO_API_KEY', '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'),
+        'sender_email' => env('BREVO_SENDER_EMAIL', 'torreskeanashleym2021@gmail.com'),
+    ],
+
+    'resend' => [
+        'key' => env('RESEND_API_KEY', 're_jDuKdBU7_EdBofh4jN8Tmb1t4gBGn1WUB'),
+    ],
+
 ];

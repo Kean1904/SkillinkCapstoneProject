@@ -18,8 +18,8 @@ class ResendMailService
      */
     public static function sendMailable(string $to, Mailable $mailable): bool
     {
-        $brevoKey = env('BREVO_API_KEY') ?: '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';
-        $resendKey = env('RESEND_API_KEY') ?: 're_jDuKdBU7_EdBofh4jN8Tmb1t4gBGn1WUB';
+        $brevoKey = config('services.brevo.key') ?: env('BREVO_API_KEY');
+        $resendKey = config('services.resend.key') ?: env('RESEND_API_KEY');
 
         $html = '';
         $subject = 'SKILLINK Magalang Notification';
@@ -41,7 +41,7 @@ class ResendMailService
 
         $fromName = config('mail.from.name', 'PESO Magalang - SKILLINK');
         // Brevo requires a sender address validated in your Brevo account (torreskeanashleym2021@gmail.com)
-        $brevoSenderEmail = env('BREVO_SENDER_EMAIL', 'torreskeanashleym2021@gmail.com');
+        $brevoSenderEmail = config('services.brevo.sender_email') ?: env('BREVO_SENDER_EMAIL', 'torreskeanashleym2021@gmail.com');
 
         // 🌟 TIER 1: Brevo HTTPS REST API (Supports sending to ANY recipient email over port 443)
         if (!empty($brevoKey)) {
