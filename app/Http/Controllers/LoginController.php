@@ -109,15 +109,25 @@ class LoginController extends Controller
             'email' => $targetEmail,
         ]);
 
-        // 3. Dispatch real email gamit ang Resend HTTPS API (with SMTP fallback)
+        // 3. Dispatch real email gamit ang Brevo/Resend HTTPS API (with SMTP fallback)
         $emailDispatched = ResendMailService::sendMailable($targetEmail, new PasswordResetMail($user, $resetUrl, $otp));
+
+        if (!$emailDispatched) {
+            return response()->json([
+                'success' => false,
+                'message' => "Hindi maipadala ang email sa {$targetEmail}. Pakisubukang muli o tiyaking tama ang email configuration.",
+                'targetEmail' => $targetEmail,
+                'emailDispatched' => false,
+                'resetUrl' => $resetUrl,
+            ], 500);
+        }
 
         return response()->json([
             'success' => true,
             'message' => "Naipadala na ang password reset link at OTP code sa {$targetEmail}. Pakitingnan ang iyong inbox o spam folder.",
             'targetEmail' => $targetEmail,
-            'emailDispatched' => $emailDispatched,
-            'resetUrl' => $resetUrl, // Provided for direct verification / dev convenience
+            'emailDispatched' => true,
+            'resetUrl' => $resetUrl,
         ]);
     }
 

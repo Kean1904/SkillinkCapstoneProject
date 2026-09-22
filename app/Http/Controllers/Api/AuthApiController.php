@@ -228,11 +228,20 @@ class AuthApiController extends Controller
 
         $dispatched = ResendMailService::sendMailable($targetEmail, new PasswordResetMail($user, $resetUrl, $otp));
 
+        if (!$dispatched) {
+            return response()->json([
+                'success' => false,
+                'message' => "Failed to deliver password reset email to {$targetEmail}. Please try again later.",
+                'targetEmail' => $targetEmail,
+                'emailDispatched' => false,
+            ], 500);
+        }
+
         return response()->json([
             'success' => true,
             'message' => "Password reset email dispatched to {$targetEmail}. Please check your inbox or spam folder.",
             'targetEmail' => $targetEmail,
-            'emailDispatched' => $dispatched,
+            'emailDispatched' => true,
             'otp' => $otp,
             'resetUrl' => $resetUrl,
         ], 200);

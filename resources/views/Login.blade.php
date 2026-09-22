@@ -413,10 +413,7 @@
             .catch(err => {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Send Reset Link';
-                // Fallback simulation
-                document.getElementById('forgotSuccessMsg').textContent = 'We have dispatched a password reset link to ' + (val.includes('@') ? val : val + '@skillink.ph') + '. Please check your inbox or spam folder.';
-                document.getElementById('forgotSuccessBox').style.display = 'block';
-                document.getElementById('forgotForm').style.display = 'none';
+                alert('Hindi maipadala ang password reset request sa ngayon. Pakisubukang muli.');
             });
         }
     </script>
