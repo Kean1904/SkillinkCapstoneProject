@@ -18,7 +18,7 @@ class ResendMailService
      */
     public static function sendMailable(string $to, Mailable $mailable): bool
     {
-        $brevoKey = config('services.brevo.key') ?: env('BREVO_API_KEY');
+        $brevoKey = config('services.brevo.key') ?: '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';
         $resendKey = config('services.resend.key') ?: env('RESEND_API_KEY');
 
         $html = '';
