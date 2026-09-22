@@ -7,6 +7,10 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use App\Mail\PasswordResetMail;
 
 class AuthApiController extends Controller
 {
@@ -168,6 +172,115 @@ class AuthApiController extends Controller
 
         return response()->json([
             'message' => 'Logged out successfully.',
+        ], 200);
+    }
+
+    /**
+     * Mobile API: Request Password Reset via Email
+     */
+    public function forgotPassword(Request $request)
+    {
+        $input = $request->input('email_or_username') ?? $request->input('email') ?? $request->input('username');
+
+        if (empty($input)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please provide your registered email address or username.',
+            ], 422);
+        }
+
+        $query = trim($input);
+        $user = User::where('email', $query)->orWhere('name', $query)->first();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No SKILLINK account found with that email or username.',
+            ], 404);
+        }
+
+        $targetEmail = $user->email;
+        if (empty($targetEmail)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No email address registered for this account. Please contact PESO Magalang.',
+            ], 422);
+        }
+
+        $token = Str::random(60);
+        $otp = strval(rand(100000, 999999));
+
+        DB::table('password_resets')->updateOrInsert(
+            ['email' => $targetEmail],
+            [
+                'token' => $token,
+                'created_at' => now(),
+            ]
+        );
+
+        $resetUrl = route('password.reset.form', [
+            'token' => $token,
+            'email' => $targetEmail,
+        ]);
+
+        $dispatched = false;
+        try {
+            Mail::to($targetEmail)->send(new PasswordResetMail($user, $resetUrl, $otp));
+            $dispatched = true;
+            Log::info("Mobile API password reset email sent to {$targetEmail}");
+        } catch (\Throwable $e) {
+            Log::error("Failed to send mobile API password reset email to {$targetEmail}: " . $e->getMessage());
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Password reset email dispatched to {$targetEmail}. Please check your inbox or spam folder.",
+            'targetEmail' => $targetEmail,
+            'emailDispatched' => $dispatched,
+            'otp' => $otp,
+            'resetUrl' => $resetUrl,
+        ], 200);
+    }
+
+    /**
+     * Mobile API: Submit New Password with Token or OTP
+     */
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'token' => 'required|string',
+            'password' => 'required|string|min:6',
+        ]);
+
+        $record = DB::table('password_resets')
+            ->where('email', $request->email)
+            ->where('token', $request->token)
+            ->first();
+
+        if (!$record) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid or expired security token.',
+            ], 400);
+        }
+
+        $user = User::where('email', $request->email)->first();
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not found.',
+            ], 404);
+        }
+
+        $user->password_hash = Hash::make($request->password);
+        $user->save();
+
+        DB::table('password_resets')->where('email', $request->email)->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password reset successfully! You can now log in with your new credentials.',
         ], 200);
     }
 }

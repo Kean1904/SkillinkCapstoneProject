@@ -37,6 +37,8 @@ Route::get('/Register', function () {
 Route::post('/Register', [RegisterController::class, 'store'])->name('Register.submit');
 
 Route::post('/password/forgot', [LoginController::class, 'forgotPassword'])->name('password.forgot');
+Route::get('/password/reset/{token}', [LoginController::class, 'showResetPasswordForm'])->name('password.reset.form');
+Route::post('/password/reset', [LoginController::class, 'updatePasswordWithToken'])->name('password.reset.submit');
 
 Route::get('/logout', [LoginController::class, 'logout'])->name('logout');
 
@@ -101,6 +103,7 @@ Route::get('/peso-staff/complaints', [PesoStaffController::class, 'complaints'])
 Route::post('/dashboard/PesoStaff/complaint/{id}/resolve', [PesoStaffController::class, 'resolveComplaint'])->name('peso.resolve_complaint');
 Route::get('/peso-staff/reports', [PesoStaffController::class, 'reports'])->name('peso_staff.reports');
 Route::get('/peso-staff/announcements', [PesoStaffController::class, 'announcements'])->name('peso_staff.announcements');
+Route::post('/peso-staff/announcements/broadcast', [PesoStaffController::class, 'broadcastAnnouncement'])->name('peso_staff.announcements.broadcast');
 Route::get('/peso-staff/profile', [PesoStaffController::class, 'profile'])->name('peso_staff.profile');
 Route::post('/peso-staff/profile/update', [PesoStaffController::class, 'updateProfile'])->name('peso_staff.profile.update');
 Route::get('/peso-staff/settings', [PesoStaffController::class, 'settings'])->name('peso_staff.settings');

@@ -9,6 +9,10 @@ use App\Models\Complaint;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
+use App\Mail\WorkerVerificationMail;
+use App\Mail\SystemAnnouncementMail;
 
 class PesoStaffController extends Controller
 {
@@ -164,7 +168,61 @@ class PesoStaffController extends Controller
         $user->is_verified = true;
         $user->save();
 
-        return back()->with('success', "Worker {$user->full_name} has been officially accredited by PESO Magalang!");
+        // 🌟 Dispatch Official Accreditation Email Notification to Worker
+        if (!empty($user->email)) {
+            try {
+                Mail::to($user->email)->send(new WorkerVerificationMail($user));
+                Log::info("Worker verification email successfully sent to {$user->email}");
+            } catch (\Throwable $e) {
+                Log::error("Failed to send WorkerVerificationMail to {$user->email}: " . $e->getMessage());
+            }
+        }
+
+        return back()->with('success', "Worker {$user->full_name} has been officially accredited by PESO Magalang! Notification email sent.");
+    }
+
+    /**
+     * Broadcast Municipal Announcement / Maintenance Advisory via Email
+     */
+    public function broadcastAnnouncement(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'category' => 'required|string|max:100',
+            'message' => 'required|string',
+            'target_audience' => 'required|string|in:all,skilled_worker,residential',
+        ]);
+
+        $query = User::whereNotNull('email')->where('email', '!=', '');
+        if ($request->target_audience === 'skilled_worker') {
+            $query->where('role', 'skilled worker');
+        } elseif ($request->target_audience === 'residential') {
+            $query->where('role', 'residential');
+        }
+
+        $recipients = $query->get();
+        $sentCount = 0;
+
+        $isMaintenance = str_contains(strtolower($request->category), 'maintenance');
+        $type = $isMaintenance ? 'maintenance' : 'announcement';
+
+        foreach ($recipients as $recipient) {
+            try {
+                Mail::to($recipient->email)->send(
+                    new SystemAnnouncementMail(
+                        $recipient,
+                        $request->title,
+                        $request->message,
+                        $type
+                    )
+                );
+                $sentCount++;
+            } catch (\Throwable $e) {
+                Log::warning("Broadcast announcement email failed for {$recipient->email}: " . $e->getMessage());
+            }
+        }
+
+        return back()->with('success', "Municipal announcement broadcasted successfully to {$sentCount} registered constituent email accounts!");
     }
 
     public function resolveComplaint(Request $request, $id)

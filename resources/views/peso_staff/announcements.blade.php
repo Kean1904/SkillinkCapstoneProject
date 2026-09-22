@@ -227,6 +227,75 @@
                 <a href="{{ route('dashboard.PesoStaff') }}" class="back-link">&larr; Back to PESO Dashboard</a>
             </div>
 
+            @if(session('success'))
+                <div style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #a7f3d0; padding: 14px 18px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; display: flex; align-items: center; gap: 10px;">
+                    <i class="fa-solid fa-circle-check" style="font-size: 18px;"></i>
+                    <span>{{ session('success') }}</span>
+                </div>
+            @endif
+
+            @if(session('error'))
+                <div style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #fca5a5; padding: 14px 18px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; display: flex; align-items: center; gap: 10px;">
+                    <i class="fa-solid fa-triangle-exclamation" style="font-size: 18px;"></i>
+                    <span>{{ session('error') }}</span>
+                </div>
+            @endif
+
+            <!-- BROADCAST VIA REAL EMAIL FORM -->
+            <div class="card" style="border: 1px solid rgba(147, 197, 253, 0.4); background: rgba(15, 23, 42, 0.75);">
+                <h3><i class="fa-solid fa-paper-plane" style="color: #60a5fa;"></i> Mag-broadcast ng Email Advisory / Maintenance Notice</h3>
+                <p style="font-size: 13px; opacity: 0.85;">Magpadala ng opisyal na mensahe at abiso sa tunay na email inbox ng mga rehistradong manggagawa at residente ng Bayan ng Magalang.</p>
+                <hr>
+
+                <form action="{{ route('peso_staff.announcements.broadcast') }}" method="POST" onsubmit="return confirm('Sigurado ka bang nais mong i-broadcast ang email advisory na ito sa mga napiling email accounts?');">
+                    @csrf
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                        <div>
+                            <label style="display: block; font-size: 12.5px; font-weight: bold; margin-bottom: 6px; color: #bfdbfe;">
+                                <i class="fa-solid fa-users"></i> Target na Makakatanggap (Audience)
+                            </label>
+                            <select name="target_audience" required style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.25); background: #1e293b; color: white; font-size: 13.5px; outline: none;">
+                                <option value="all">Lahat ng Rehistradong Gumagamit (Workers at Residents)</option>
+                                <option value="skilled_worker">Mga Skilled Workers Lamang</option>
+                                <option value="residential">Mga Residente / Clients Lamang</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 12.5px; font-weight: bold; margin-bottom: 6px; color: #bfdbfe;">
+                                <i class="fa-solid fa-tag"></i> Uri ng Abiso (Category)
+                            </label>
+                            <select name="category" required style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.25); background: #1e293b; color: white; font-size: 13.5px; outline: none;">
+                                <option value="System Maintenance & Updates">System Maintenance & System Updates</option>
+                                <option value="PESO Official Advisory">Opisyal na Abiso ng PESO Magalang</option>
+                                <option value="LGU Magalang Notice">LGU Magalang Municipal Advisory</option>
+                                <option value="TESDA NC II Assessment">Libreng TESDA Assessment / Training</option>
+                                <option value="Job Fair / Emergency Hiring">Job Fair / Emergency Employment (TUPAD)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; font-size: 12.5px; font-weight: bold; margin-bottom: 6px; color: #bfdbfe;">
+                            <i class="fa-solid fa-heading"></i> Pamagat ng Abiso (Announcement Title)
+                        </label>
+                        <input type="text" name="title" required placeholder="hal. Scheduled System Maintenance & Technical Optimization" style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.25); background: #1e293b; color: white; font-size: 13.5px; outline: none;">
+                    </div>
+
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; font-size: 12.5px; font-weight: bold; margin-bottom: 6px; color: #bfdbfe;">
+                            <i class="fa-solid fa-align-left"></i> Buong Mensahe / Detalye ng Abiso
+                        </label>
+                        <textarea name="message" rows="4" required placeholder="Isulat dito ang buong detalye ng abiso, petsa, oras ng maintenance, o instruksyon para sa mga residente at manggagawa..." style="width: 100%; padding: 12px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.25); background: #1e293b; color: white; font-size: 13.5px; outline: none; font-family: inherit; resize: vertical;"></textarea>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end;">
+                        <button type="submit" class="btn btn-primary" style="background: #2563eb; padding: 11px 24px; font-size: 14px; border-radius: 8px;">
+                            <i class="fa-solid fa-paper-plane"></i> Ipadala ang Email Broadcast Ngayon
+                        </button>
+                    </div>
+                </form>
+            </div>
+
             <!-- ACTIVE ANNOUNCEMENTS -->
             <div class="card">
                 <h3><i class="fa-solid fa-newspaper"></i> Active Public Announcements</h3>

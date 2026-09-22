@@ -16,6 +16,8 @@ use App\Http\Controllers\Api\CitizenApiController;
 // Auth
 Route::post('/register', [AuthApiController::class, 'register']);
 Route::post('/login', [AuthApiController::class, 'login']);
+Route::post('/password/forgot', [AuthApiController::class, 'forgotPassword']);
+Route::post('/password/reset', [AuthApiController::class, 'resetPassword']);
 
 // Citizens & Workers
 Route::get('/workers', [CitizenApiController::class, 'getWorkers']);
