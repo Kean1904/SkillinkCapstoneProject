@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use App\Services\ResendMailService;
 
 class LoginController extends Controller
 {
@@ -108,15 +109,8 @@ class LoginController extends Controller
             'email' => $targetEmail,
         ]);
 
-        // 3. Dispatch real email gamit ang Mailable
-        $emailDispatched = false;
-        try {
-            Mail::to($targetEmail)->send(new PasswordResetMail($user, $resetUrl, $otp));
-            $emailDispatched = true;
-            Log::info("Password reset email successfully sent to {$targetEmail}");
-        } catch (\Throwable $e) {
-            Log::error("Failed to send password reset email to {$targetEmail}: " . $e->getMessage());
-        }
+        // 3. Dispatch real email gamit ang Resend HTTPS API (with SMTP fallback)
+        $emailDispatched = ResendMailService::sendMailable($targetEmail, new PasswordResetMail($user, $resetUrl, $otp));
 
         return response()->json([
             'success' => true,

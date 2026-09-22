@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use App\Mail\BookingAlertMail;
+use App\Services\ResendMailService;
 
 class ResidentialWebController extends Controller
 {
@@ -163,12 +164,7 @@ class ResidentialWebController extends Controller
 
         // 🌟 Dispatch Real Email Notification to Skilled Worker
         if ($worker && !empty($worker->email)) {
-            try {
-                Mail::to($worker->email)->send(new BookingAlertMail($booking));
-                Log::info("Booking alert email dispatched to worker {$worker->email}");
-            } catch (\Throwable $e) {
-                Log::warning("Email notification to worker failed: " . $e->getMessage());
-            }
+            ResendMailService::sendMailable($worker->email, new BookingAlertMail($booking));
         }
 
         return redirect()->route('residential.hiring_history')->with('success', "Service booking request ({$refNumber}) submitted successfully!");

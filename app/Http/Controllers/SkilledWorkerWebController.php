@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use App\Mail\ApplicationAlertMail;
+use App\Services\ResendMailService;
 
 class SkilledWorkerWebController extends Controller
 {
@@ -52,12 +53,7 @@ class SkilledWorkerWebController extends Controller
         // 🌟 Notify Job Poster (Client) via Real Email
         $poster = User::where('name', $job->posted_by)->orWhere('user_id', $job->client_id)->first();
         if ($poster && !empty($poster->email)) {
-            try {
-                Mail::to($poster->email)->send(new ApplicationAlertMail($job, $worker));
-                Log::info("Application alert email dispatched to poster {$poster->email}");
-            } catch (\Throwable $e) {
-                Log::warning("Email alert for job application failed: " . $e->getMessage());
-            }
+            ResendMailService::sendMailable($poster->email, new ApplicationAlertMail($job, $worker));
         }
 
         return back()->with('success', "You have successfully applied for '{$job->title}'! The client and PESO Magalang have been notified.");

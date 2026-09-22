@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Mail\PasswordResetMail;
 use App\Mail\WorkerVerificationMail;
 use App\Mail\SystemAnnouncementMail;
+use App\Services\ResendMailService;
 
 $targetEmail = $argv[1] ?? null;
 
@@ -47,10 +48,10 @@ $mockUser = new User([
 try {
     if ($type === 'accreditation') {
         echo "Rendering and sending: WorkerVerificationMail...\n";
-        Mail::to($targetEmail)->send(new WorkerVerificationMail($mockUser));
+        ResendMailService::sendMailable($targetEmail, new WorkerVerificationMail($mockUser));
     } elseif ($type === 'announcement') {
         echo "Rendering and sending: SystemAnnouncementMail...\n";
-        Mail::to($targetEmail)->send(new SystemAnnouncementMail(
+        ResendMailService::sendMailable($targetEmail, new SystemAnnouncementMail(
             $mockUser,
             'Scheduled System Maintenance & Server Upgrade',
             "Ang SKILLINK Portal ay magkakaroon ng routine scheduled system maintenance sa darating na Linggo mula 11:00 PM hanggang 3:00 AM para sa pag-optimize ng aming database at cloud servers.\n\nMaraming salamat sa inyong kooperasyon!\n— PESO LGU Magalang",
@@ -59,7 +60,7 @@ try {
     } else {
         echo "Rendering and sending: PasswordResetMail...\n";
         $resetUrl = url('/password/reset/' . \Illuminate\Support\Str::random(60) . '?email=' . urlencode($targetEmail));
-        Mail::to($targetEmail)->send(new PasswordResetMail($mockUser, $resetUrl, strval(rand(100000, 999999))));
+        ResendMailService::sendMailable($targetEmail, new PasswordResetMail($mockUser, $resetUrl, strval(rand(100000, 999999))));
     }
 
     echo "\n>>> [SUCCESS] Email transmitted successfully! Check your inbox or spam folder at {$targetEmail}! <<<\n\n";

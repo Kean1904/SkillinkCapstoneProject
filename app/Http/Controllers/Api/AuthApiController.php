@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use App\Mail\PasswordResetMail;
+use App\Services\ResendMailService;
 
 class AuthApiController extends Controller
 {
@@ -225,14 +226,7 @@ class AuthApiController extends Controller
             'email' => $targetEmail,
         ]);
 
-        $dispatched = false;
-        try {
-            Mail::to($targetEmail)->send(new PasswordResetMail($user, $resetUrl, $otp));
-            $dispatched = true;
-            Log::info("Mobile API password reset email sent to {$targetEmail}");
-        } catch (\Throwable $e) {
-            Log::error("Failed to send mobile API password reset email to {$targetEmail}: " . $e->getMessage());
-        }
+        $dispatched = ResendMailService::sendMailable($targetEmail, new PasswordResetMail($user, $resetUrl, $otp));
 
         return response()->json([
             'success' => true,

@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use App\Mail\WorkerVerificationMail;
 use App\Mail\SystemAnnouncementMail;
+use App\Services\ResendMailService;
 
 class PesoStaffController extends Controller
 {
@@ -170,12 +171,7 @@ class PesoStaffController extends Controller
 
         // 🌟 Dispatch Official Accreditation Email Notification to Worker
         if (!empty($user->email)) {
-            try {
-                Mail::to($user->email)->send(new WorkerVerificationMail($user));
-                Log::info("Worker verification email successfully sent to {$user->email}");
-            } catch (\Throwable $e) {
-                Log::error("Failed to send WorkerVerificationMail to {$user->email}: " . $e->getMessage());
-            }
+            ResendMailService::sendMailable($user->email, new WorkerVerificationMail($user));
         }
 
         return back()->with('success', "Worker {$user->full_name} has been officially accredited by PESO Magalang! Notification email sent.");
@@ -207,19 +203,11 @@ class PesoStaffController extends Controller
         $type = $isMaintenance ? 'maintenance' : 'announcement';
 
         foreach ($recipients as $recipient) {
-            try {
-                Mail::to($recipient->email)->send(
-                    new SystemAnnouncementMail(
-                        $recipient,
-                        $request->title,
-                        $request->message,
-                        $type
-                    )
-                );
-                $sentCount++;
-            } catch (\Throwable $e) {
-                Log::warning("Broadcast announcement email failed for {$recipient->email}: " . $e->getMessage());
-            }
+            $success = ResendMailService::sendMailable(
+                $recipient->email,
+                new SystemAnnouncementMail($recipient, $request->title, $request->message, $type)
+            );
+            if ($success) $sentCount++;
         }
 
         return back()->with('success', "Municipal announcement broadcasted successfully to {$sentCount} registered constituent email accounts!");
