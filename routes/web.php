@@ -116,6 +116,7 @@ Route::get('/dashboard/PesoStaff', [PesoStaffController::class, 'index'])->name(
 Route::get('/peso-staff/users', [PesoStaffController::class, 'users'])->name('peso_staff.users');
 Route::get('/peso-staff/accreditation', [PesoStaffController::class, 'accreditation'])->name('peso_staff.accreditation');
 Route::post('/dashboard/PesoStaff/accredit/{id}', [PesoStaffController::class, 'accreditWorker'])->name('peso.accredit');
+Route::post('/dashboard/PesoStaff/unaccredit/{id}', [PesoStaffController::class, 'unaccreditWorker'])->name('peso.unaccredit');
 Route::get('/peso-staff/job-tracking', [PesoStaffController::class, 'jobTracking'])->name('peso_staff.job_tracking');
 Route::get('/peso-staff/complaints', [PesoStaffController::class, 'complaints'])->name('peso_staff.complaints');
 Route::post('/dashboard/PesoStaff/complaint/{id}/resolve', [PesoStaffController::class, 'resolveComplaint'])->name('peso.resolve_complaint');

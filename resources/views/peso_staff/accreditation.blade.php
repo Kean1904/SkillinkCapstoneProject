@@ -280,14 +280,20 @@
                                             @endif
                                         </td>
                                         <td>
-                                            @if(!$w->is_verified)
-                                                <form method="POST" action="{{ route('peso.accredit', $w->user_id) }}" style="display:inline;">
+                                            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                                                <form method="POST" action="{{ route('peso.accredit', $w->user_id) }}" style="display:inline; margin: 0;">
                                                     @csrf
-                                                    <button type="submit" class="btn btn-success"><i class="fa-solid fa-stamp"></i> Accredit Worker</button>
+                                                    <button type="submit" class="btn btn-success" style="background: #10b981; color: white; border: none; padding: 7px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; transition: all 0.2s; {{ $w->is_verified ? 'box-shadow: 0 0 8px rgba(16,185,129,0.6);' : 'opacity: 0.85;' }}" title="Accredit this skilled worker based on certificate and license">
+                                                        <i class="fa-solid fa-check"></i> Accredition
+                                                    </button>
                                                 </form>
-                                            @else
-                                                <span style="font-size: 12px; color: #4ade80;"><i class="fa-solid fa-circle-check"></i> Verified</span>
-                                            @endif
+                                                <form method="POST" action="{{ route('peso.unaccredit', $w->user_id) }}" style="display:inline; margin: 0;">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-danger" style="background: #ef4444; color: white; border: none; padding: 7px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; transition: all 0.2s; {{ !$w->is_verified ? 'box-shadow: 0 0 8px rgba(239,68,68,0.6);' : 'opacity: 0.85;' }}" title="De-accredit or mark worker as unaccredited">
+                                                        <i class="fa-solid fa-xmark"></i> Unaccredition
+                                                    </button>
+                                                </form>
+                                            </div>
                                         </td>
                                     </tr>
                                 @endforeach

@@ -185,6 +185,15 @@ class PesoStaffController extends Controller
         return back()->with('success', "Worker {$user->full_name} has been officially accredited by PESO Magalang! Notification email sent.");
     }
 
+    public function unaccreditWorker(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+        $user->is_verified = false;
+        $user->save();
+
+        return back()->with('success', "Worker {$user->full_name} status updated to Unaccredited.");
+    }
+
     /**
      * Broadcast Municipal Announcement / Maintenance Advisory via Email
      */

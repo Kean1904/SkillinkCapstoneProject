@@ -166,8 +166,11 @@
                         </button>
                     </div>
 
-                    <div>
-                        <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search name, skills, brgy..." onkeyup="filterSearch()">
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <input type="text" id="searchInput" class="search-input" placeholder="🔍 Search name, role, barangay, skills..." onkeyup="filterSearch()" onkeypress="if(event.key === 'Enter') filterSearch();">
+                        <button type="button" class="btn-search" onclick="filterSearch()" style="background: #2563eb; color: white; border: none; padding: 9px 18px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(37,99,235,0.4); transition: all 0.2s;">
+                            <i class="fa-solid fa-magnifying-glass"></i> Search
+                        </button>
                     </div>
                 </div>
 
@@ -196,7 +199,7 @@
                                         elseif (str_contains($r, 'staff')) $roleClass = 'role-staff';
                                         elseif (str_contains($r, 'admin')) $roleClass = 'role-admin';
                                     @endphp
-                                    <tr class="user-row" data-role="{{ strtoupper($u->role) }}" data-online="{{ $u->is_online ? '1' : '0' }}" data-search="{{ strtolower($u->full_name . ' ' . $u->name . ' ' . $u->barangay . ' ' . ($u->skills ?? '')) }}">
+                                    <tr class="user-row" data-role="{{ strtoupper($u->role) }}" data-online="{{ $u->is_online ? '1' : '0' }}" data-search="{{ strtolower($u->full_name . ' ' . $u->name . ' ' . $u->role . ' ' . $u->barangay . ' ' . ($u->skills ?? '') . ' ' . ($u->certificate_proof ?? '')) }}">
                                         <td>
                                             <strong>{{ $u->full_name }}</strong>
                                             <div style="font-size: 11px; opacity: 0.75;">@ {{ $u->name }} &bull; {{ $u->email }}</div>

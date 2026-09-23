@@ -565,11 +565,17 @@
                                                 Trade Skills: {{ $worker->skills }}
                                             </p>
                                         </div>
-                                        <div>
+                                        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                                             <form action="{{ route('peso.accredit', $worker->user_id) }}" method="POST" style="margin: 0;">
                                                 @csrf
-                                                <button type="submit" style="background: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 12px;">
-                                                    <i class="fa-solid fa-check"></i> Accredit Worker
+                                                <button type="submit" style="background: #10b981; color: white; border: none; padding: 7px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 12px; transition: all 0.2s;" title="Accredit Worker">
+                                                    <i class="fa-solid fa-check"></i> Accredition
+                                                </button>
+                                            </form>
+                                            <form action="{{ route('peso.unaccredit', $worker->user_id) }}" method="POST" style="margin: 0;">
+                                                @csrf
+                                                <button type="submit" style="background: #ef4444; color: white; border: none; padding: 7px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 12px; transition: all 0.2s;" title="Unaccredit Worker">
+                                                    <i class="fa-solid fa-xmark"></i> Unaccredition
                                                 </button>
                                             </form>
                                         </div>
