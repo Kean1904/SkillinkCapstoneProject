@@ -5,6 +5,7 @@
     <title>SKILLINK - Skilled Worker Dashboard</title>
     <link rel="icon" type="image/png" href="{{ asset('image/MP_Logo.png') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ asset('css/dashboard-light.css') }}">
     <style>
         * {
             margin: 0;
@@ -14,11 +15,7 @@
         }
 
         body {
-            background-image: url('{{ asset('image/MP_Background.JPG') }}');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
+            background-color: #f8fafc;
             min-height: 100vh;
         }
 

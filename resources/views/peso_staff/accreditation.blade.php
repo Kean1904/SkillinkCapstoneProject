@@ -5,12 +5,12 @@
     <title>SKILLINK - Worker Accreditation Queue</title>
     <link rel="icon" type="image/png" href="{{ asset('image/MP_Logo.png') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ asset('css/dashboard-light.css') }}">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
         body {
-            background-image: url('{{ asset('image/MP_Background.JPG') }}');
-            background-size: cover; background-position: center; background-repeat: no-repeat;
-            background-attachment: fixed; min-height: 100vh;
+            background-color: #f8fafc;
+            min-height: 100vh;
         }
         .header {
             position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;

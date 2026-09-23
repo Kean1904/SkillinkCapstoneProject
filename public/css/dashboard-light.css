@@ -1,0 +1,174 @@
+/* ==========================================================================
+   SKILLINK - Professional Clean Light Theme for Role Dashboards
+   (Admin, PESO Staff, Residential, Skilled Worker)
+   ========================================================================== */
+
+/* 1. Global Reset & Plain Background */
+body {
+    background-image: none !important;
+    background-color: #f8fafc !important;
+    color: #1e293b !important;
+}
+
+/* Eliminate blue shade overlay across all role views */
+.overlay, .page-overlay, .bg-overlay {
+    display: none !important;
+}
+
+.page-content {
+    background-color: #f8fafc !important;
+}
+
+/* 2. Top Header & Sidebar (Retain Municipal Identity) */
+.header {
+    background-color: #0033a0 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.sidebar {
+    background-color: #0033a0 !important;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* 3. Cards & Main Containers (Pure White with Crisp Slate Borders) */
+.hero-banner,
+.stat-card,
+.chart-card,
+.ranking-card,
+.table-card,
+.card,
+.profile-card,
+.settings-card,
+.filter-box,
+.filter-card,
+.section-card,
+.info-card,
+.booking-card,
+.job-card,
+.review-card,
+.service-card,
+.queue-card,
+.dashboard-card,
+.history-card,
+.complaint-card,
+.recent-table-card,
+.table-container {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 12px !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+    color: #0f172a !important;
+    backdrop-filter: none !important;
+}
+
+/* 4. Headings & Text Colors (Black & Dark Gray) */
+h1, h2, h3, h4, h5, h6,
+.page-title,
+.hero-title h2,
+.card h2, .card h3, .card h4,
+.stat-number,
+.stat-card .stat-number,
+.section-header,
+.section-header h3,
+.section-title,
+.table-title,
+.chart-card .title,
+.ranking-card h4 {
+    color: #0f172a !important;
+    font-weight: 700 !important;
+}
+
+p, span, label,
+.hero-title p,
+.stat-card .label,
+.chart-card .subtitle,
+.subtitle,
+.card-desc,
+.text-muted {
+    color: #475569 !important;
+}
+
+.text-secondary,
+.card-subtext {
+    color: #64748b !important;
+}
+
+/* 5. Stat Cards & Icons */
+.stat-card .stat-icon {
+    background: #f1f5f9 !important;
+    color: #0033a0 !important;
+}
+
+.stat-card:hover {
+    border-color: #cbd5e1 !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* 6. Tables & Data Grids */
+table {
+    width: 100% !important;
+    background: #ffffff !important;
+    border-collapse: collapse !important;
+}
+
+table th {
+    background: #f1f5f9 !important;
+    color: #0f172a !important;
+    font-weight: 700 !important;
+    border-bottom: 2px solid #e2e8f0 !important;
+    padding: 12px 16px !important;
+}
+
+table td {
+    color: #334155 !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    padding: 12px 16px !important;
+}
+
+table tr:hover td {
+    background: #f8fafc !important;
+}
+
+/* 7. Inputs, Selects & Textareas */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+select,
+textarea {
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+    border-radius: 8px !important;
+}
+
+input:focus, select:focus, textarea:focus {
+    border-color: #2563eb !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
+}
+
+/* 8. Rankings & Lists */
+.ranking-item {
+    background: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+.ranking-item:hover {
+    background: #f1f5f9 !important;
+}
+
+.ranking-name {
+    color: #0f172a !important;
+    font-weight: 600 !important;
+}
+
+.ranking-meta {
+    color: #64748b !important;
+}
+
+/* Progress track */
+.progress-track {
+    background: #e2e8f0 !important;
+}

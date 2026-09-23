@@ -469,7 +469,7 @@ $tesdaCertificates = [
                         </div>
                         <div class="input-group select-wrapper">
                             <select name="gender" required>
-                                <option value="" disabled selected hidden>Sex/Gender</option>
+                                <option value="" disabled selected hidden>Sex</option>
                                 <option value="Male">Male</option>
                                 <option value="Female">Female</option>
                             </select>
@@ -478,7 +478,7 @@ $tesdaCertificates = [
 
                     <!-- Address -->
                     <div class="input-group">
-                        <input type="text" name="address" placeholder="Address" required>
+                        <input type="text" name="address" placeholder="Lot / Number of House" required>
                     </div>
 
                     <!-- Barangay Dropdown -->
