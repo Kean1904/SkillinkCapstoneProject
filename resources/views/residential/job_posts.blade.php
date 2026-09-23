@@ -238,14 +238,20 @@
                 </div>
             @endif
 
-            <!-- JOB POSTS LIST -->
+            <!-- ACTIVE JOB POSTS LIST -->
             <div class="card">
-                <h3><i class="fa-solid fa-list-check"></i> Active & Completed Job Posts</h3>
-                <p style="font-size: 13px; opacity: 0.85;">Dito makikita ang mga trabahong ipinoste mo at kung sino-sinong manggagawa ang nag-apply.</p>
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <h3><i class="fa-solid fa-list-check"></i> Active Job Needs ({{ count($activeJobs ?? $jobs ?? []) }})</h3>
+                    <span style="font-size: 11.5px; background: rgba(59, 130, 246, 0.25); border: 1px solid #60a5fa; color: #bfdbfe; padding: 4px 10px; border-radius: 20px;">
+                        <i class="fa-solid fa-bolt"></i> Auto-Clears When Completed
+                    </span>
+                </div>
+                <p style="font-size: 13px; opacity: 0.85; margin-top: 4px;">Dito makikita ang mga aktibong trabahong ipinoste mo. Kapag minarkahang completed, awtomatiko itong mawawala rito upang maiwasan ang kalat.</p>
                 <hr>
 
-                @if(isset($jobs) && count($jobs) > 0)
-                    @foreach($jobs as $job)
+                @php $currentActive = $activeJobs ?? $jobs ?? []; @endphp
+                @if(isset($currentActive) && count($currentActive) > 0)
+                    @foreach($currentActive as $job)
                         <div style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; padding: 18px; margin-bottom: 15px;">
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap;">
                                 <div>
@@ -262,29 +268,71 @@
                                 </div>
                             </div>
 
-                            <!-- Applicant Banner -->
-                            @if(!empty($job->applicant_username))
-                                <div style="margin-top: 14px; background: rgba(34, 197, 94, 0.2); border: 1px solid #4ade80; border-radius: 8px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                            <!-- Applicant Banner & Actions -->
+                            <div style="margin-top: 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; background: rgba(0,0,0,0.2); padding: 10px 14px; border-radius: 8px;">
+                                @if(!empty($job->applicant_username))
                                     <div style="font-size: 13px;">
                                         <i class="fa-solid fa-user-check" style="color: #4ade80;"></i>
                                         <strong>May nag-apply na Manggagawa:</strong>
                                         <span style="color: #93c5fd; font-weight: bold;">@ {{ $job->applicant_username }}</span>
                                     </div>
-                                    <span style="font-size: 11px; background: #16a34a; color: white; padding: 3px 8px; border-radius: 10px;">Application Under Review</span>
+                                @else
+                                    <div style="font-size: 12px; opacity: 0.75;">
+                                        <i class="fa-solid fa-hourglass-half"></i> Naghihintay ng aplikanteng manggagawa mula sa Magalang...
+                                    </div>
+                                @endif
+
+                                <div>
+                                    <form method="POST" action="{{ route('residential.job.complete', $job->request_id) }}" style="display: inline;">
+                                        @csrf
+                                        <button type="submit" class="btn btn-success" style="padding: 7px 14px; font-size: 12px;" onclick="return confirm('Sigurado ka bang tapos na ang trabaho para sa \'{{ $job->title }}\'? Awtomatiko itong mawawala sa active list.')">
+                                            <i class="fa-solid fa-circle-check"></i> Mark as Completed
+                                        </button>
+                                    </form>
                                 </div>
-                            @else
-                                <div style="margin-top: 12px; font-size: 12px; opacity: 0.7;">
-                                    <i class="fa-solid fa-hourglass-half"></i> Naghihintay ng aplikanteng manggagawa mula sa Magalang...
-                                </div>
-                            @endif
+                            </div>
                         </div>
                     @endforeach
                 @else
                     <div style="text-align: center; padding: 30px; opacity: 0.7;">
-                        <p>Wala ka pang ipinoposteng job need.</p>
+                        <i class="fa-solid fa-folder-open" style="font-size: 28px; margin-bottom: 8px;"></i>
+                        <p>Walang aktibong job need sa kasalukuyan.</p>
                     </div>
                 @endif
             </div>
+
+            <!-- COMPLETED JOB POSTS HISTORY -->
+            @if(isset($completedJobs) && count($completedJobs) > 0)
+                <div class="card" style="background: rgba(15, 45, 105, 0.45);">
+                    <h3><i class="fa-solid fa-clipboard-check" style="color: #4ade80;"></i> Completed Job Needs History ({{ count($completedJobs) }})</h3>
+                    <p style="font-size: 13px; opacity: 0.85;">Talaan ng mga natapos mong ipinosteng trabaho sa Magalang.</p>
+                    <hr>
+
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        @foreach($completedJobs as $compJob)
+                            <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(74, 222, 128, 0.25); border-radius: 8px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                                <div>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <h4 style="font-size: 15px; margin: 0; color: white;">{{ $compJob->title }}</h4>
+                                        <span style="font-size: 11px; background: rgba(34, 197, 94, 0.25); color: #4ade80; border: 1px solid #22c55e; padding: 2px 8px; border-radius: 10px;">✓ COMPLETED</span>
+                                    </div>
+                                    <p style="font-size: 12.5px; opacity: 0.85; margin: 4px 0 6px 0;">{{ $compJob->description }}</p>
+                                    <div style="font-size: 11px; opacity: 0.75; display: flex; gap: 14px;">
+                                        <span><i class="fa-solid fa-tag"></i> {{ $compJob->category }}</span>
+                                        <span><i class="fa-solid fa-location-dot"></i> Brgy. {{ $compJob->barangay }}</span>
+                                        @if(!empty($compJob->applicant_username))
+                                            <span><i class="fa-solid fa-user-check"></i> Hired: @ {{ $compJob->applicant_username }}</span>
+                                        @endif
+                                    </div>
+                                </div>
+                                <div>
+                                    <span style="font-size: 12px; color: #4ade80; font-weight: bold;"><i class="fa-solid fa-check-double"></i> Job Closed</span>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
 
         </div>
     </div>

@@ -60,6 +60,7 @@ class DashboardStatsController extends Controller
                 ->count();
 
             $myPostedJobs = JobPost::where('posted_by', $currentUsername)
+                ->whereNotIn('status', ['Completed', 'Cancelled'])
                 ->count();
         }
 

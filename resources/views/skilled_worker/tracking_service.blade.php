@@ -254,12 +254,18 @@
 
             <!-- 1. ACTIVE DIRECT BOOKINGS -->
             <div class="card">
-                <h3><i class="fa-solid fa-handshake"></i> Active Direct Bookings</h3>
-                <p style="font-size: 13px; opacity: 0.85;">Direktang serbisyong hiniling ng mga residente ng Magalang gamit ang 4-Stage Stepper.</p>
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <h3><i class="fa-solid fa-handshake"></i> Active Direct Bookings ({{ count($activeBookings ?? $bookings ?? []) }})</h3>
+                    <span style="font-size: 11.5px; background: rgba(59, 130, 246, 0.25); border: 1px solid #60a5fa; color: #bfdbfe; padding: 4px 10px; border-radius: 20px;">
+                        <i class="fa-solid fa-bolt"></i> Auto-Clears When Completed
+                    </span>
+                </div>
+                <p style="font-size: 13px; opacity: 0.85; margin-top: 4px;">Direktang serbisyong hiniling ng mga residente. Kapag minarkahang "Mark Service as Completed", awtomatiko itong mawawala rito upang manatiling maayos ang iyong dashboard.</p>
                 <hr>
 
-                @if(isset($bookings) && count($bookings) > 0)
-                    @foreach($bookings as $booking)
+                @php $currentActive = $activeBookings ?? $bookings ?? []; @endphp
+                @if(isset($currentActive) && count($currentActive) > 0)
+                    @foreach($currentActive as $booking)
                         @php
                             $status = strtoupper($booking->status ?? 'PENDING');
                             $isPending = ($status === 'PENDING');
@@ -325,10 +331,10 @@
                                     <form method="POST" action="{{ route('skilled_worker.booking.update_status', $booking->booking_id) }}">
                                         @csrf
                                         <input type="hidden" name="status" value="COMPLETED">
-                                        <button type="submit" class="btn btn-success"><i class="fa-solid fa-circle-check"></i> Mark Service as Completed</button>
+                                        <button type="submit" class="btn btn-success" onclick="return confirm('Sigurado ka bang tapos na ang trabaho? Awtomatiko itong mawawala sa active bookings.')">
+                                            <i class="fa-solid fa-circle-check"></i> Mark Service as Completed
+                                        </button>
                                     </form>
-                                @else
-                                    <span style="font-size: 13px; color: #4ade80; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-circle-check"></i> Service Completed & Closed</span>
                                 @endif
                             </div>
                         </div>
@@ -341,14 +347,49 @@
                 @endif
             </div>
 
-            <!-- 2. JOB APPLICATIONS DISPATCHED -->
+            <!-- 2. COMPLETED DIRECT BOOKINGS HISTORY -->
+            @if(isset($completedBookings) && count($completedBookings) > 0)
+                <div class="card" style="background: rgba(15, 45, 105, 0.45);">
+                    <h3><i class="fa-solid fa-clipboard-check" style="color: #4ade80;"></i> Completed Direct Bookings History ({{ count($completedBookings) }})</h3>
+                    <p style="font-size: 13px; opacity: 0.85;">Talaan ng mga natapos mong trabaho. Hindi ito nakakalat sa iyong active dashboard.</p>
+                    <hr>
+
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        @foreach($completedBookings as $comp)
+                            <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(74, 222, 128, 0.25); border-radius: 8px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                                <div>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <strong style="color: #93c5fd;">{{ $comp->booking_reference }}</strong>
+                                        <span style="font-size: 11px; background: rgba(34, 197, 94, 0.25); color: #4ade80; border: 1px solid #22c55e; padding: 2px 8px; border-radius: 10px;">✓ COMPLETED</span>
+                                    </div>
+                                    <p style="font-size: 14px; font-weight: bold; margin: 4px 0 2px 0;">{{ $comp->service_category }}</p>
+                                    <div style="font-size: 11.5px; opacity: 0.75; display: flex; gap: 14px; flex-wrap: wrap;">
+                                        <span><i class="fa-solid fa-user"></i> Client: {{ $comp->client_name ?? $comp->client_username }}</span>
+                                        <span><i class="fa-solid fa-location-dot"></i> Brgy. {{ $comp->barangay }}</span>
+                                        <span><i class="fa-solid fa-coins"></i> Budget: {{ $comp->estimated_budget }}</span>
+                                        @if(!empty($comp->completion_date))
+                                            <span><i class="fa-regular fa-calendar-check"></i> Date Completed: {{ $comp->completion_date }}</span>
+                                        @endif
+                                    </div>
+                                </div>
+                                <div>
+                                    <span style="font-size: 12px; color: #4ade80; font-weight: bold;"><i class="fa-solid fa-check-double"></i> Closed & Settled</span>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
+            <!-- 3. JOB APPLICATIONS DISPATCHED -->
             <div class="card">
                 <h3><i class="fa-solid fa-paper-plane"></i> Municipal Job Applications Dispatched</h3>
                 <p style="font-size: 13px; opacity: 0.85;">Mga in-applyan mong trabaho sa Magalang na ipinost ng mga residente o ng munisipyo.</p>
                 <hr>
 
-                @if(isset($appliedJobs) && count($appliedJobs) > 0)
-                    @foreach($appliedJobs as $job)
+                @php $currentApplied = $activeAppliedJobs ?? $appliedJobs ?? []; @endphp
+                @if(isset($currentApplied) && count($currentApplied) > 0)
+                    @foreach($currentApplied as $job)
                         <div style="background: rgba(255,255,255,0.08); border-radius: 8px; padding: 14px 18px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                             <div>
                                 <strong style="font-size: 15px; color: white;">{{ $job->title }}</strong>
@@ -366,7 +407,7 @@
                     @endforeach
                 @else
                     <div style="text-align: center; padding: 30px; opacity: 0.7;">
-                        <p>Wala ka pang in-applyang trabaho.</p>
+                        <p>Walang aktibong in-applyang trabaho sa kasalukuyan.</p>
                     </div>
                 @endif
             </div>

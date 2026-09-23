@@ -29,11 +29,20 @@ class ResidentialWebController extends Controller
     public function hiringHistory()
     {
         $user = $this->getCurrentUser();
-        $bookings = Booking::where('client_username', $user->name)
+        $activeBookings = Booking::where('client_username', $user->name)
+            ->whereNotIn('status', ['COMPLETED', 'CANCELLED'])
             ->latest('created_at')
             ->get();
 
-        return view('residential.hiring_history', compact('user', 'bookings'));
+        $completedBookings = Booking::where('client_username', $user->name)
+            ->where('status', 'COMPLETED')
+            ->latest('completion_date')
+            ->latest('created_at')
+            ->get();
+
+        $bookings = $activeBookings;
+
+        return view('residential.hiring_history', compact('user', 'activeBookings', 'completedBookings', 'bookings'));
     }
 
     public function submitReview(Request $request)
@@ -173,11 +182,38 @@ class ResidentialWebController extends Controller
     public function jobPosts()
     {
         $user = $this->getCurrentUser();
-        $jobs = JobPost::where('client_id', $user->user_id)
-            ->orWhere('posted_by', $user->name)
-            ->latest('created_at')
-            ->get();
-        return view('residential.job_posts', compact('user', 'jobs'));
+        $activeJobs = JobPost::where(function ($q) use ($user) {
+            $q->where('client_id', $user->user_id)
+              ->orWhere('posted_by', $user->name);
+        })->whereNotIn('status', ['Completed', 'Cancelled'])
+          ->latest('created_at')
+          ->get();
+
+        $completedJobs = JobPost::where(function ($q) use ($user) {
+            $q->where('client_id', $user->user_id)
+              ->orWhere('posted_by', $user->name);
+        })->where('status', 'Completed')
+          ->latest('created_at')
+          ->get();
+
+        $jobs = $activeJobs;
+
+        return view('residential.job_posts', compact('user', 'activeJobs', 'completedJobs', 'jobs'));
+    }
+
+    public function completeJob($id)
+    {
+        $user = $this->getCurrentUser();
+        $job = JobPost::where('request_id', $id)
+            ->where(function ($q) use ($user) {
+                $q->where('client_id', $user->user_id)
+                  ->orWhere('posted_by', $user->name);
+            })->firstOrFail();
+
+        $job->status = 'Completed';
+        $job->save();
+
+        return back()->with('success', "Job '{$job->title}' has been successfully marked as Completed and moved to history!");
     }
 
     public function updateProfile(Request $request)

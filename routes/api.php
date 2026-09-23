@@ -65,6 +65,7 @@ Route::get('/users', [CitizenApiController::class, 'getUsers']);
 Route::get('/jobs', [JobApiController::class, 'index']);
 Route::post('/jobs', [JobApiController::class, 'store']);
 Route::post('/jobs/{id}/apply', [JobApiController::class, 'apply']);
+Route::put('/jobs/{id}/status', [JobApiController::class, 'updateStatus']);
 
 // Direct Bookings & 4-Stage Stepper
 Route::get('/bookings', [BookingApiController::class, 'index']);

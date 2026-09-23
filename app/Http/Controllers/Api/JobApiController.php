@@ -124,4 +124,24 @@ class JobApiController extends Controller
             'job' => $job,
         ], 200);
     }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'status' => 'required|string|max:50',
+        ]);
+
+        $job = JobPost::find($id);
+        if (!$job) {
+            return response()->json(['message' => 'Job not found.'], 404);
+        }
+
+        $job->status = $validated['status'];
+        $job->save();
+
+        return response()->json([
+            'message' => "Job status updated to {$job->status} successfully.",
+            'job' => $job,
+        ], 200);
+    }
 }

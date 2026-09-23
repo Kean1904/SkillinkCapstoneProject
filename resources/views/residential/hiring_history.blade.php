@@ -238,13 +238,20 @@
                 </div>
             @endif
 
+            <!-- ACTIVE SERVICE BOOKINGS -->
             <div class="card">
-                <h3><i class="fa-solid fa-receipt"></i> All Service Transactions</h3>
-                <p style="font-size: 13px; opacity: 0.85;">Talaan ng lahat ng iyong hiniling na serbisyo sa mga lisensyado at accredited na manggagawa ng Magalang.</p>
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <h3><i class="fa-solid fa-clock"></i> Active & Ongoing Service Bookings ({{ count($activeBookings ?? $bookings ?? []) }})</h3>
+                    <span style="font-size: 11.5px; background: rgba(59, 130, 246, 0.25); border: 1px solid #60a5fa; color: #bfdbfe; padding: 4px 10px; border-radius: 20px;">
+                        <i class="fa-solid fa-bolt"></i> Auto-Clears When Completed
+                    </span>
+                </div>
+                <p style="font-size: 13px; opacity: 0.85; margin-top: 4px;">Kasalukuyang mga aktibong kahilingan sa manggagawa. Kapag natapos na ang serbisyo, awtomatiko itong mapupunta sa Completed History sa ibaba.</p>
                 <hr>
 
-                @if(isset($bookings) && count($bookings) > 0)
-                    @foreach($bookings as $booking)
+                @php $currentActive = $activeBookings ?? $bookings ?? []; @endphp
+                @if(isset($currentActive) && count($currentActive) > 0)
+                    @foreach($currentActive as $booking)
                         @php
                             $status = strtoupper($booking->status ?? 'PENDING');
                             $cleanStatus = strtolower(str_replace(['_', ' '], '', $status));
@@ -268,13 +275,8 @@
                                 <div style="grid-column: 1 / -1;"><strong>Task Details:</strong> {{ $booking->task_description }}</div>
                             </div>
 
-                            <!-- Feedback or Incident Report buttons -->
+                            <!-- Incident Report button for active bookings -->
                             <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
-                                @if($status === 'COMPLETED')
-                                    <button class="btn btn-warning" onclick="openReviewModal('{{ $booking->worker_username }}', '{{ $booking->booking_reference }}')">
-                                        <i class="fa-solid fa-star"></i> Leave Rating & Review
-                                    </button>
-                                @endif
                                 <button class="btn btn-danger" onclick="openComplaintModal('{{ $booking->worker_username }}', '{{ $booking->booking_reference }}')">
                                     <i class="fa-solid fa-triangle-exclamation"></i> File Complaint to PESO
                                 </button>
@@ -284,10 +286,56 @@
                 @else
                     <div style="text-align: center; padding: 30px; opacity: 0.7;">
                         <i class="fa-solid fa-folder-open" style="font-size: 32px; margin-bottom: 10px;"></i>
-                        <p>Wala ka pang transaksyon o booking.</p>
+                        <p>Walang aktibong serbisyo o transaksyon sa kasalukuyan.</p>
                     </div>
                 @endif
             </div>
+
+            <!-- COMPLETED SERVICE BOOKINGS HISTORY -->
+            @if(isset($completedBookings) && count($completedBookings) > 0)
+                <div class="card" style="background: rgba(15, 45, 105, 0.45);">
+                    <h3><i class="fa-solid fa-clipboard-check" style="color: #4ade80;"></i> Completed Services History & Reviews ({{ count($completedBookings) }})</h3>
+                    <p style="font-size: 13px; opacity: 0.85;">Talaan ng mga natapos mong serbisyo kung saan maaari kang mag-iwan ng ratings o pagsusuri sa manggagawa.</p>
+                    <hr>
+
+                    <div style="display: flex; flex-direction: column; gap: 14px;">
+                        @foreach($completedBookings as $comp)
+                            <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(74, 222, 128, 0.25); border-radius: 10px; padding: 18px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                                    <div>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <span style="font-size: 14px; font-weight: bold; color: #93c5fd;">{{ $comp->booking_reference }}</span>
+                                            <span style="font-size: 11px; background: rgba(34, 197, 94, 0.25); color: #4ade80; border: 1px solid #22c55e; padding: 2px 8px; border-radius: 10px;">✓ COMPLETED</span>
+                                        </div>
+                                        <h4 style="font-size: 16px; margin-top: 4px;">{{ $comp->service_category }}</h4>
+                                    </div>
+                                    <div>
+                                        @if(!empty($comp->completion_date))
+                                            <span style="font-size: 11px; opacity: 0.8;"><i class="fa-regular fa-calendar-check"></i> {{ $comp->completion_date }}</span>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; font-size: 13px; opacity: 0.9; margin: 12px 0; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px;">
+                                    <div><strong>Worker:</strong> {{ $comp->worker_name ?? $comp->worker_username }}</div>
+                                    <div><strong>Scheduled Date:</strong> {{ $comp->scheduled_date }}</div>
+                                    <div><strong>Paid/Budget:</strong> <span style="color: #4ade80; font-weight: bold;">{{ $comp->estimated_budget }}</span></div>
+                                    <div><strong>Location:</strong> Brgy. {{ $comp->barangay }}</div>
+                                </div>
+
+                                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+                                    <button class="btn btn-warning" onclick="openReviewModal('{{ $comp->worker_username }}', '{{ $comp->booking_reference }}')">
+                                        <i class="fa-solid fa-star"></i> Leave Rating & Review
+                                    </button>
+                                    <button class="btn btn-danger" onclick="openComplaintModal('{{ $comp->worker_username }}', '{{ $comp->booking_reference }}')">
+                                        <i class="fa-solid fa-triangle-exclamation"></i> File Complaint
+                                    </button>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
 
         </div>
     </div>

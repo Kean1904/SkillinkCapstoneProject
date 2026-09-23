@@ -71,6 +71,7 @@ Route::get('/skilled-worker/tracking-service', [SkilledWorkerWebController::clas
 Route::post('/skilled-worker/job/{id}/apply', [SkilledWorkerWebController::class, 'applyJob'])->name('skilled_worker.job.apply');
 Route::post('/skilled-worker/bookings/{id}/status', [SkilledWorkerWebController::class, 'updateBookingStatus'])->name('skilled_worker.booking.update_status');
 Route::get('/skilled-worker/my-services', [SkilledWorkerWebController::class, 'myServices'])->name('skilled_worker.my_services');
+Route::post('/skilled-worker/job-offer/create', [SkilledWorkerWebController::class, 'createJobOffer'])->name('skilled_worker.job_offer.create');
 Route::post('/skilled-worker/services/update', [SkilledWorkerWebController::class, 'updateServices'])->name('skilled_worker.services.update');
 Route::get('/skilled-worker/profile', [SkilledWorkerWebController::class, 'profile'])->name('skilled_worker.profile');
 Route::post('/skilled-worker/profile/update', [SkilledWorkerWebController::class, 'updateProfile'])->name('skilled_worker.profile.update');
@@ -85,7 +86,9 @@ Route::post('/skilled-worker/password/update', [SkilledWorkerWebController::clas
 Route::get('/dashboard/Residential', function () {
     $user = \App\Models\User::where('name', session('user_name'))->first();
     $availableWorkers = \App\Models\User::where('role', 'skilled worker')->count();
-    $postedJobs = $user ? \App\Models\JobPost::where('client_id', $user->user_id)->orWhere('posted_by', $user->name)->count() : 0;
+    $postedJobs = $user ? \App\Models\JobPost::where(function($q) use ($user) {
+        $q->where('client_id', $user->user_id)->orWhere('posted_by', $user->name);
+    })->whereNotIn('status', ['Completed', 'Cancelled'])->count() : 0;
     $workersList = \App\Models\User::where('role', 'skilled worker')->latest()->take(10)->get();
     return view('dashboard.Residential', compact('availableWorkers', 'postedJobs', 'workersList'));
 })->name('dashboard.Residential');
@@ -98,6 +101,7 @@ Route::post('/residential/worker/{id}/toggle-save', [ResidentialWebController::c
 Route::post('/residential/booking/create', [ResidentialWebController::class, 'createBooking'])->name('residential.booking.create');
 Route::get('/residential/job-posts', [ResidentialWebController::class, 'jobPosts'])->name('residential.job_posts');
 Route::post('/residential/job/create', [ResidentialWebController::class, 'createJob'])->name('residential.job.create');
+Route::post('/residential/job/{id}/complete', [ResidentialWebController::class, 'completeJob'])->name('residential.job.complete');
 Route::get('/residential/profile', [ResidentialWebController::class, 'profile'])->name('residential.profile');
 Route::post('/residential/profile/update', [ResidentialWebController::class, 'updateProfile'])->name('residential.profile.update');
 Route::get('/residential/settings', [ResidentialWebController::class, 'settings'])->name('residential.settings');

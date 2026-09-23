@@ -26,15 +26,40 @@ class SkilledWorkerWebController extends Controller
     public function trackingService()
     {
         $worker = $this->getCurrentWorker();
-        $bookings = Booking::where('worker_username', $worker->name)
+        $activeBookings = Booking::where('worker_username', $worker->name)
+            ->whereNotIn('status', ['COMPLETED', 'CANCELLED', 'REJECTED'])
             ->latest('created_at')
             ->get();
 
-        $appliedJobs = JobPost::where('applicant_username', $worker->name)
+        $completedBookings = Booking::where('worker_username', $worker->name)
+            ->where('status', 'COMPLETED')
+            ->latest('completion_date')
             ->latest('created_at')
             ->get();
 
-        return view('skilled_worker.tracking_service', compact('worker', 'bookings', 'appliedJobs'));
+        $activeAppliedJobs = JobPost::where('applicant_username', $worker->name)
+            ->whereNotIn('status', ['Completed', 'Cancelled'])
+            ->latest('created_at')
+            ->get();
+
+        $completedAppliedJobs = JobPost::where('applicant_username', $worker->name)
+            ->where('status', 'Completed')
+            ->latest('created_at')
+            ->get();
+
+        // Pass both for backward compatibility and specialized rendering
+        $bookings = $activeBookings;
+        $appliedJobs = $activeAppliedJobs;
+
+        return view('skilled_worker.tracking_service', compact(
+            'worker', 
+            'activeBookings', 
+            'completedBookings', 
+            'activeAppliedJobs', 
+            'completedAppliedJobs', 
+            'bookings', 
+            'appliedJobs'
+        ));
     }
 
     public function applyJob(Request $request, $id)
@@ -123,7 +148,43 @@ class SkilledWorkerWebController extends Controller
     public function myServices()
     {
         $worker = $this->getCurrentWorker();
-        return view('skilled_worker.my_services', compact('worker'));
+        $myJobOffers = JobPost::where(function ($q) use ($worker) {
+            $q->where('posted_by', $worker->name)
+              ->orWhere('client_id', $worker->user_id);
+        })->latest('created_at')->get();
+
+        return view('skilled_worker.my_services', compact('worker', 'myJobOffers'));
+    }
+
+    public function createJobOffer(Request $request)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'category' => 'required|string|max:100',
+            'description' => 'required|string',
+            'barangay' => 'required|string|max:100',
+            'estimated_rate' => 'nullable|string|max:100',
+        ]);
+
+        $worker = $this->getCurrentWorker();
+
+        $rateInfo = !empty($validated['estimated_rate']) ? " (Service Rate: " . $validated['estimated_rate'] . ")" : "";
+
+        JobPost::create([
+            'title' => $validated['title'],
+            'client_id' => $worker->user_id ?? 1,
+            'posted_by' => $worker->name,
+            'category' => $validated['category'],
+            'description' => $validated['description'] . $rateInfo,
+            'location_tag' => $validated['barangay'],
+            'barangay' => $validated['barangay'],
+            'preferred_schedule' => 'Available for Booking',
+            'date_posted' => now()->toDateString(),
+            'status' => 'Pending',
+            'applicant_username' => null,
+        ]);
+
+        return back()->with('success', 'Your service job offer has been successfully published! It is now live across the Magalang portal.');
     }
 
     public function updateServices(Request $request)
