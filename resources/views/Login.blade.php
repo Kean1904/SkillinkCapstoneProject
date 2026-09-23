@@ -430,14 +430,25 @@
             btn.disabled = true;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
 
-            fetch('{{ route('password.forgot') }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({ email_or_username: val })
+            function sendRequest(url) {
+                return fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ email_or_username: val })
+                });
+            }
+
+            sendRequest('{{ route('password.forgot') }}')
+            .then(res => {
+                if (res.status === 419) {
+                    // Seamless automatic fallback to stateless API if web CSRF session expired
+                    return sendRequest('{{ url('/api/password/forgot') }}');
+                }
+                return res;
             })
             .then(res => res.json())
             .then(data => {
