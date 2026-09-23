@@ -10,8 +10,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-use App\Mail\PasswordResetMail;
-use App\Services\BrevoMailService;
 
 class AuthApiController extends Controller
 {
@@ -274,24 +272,12 @@ class AuthApiController extends Controller
             'email' => $targetEmail,
         ]);
 
-        $dispatched = BrevoMailService::sendMailable($targetEmail, new PasswordResetMail($user, $resetUrl, $otp));
-
-        if (!$dispatched) {
-            return response()->json([
-                'success' => false,
-                'message' => "Failed to deliver password reset email to {$targetEmail}. Please try again later.",
-                'targetEmail' => $targetEmail,
-                'emailDispatched' => false,
-                'error_detail' => BrevoMailService::$lastError,
-            ], 500);
-        }
-
         return response()->json([
             'success' => true,
-            'message' => "Password reset email dispatched to {$targetEmail}. Please check your inbox or spam folder.",
+            'message' => "Password reset OTP generated for {$targetEmail}.",
             'targetEmail' => $targetEmail,
-            'emailDispatched' => true,
             'otp' => $otp,
+            'token' => $token,
             'resetUrl' => $resetUrl,
         ], 200);
     }

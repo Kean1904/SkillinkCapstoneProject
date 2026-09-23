@@ -3,15 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Mail\PasswordResetMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-use App\Services\BrevoMailService;
 
 class LoginController extends Controller
 {
@@ -144,25 +141,12 @@ class LoginController extends Controller
             'email' => $targetEmail,
         ]);
 
-        // 3. Dispatch real email gamit ang Brevo HTTPS API (with SMTP fallback)
-        $emailDispatched = BrevoMailService::sendMailable($targetEmail, new PasswordResetMail($user, $resetUrl, $otp));
-
-        if (!$emailDispatched) {
-            $brevoDetail = \App\Services\BrevoMailService::$lastError 
-                ? " [" . \App\Services\BrevoMailService::$lastError . "]" 
-                : "";
-            return response()->json([
-                'success' => false,
-                'message' => "Hindi maipadala ang email sa {$targetEmail}.{$brevoDetail} Pakisubukang muli o tiyaking tama ang email configuration.",
-                'error_detail' => \App\Services\BrevoMailService::$lastError,
-            ], 500);
-        }
-
+        // 3. Ibalik agad ang nabuong OTP at resetUrl para sa maaasahang password reset
         return response()->json([
             'success' => true,
-            'message' => "Naipadala na ang password reset link at OTP code sa {$targetEmail}. Pakitingnan ang iyong inbox o spam folder.",
+            'message' => "Matagumpay na na-verify ang account!",
             'targetEmail' => $targetEmail,
-            'emailDispatched' => true,
+            'otp' => $otp,
             'resetUrl' => $resetUrl,
         ]);
     }

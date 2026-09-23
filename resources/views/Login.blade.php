@@ -371,11 +371,18 @@
                 Enter your registered Email Address or Username. We will dispatch a secure password reset link to verify your identity.
             </p>
 
-            <div id="forgotSuccessBox" style="display: none; background: rgba(34, 197, 94, 0.2); border: 1px solid #4ade80; color: #bbf7d0; padding: 14px 16px; border-radius: 10px; margin-bottom: 18px; font-size: 13px; line-height: 1.5; text-align: left;">
-                <div style="font-weight: bold; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
-                    <i class="fa-solid fa-circle-check" style="color: #4ade80;"></i> Reset Link Sent!
+            <div id="forgotSuccessBox" style="display: none; background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; color: #ecfdf5; padding: 18px; border-radius: 12px; margin-bottom: 18px; text-align: center;">
+                <div style="font-size: 15px; font-weight: bold; margin-bottom: 6px; color: #34d399; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <i class="fa-solid fa-circle-check"></i> Account Verified!
                 </div>
-                <div id="forgotSuccessMsg"></div>
+                <p style="font-size: 13px; opacity: 0.9; margin-bottom: 12px;" id="forgotSuccessMsg"></p>
+                <div style="background: rgba(0,0,0,0.3); border: 1px dashed #34d399; border-radius: 8px; padding: 10px; margin-bottom: 15px;">
+                    <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #a7f3d0; display: block; margin-bottom: 4px;">Verification OTP Code</span>
+                    <span id="forgotOtpDisplay" style="font-size: 24px; font-weight: 800; letter-spacing: 4px; color: #ffffff; font-family: monospace;"></span>
+                </div>
+                <a id="forgotResetBtn" href="#" style="display: block; width: 100%; padding: 11px; background: #2563eb; color: white; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 13.5px; transition: background 0.2s;">
+                    <i class="fa-solid fa-arrow-right"></i> Proceed to Reset Password
+                </a>
             </div>
 
             <form id="forgotForm" onsubmit="handleForgotSubmit(event)">
@@ -455,7 +462,13 @@
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Send Reset Link';
                 if (data.success) {
-                    document.getElementById('forgotSuccessMsg').textContent = data.message;
+                    document.getElementById('forgotSuccessMsg').textContent = 'Account: ' + (data.targetEmail || val);
+                    if (data.otp) {
+                        document.getElementById('forgotOtpDisplay').textContent = data.otp;
+                    }
+                    if (data.resetUrl) {
+                        document.getElementById('forgotResetBtn').href = data.resetUrl;
+                    }
                     document.getElementById('forgotSuccessBox').style.display = 'block';
                     document.getElementById('forgotForm').style.display = 'none';
                 } else {

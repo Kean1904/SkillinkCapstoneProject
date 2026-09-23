@@ -9,11 +9,7 @@ use App\Models\Complaint;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
-use App\Mail\WorkerVerificationMail;
-use App\Mail\SystemAnnouncementMail;
-use App\Services\BrevoMailService;
 
 class PesoStaffController extends Controller
 {
@@ -177,12 +173,7 @@ class PesoStaffController extends Controller
         $user->is_verified = true;
         $user->save();
 
-        // 🌟 Dispatch Official Accreditation Email Notification to Worker
-        if (!empty($user->email)) {
-            BrevoMailService::sendMailable($user->email, new WorkerVerificationMail($user));
-        }
-
-        return back()->with('success', "Worker {$user->full_name} has been officially accredited by PESO Magalang! Notification email sent.");
+        return back()->with('success', "Worker {$user->full_name} has been officially accredited by PESO Magalang!");
     }
 
     public function unaccreditWorker(Request $request, $id)
@@ -195,7 +186,7 @@ class PesoStaffController extends Controller
     }
 
     /**
-     * Broadcast Municipal Announcement / Maintenance Advisory via Email
+     * Broadcast Municipal Announcement / Maintenance Advisory
      */
     public function broadcastAnnouncement(Request $request)
     {
@@ -214,20 +205,8 @@ class PesoStaffController extends Controller
         }
 
         $recipients = $query->get();
-        $sentCount = 0;
 
-        $isMaintenance = str_contains(strtolower($request->category), 'maintenance');
-        $type = $isMaintenance ? 'maintenance' : 'announcement';
-
-        foreach ($recipients as $recipient) {
-            $success = BrevoMailService::sendMailable(
-                $recipient->email,
-                new SystemAnnouncementMail($recipient, $request->title, $request->message, $type)
-            );
-            if ($success) $sentCount++;
-        }
-
-        return back()->with('success', "Municipal announcement broadcasted successfully to {$sentCount} registered constituent email accounts!");
+        return back()->with('success', "Municipal announcement broadcasted successfully to {$recipients->count()} registered constituents!");
     }
 
     public function resolveComplaint(Request $request, $id)

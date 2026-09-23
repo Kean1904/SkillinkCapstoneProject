@@ -8,10 +8,7 @@ use App\Models\JobPost;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
-use App\Mail\ApplicationAlertMail;
-use App\Services\BrevoMailService;
 
 class SkilledWorkerWebController extends Controller
 {
@@ -75,13 +72,7 @@ class SkilledWorkerWebController extends Controller
         $job->status = 'Applied';
         $job->save();
 
-        // 🌟 Notify Job Poster (Client) via Real Email
-        $poster = User::where('name', $job->posted_by)->orWhere('user_id', $job->client_id)->first();
-        if ($poster && !empty($poster->email)) {
-            BrevoMailService::sendMailable($poster->email, new ApplicationAlertMail($job, $worker));
-        }
-
-        return back()->with('success', "You have successfully applied for '{$job->title}'! The client and PESO Magalang have been notified.");
+        return back()->with('success', "You have successfully applied for '{$job->title}'! Application status is now updated.");
     }
 
     public function updateProfile(Request $request)

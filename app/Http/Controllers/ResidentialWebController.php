@@ -11,10 +11,7 @@ use App\Models\Complaint;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
-use App\Mail\BookingAlertMail;
-use App\Services\BrevoMailService;
 
 class ResidentialWebController extends Controller
 {
@@ -170,11 +167,6 @@ class ResidentialWebController extends Controller
             'scheduled_date' => $validated['scheduledDate'],
             'status' => 'PENDING',
         ]);
-
-        // 🌟 Dispatch Real Email Notification to Skilled Worker
-        if ($worker && !empty($worker->email)) {
-            BrevoMailService::sendMailable($worker->email, new BookingAlertMail($booking));
-        }
 
         return redirect()->route('residential.hiring_history')->with('success', "Service booking request ({$refNumber}) submitted successfully!");
     }
