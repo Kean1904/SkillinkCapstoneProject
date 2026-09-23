@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use App\Mail\PasswordResetMail;
-use App\Services\ResendMailService;
+use App\Services\BrevoMailService;
 
 class AuthApiController extends Controller
 {
@@ -274,7 +274,7 @@ class AuthApiController extends Controller
             'email' => $targetEmail,
         ]);
 
-        $dispatched = ResendMailService::sendMailable($targetEmail, new PasswordResetMail($user, $resetUrl, $otp));
+        $dispatched = BrevoMailService::sendMailable($targetEmail, new PasswordResetMail($user, $resetUrl, $otp));
 
         if (!$dispatched) {
             return response()->json([
@@ -282,7 +282,7 @@ class AuthApiController extends Controller
                 'message' => "Failed to deliver password reset email to {$targetEmail}. Please try again later.",
                 'targetEmail' => $targetEmail,
                 'emailDispatched' => false,
-                'error_detail' => ResendMailService::$lastError,
+                'error_detail' => BrevoMailService::$lastError,
             ], 500);
         }
 

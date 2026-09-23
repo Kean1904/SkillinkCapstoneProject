@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use App\Mail\WorkerVerificationMail;
 use App\Mail\SystemAnnouncementMail;
-use App\Services\ResendMailService;
+use App\Services\BrevoMailService;
 
 class PesoStaffController extends Controller
 {
@@ -179,7 +179,7 @@ class PesoStaffController extends Controller
 
         // 🌟 Dispatch Official Accreditation Email Notification to Worker
         if (!empty($user->email)) {
-            ResendMailService::sendMailable($user->email, new WorkerVerificationMail($user));
+            BrevoMailService::sendMailable($user->email, new WorkerVerificationMail($user));
         }
 
         return back()->with('success', "Worker {$user->full_name} has been officially accredited by PESO Magalang! Notification email sent.");
@@ -220,7 +220,7 @@ class PesoStaffController extends Controller
         $type = $isMaintenance ? 'maintenance' : 'announcement';
 
         foreach ($recipients as $recipient) {
-            $success = ResendMailService::sendMailable(
+            $success = BrevoMailService::sendMailable(
                 $recipient->email,
                 new SystemAnnouncementMail($recipient, $request->title, $request->message, $type)
             );

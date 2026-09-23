@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-use App\Services\ResendMailService;
+use App\Services\BrevoMailService;
 
 class LoginController extends Controller
 {
@@ -144,8 +144,8 @@ class LoginController extends Controller
             'email' => $targetEmail,
         ]);
 
-        // 3. Dispatch real email gamit ang Brevo/Resend HTTPS API (with SMTP fallback)
-        $emailDispatched = ResendMailService::sendMailable($targetEmail, new PasswordResetMail($user, $resetUrl, $otp));
+        // 3. Dispatch real email gamit ang Brevo HTTPS API (with SMTP fallback)
+        $emailDispatched = BrevoMailService::sendMailable($targetEmail, new PasswordResetMail($user, $resetUrl, $otp));
 
         if (!$emailDispatched) {
             return response()->json([

@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use App\Mail\ApplicationAlertMail;
-use App\Services\ResendMailService;
+use App\Services\BrevoMailService;
 
 class SkilledWorkerWebController extends Controller
 {
@@ -78,7 +78,7 @@ class SkilledWorkerWebController extends Controller
         // 🌟 Notify Job Poster (Client) via Real Email
         $poster = User::where('name', $job->posted_by)->orWhere('user_id', $job->client_id)->first();
         if ($poster && !empty($poster->email)) {
-            ResendMailService::sendMailable($poster->email, new ApplicationAlertMail($job, $worker));
+            BrevoMailService::sendMailable($poster->email, new ApplicationAlertMail($job, $worker));
         }
 
         return back()->with('success', "You have successfully applied for '{$job->title}'! The client and PESO Magalang have been notified.");
