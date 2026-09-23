@@ -148,12 +148,13 @@ class LoginController extends Controller
         $emailDispatched = BrevoMailService::sendMailable($targetEmail, new PasswordResetMail($user, $resetUrl, $otp));
 
         if (!$emailDispatched) {
+            $brevoDetail = \App\Services\BrevoMailService::$lastError 
+                ? " [" . \App\Services\BrevoMailService::$lastError . "]" 
+                : "";
             return response()->json([
                 'success' => false,
-                'message' => "Hindi maipadala ang email sa {$targetEmail}. Pakisubukang muli o tiyaking tama ang email configuration.",
-                'targetEmail' => $targetEmail,
-                'emailDispatched' => false,
-                'resetUrl' => $resetUrl,
+                'message' => "Hindi maipadala ang email sa {$targetEmail}.{$brevoDetail} Pakisubukang muli o tiyaking tama ang email configuration.",
+                'error_detail' => \App\Services\BrevoMailService::$lastError,
             ], 500);
         }
 

@@ -23,6 +23,12 @@ class BrevoMailService
         self::$lastError = null;
         $brevoKey = config('services.brevo.key') ?: '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';
 
+        // Siguraduhing ang verified Gmail mo ang laging sender:
+        $senderEmail = config('services.brevo.sender_email') 
+            ?: env('BREVO_SENDER_EMAIL') 
+            ?: 'torreskeanashleym2021@gmail.com';
+        $senderName = config('mail.from.name') ?: 'PESO Magalang - SKILLINK';
+
         $html = '';
         $subject = 'SKILLINK Magalang Notification';
 
