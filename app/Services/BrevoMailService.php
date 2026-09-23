@@ -21,7 +21,7 @@ class BrevoMailService
     public static function sendMailable(string $to, Mailable $mailable): bool
     {
         self::$lastError = null;
-        $brevoKey = config('services.brevo.key') ?: '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';
+        $brevoKey = config('services.brevo.key') ?: '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';
 
         // Siguraduhing ang verified Gmail mo ang laging sender:
         $senderEmail = config('services.brevo.sender_email') 
