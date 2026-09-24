@@ -283,7 +283,7 @@
                                                 default => 'background: rgba(16, 185, 129, 0.25); color: #86efac; border: 1px solid #10b981;',
                                             };
                                         @endphp
-                                        <span style="{{ $badgeColor }} padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: bold;">
+                                        <span style="{{ $badgeColor }} padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; display: inline-flex; align-items: center; white-space: nowrap;">
                                             {{ $log->actor_role }}
                                         </span>
                                     </td>

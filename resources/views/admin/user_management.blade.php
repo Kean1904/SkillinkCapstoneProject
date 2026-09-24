@@ -52,15 +52,35 @@
         }
 
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { padding: 12px 14px; text-align: left; font-size: 13px; border-bottom: 1px solid rgba(255, 255, 255, 0.15); }
-        th { background: rgba(0, 51, 160, 0.6); color: #93c5fd; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; }
+        th, td { padding: 12px 14px; text-align: left; font-size: 13px; border-bottom: 1px solid rgba(255, 255, 255, 0.15); vertical-align: middle; }
+        th { background: rgba(0, 51, 160, 0.6); color: #93c5fd; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; white-space: nowrap; }
         tr:hover { background: rgba(255, 255, 255, 0.05); }
 
-        .role-pill { padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
-        .role-skilled { background: rgba(2, 132, 199, 0.3); color: #7dd3fc; border: 1px solid #0284c7; }
-        .role-residential { background: rgba(16, 185, 129, 0.3); color: #a7f3d0; border: 1px solid #10b981; }
-        .role-staff { background: rgba(139, 92, 246, 0.3); color: #ddd6fe; border: 1px solid #8b5cf6; }
-        .role-admin { background: rgba(239, 68, 68, 0.3); color: #fca5a5; border: 1px solid #ef4444; }
+        /* Prevent System Role text wrapping and overlap */
+        th.col-role, td.col-role {
+            white-space: nowrap !important;
+            min-width: 170px;
+        }
+
+        .role-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap !important;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            line-height: 1.2;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+        }
+        .role-skilled { background: rgba(2, 132, 199, 0.28); color: #7dd3fc; border: 1.5px solid #0284c7; }
+        .role-residential { background: rgba(16, 185, 129, 0.28); color: #a7f3d0; border: 1.5px solid #10b981; }
+        .role-staff { background: rgba(139, 92, 246, 0.28); color: #ddd6fe; border: 1.5px solid #8b5cf6; }
+        .role-admin { background: rgba(239, 68, 68, 0.28); color: #fca5a5; border: 1.5px solid #ef4444; }
 
         /* STANDARDIZED COMPACT SIDEBAR (ADMIN-STYLE PROPORTIONS) */
         .sidebar {
@@ -297,7 +317,7 @@
                         <thead>
                             <tr>
                                 <th>Citizen Name / Username</th>
-                                <th>System Role</th>
+                                <th class="col-role">System Role</th>
                                 <th>Activity Status</th>
                                 <th>Account Created</th>
                                 <th>Barangay & Address</th>
@@ -321,7 +341,7 @@
                                             <strong>{{ $u->full_name }}</strong>
                                             <div style="font-size: 11px; opacity: 0.75;">@ {{ $u->name }} &bull; {{ $u->email }}</div>
                                         </td>
-                                        <td>
+                                        <td class="col-role">
                                             <span class="role-pill {{ $roleClass }}">{{ $u->role_display }}</span>
                                         </td>
                                         <td>
