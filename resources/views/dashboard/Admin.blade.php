@@ -729,7 +729,7 @@
 
             <!-- PERFORMANCE OVERVIEW (Matching Mobile) -->
             <div class="section-header">
-                <h3><i class="fa-solid fa-chart-line" style="color: black;"></i> WEEKLY PERFORMANCE OVERVIEW</h3>
+                <h3><i class="fa-solid fa-chart-line" style="color: black;"></i style="color: black;"> WEEKLY PERFORMANCE OVERVIEW</h3>
             </div>
 
             @php
@@ -826,7 +826,7 @@
 
             <!-- ADMINISTRATIVE MODULES SHORTCUT HUB -->
             <div class="section-header">
-                <h3><i class="fa-solid fa-cubes" style="color: black"></i> ADMINISTRATIVE MANAGEMENT MODULES</h3>
+                <h3><i class="fa-solid fa-cubes" style="color: black"></i style="color: black;"> ADMINISTRATIVE MANAGEMENT MODULES</h3>
             </div>
 
             <div class="modules-grid">
