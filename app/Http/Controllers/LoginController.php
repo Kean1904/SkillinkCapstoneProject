@@ -83,6 +83,7 @@ class LoginController extends Controller
 
     public function logout(Request $request)
     {
+        $userId   = Session::get('user_id') ?? (\Illuminate\Support\Facades\Auth::id());
         $userName = Session::get('user_name', 'User');
         $userRole = Session::get('user_role', 'User');
 
