@@ -88,14 +88,26 @@ Route::post('/skilled-worker/password/update', [SkilledWorkerWebController::clas
 | 2. RESIDENTIAL CLIENT ROUTES
 |--------------------------------------------------------------------------
 */
-Route::get('/dashboard/Residential', function () {
+Route::get('/dashboard/Residential', function (\Illuminate\Http\Request $request) {
     $user = \App\Models\User::where('name', session('user_name'))->first();
     $availableWorkers = \App\Models\User::where('role', 'skilled worker')->count();
     $postedJobs = $user ? \App\Models\JobPost::where(function($q) use ($user) {
         $q->where('client_id', $user->user_id)->orWhere('posted_by', $user->name);
     })->whereNotIn('status', ['Completed', 'Cancelled'])->count() : 0;
-    $workersList = \App\Models\User::where('role', 'skilled worker')->latest()->take(10)->get();
-    return view('dashboard.Residential', compact('availableWorkers', 'postedJobs', 'workersList'));
+
+    $search = $request->query('search');
+    $workersQuery = \App\Models\User::where('role', 'skilled worker');
+    if (!empty($search)) {
+        $workersQuery->where(function($q) use ($search) {
+            $q->where('skills', 'like', "%{$search}%")
+              ->orWhere('first_name', 'like', "%{$search}%")
+              ->orWhere('last_name', 'like', "%{$search}%")
+              ->orWhere('barangay', 'like', "%{$search}%")
+              ->orWhere('name', 'like', "%{$search}%");
+        });
+    }
+    $workersList = $workersQuery->latest()->get();
+    return view('dashboard.Residential', compact('availableWorkers', 'postedJobs', 'workersList', 'search'));
 })->name('dashboard.Residential');
 
 Route::get('/residential/hiring-history', [ResidentialWebController::class, 'hiringHistory'])->name('residential.hiring_history');

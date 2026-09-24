@@ -97,6 +97,14 @@ class ResidentialWebController extends Controller
             'created_at' => now(),
         ]);
 
+        \App\Models\AuditLog::log(
+            'COMPLAINT_FILED',
+            "Resident {$user->name} filed an incident complaint against {$request->respondentUsername} ({$request->complaintType}).",
+            $user->name,
+            'Residential',
+            $user->user_id
+        );
+
         return back()->with('success', 'Official complaint filed successfully! PESO Magalang will investigate.');
     }
 
@@ -204,6 +212,14 @@ class ResidentialWebController extends Controller
             'scheduled_date' => $validated['scheduledDate'],
             'status' => 'PENDING',
         ]);
+
+        \App\Models\AuditLog::log(
+            'BOOKING_CREATED',
+            "Resident {$user->name} created booking {$refNumber} for {$booking->service_category} with worker {$booking->worker_name} ({$fixedBudget}).",
+            $user->name,
+            'Residential',
+            $user->user_id
+        );
 
         return redirect()->route('residential.hiring_history')->with('success', "Service booking request ({$refNumber}) submitted successfully with fixed rate {$fixedBudget}!");
     }

@@ -135,6 +135,14 @@ class SkilledWorkerWebController extends Controller
         }
         $booking->save();
 
+        \App\Models\AuditLog::log(
+            'BOOKING_STATUS_UPDATE',
+            "Booking {$booking->booking_reference} status updated to {$status}.",
+            Session::get('user_name', 'Skilled Worker'),
+            'Skilled Worker',
+            Session::get('user_id')
+        );
+
         return back()->with('success', "Booking {$booking->booking_reference} status successfully updated to {$status}!");
     }
 
@@ -177,6 +185,14 @@ class SkilledWorkerWebController extends Controller
             'applicant_username' => null,
         ]);
 
+        \App\Models\AuditLog::log(
+            'JOB_OFFER_CREATED',
+            "Worker {$worker->name} posted new service offer: {$validated['title']} ({$validated['category']}).",
+            $worker->name,
+            'Skilled Worker',
+            $worker->user_id
+        );
+
         return back()->with('success', 'Your service job offer has been successfully published! It is now live across the Magalang portal.');
     }
 
@@ -187,12 +203,25 @@ class SkilledWorkerWebController extends Controller
         $worker->certificate_proof = $request->input('certificate_proof', $worker->certificate_proof);
         $worker->save();
 
+        \App\Models\AuditLog::log(
+            'SKILLS_UPDATED',
+            "Worker {$worker->name} updated registered trade skills to: {$worker->skills}.",
+            $worker->name,
+            'Skilled Worker',
+            $worker->user_id
+        );
+
         return back()->with('success', 'Your skills and services have been updated successfully!');
     }
 
     public function submitApplication(Request $request)
     {
         $worker = $this->getCurrentWorker();
+
+        // Check if no file is attached for credentials
+        if (!$request->hasFile('certificate_file') && !$request->hasFile('valid_id_file')) {
+            return back()->with('error', 'You dont have attach file submitted')->withInput();
+        }
 
         $request->validate([
             'certificate_proof' => 'required|string|max:255',
@@ -233,6 +262,14 @@ class SkilledWorkerWebController extends Controller
         // Accreditation application state: Pending PESO Staff Review
         $worker->is_verified = false;
         $worker->save();
+
+        \App\Models\AuditLog::log(
+            'CREDENTIALS_SUBMISSION',
+            "Worker {$worker->name} submitted credentials (TESDA / Valid ID) for PESO Accreditation.",
+            $worker->name,
+            'Skilled Worker',
+            $worker->user_id
+        );
 
         return back()->with('success', 'Your PESO accreditation application has been submitted successfully! PESO Staff will verify your TESDA certificate and credentials.');
     }

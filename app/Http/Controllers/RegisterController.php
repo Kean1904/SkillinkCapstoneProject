@@ -93,7 +93,16 @@ class RegisterController extends Controller
             ]);
         }
 
-        // 4. Redirect after success
+        // 4. Record Audit Log event
+        \App\Models\AuditLog::log(
+            'USER_REGISTRATION',
+            "New {$role} account registered ({$user->name}) in Brgy. {$user->barangay}" . ($user->skills ? " with skill: {$user->skills}" : ""),
+            $user->name,
+            $role,
+            $user->user_id
+        );
+
+        // 5. Redirect after success
         return redirect()->route('Login')->with('success', 'Account created successfully! You may now log in.');
     }
 }

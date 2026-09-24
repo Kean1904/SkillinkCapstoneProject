@@ -47,9 +47,7 @@ class DashboardStatsController extends Controller
 
         // 5. Complaints & Audit
         $complaints = Complaint::where('status', '!=', 'Resolved')->count();
-        $auditLogsCount = \Illuminate\Support\Facades\Schema::hasTable('audit_trail_logs')
-            ? \Illuminate\Support\Facades\DB::table('audit_trail_logs')->count()
-            : 0;
+        $auditLogsCount = \App\Models\AuditLog::count();
 
         // 6. User-specific counts
         $myAppliedJobs = 0;

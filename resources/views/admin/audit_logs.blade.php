@@ -229,9 +229,28 @@
                 <a href="{{ route('dashboard.Admin') }}" class="back-link">&larr; Back to Admin Dashboard</a>
             </div>
 
-            <div class="card">
-                <h3><i class="fa-solid fa-clock-rotate-left"></i> Immutable Event History</h3>
-                <p style="font-size: 13px; opacity: 0.85;">Talaan ng mga pangunahing aktibidad at transaksyon sa sistema para sa pananagutan at seguridad.</p>
+            <div class="card" style="border: 4px solid #0033a0; background: rgba(30, 58, 138, 0.75);">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                    <div>
+                        <h3><i class="fa-solid fa-clock-rotate-left"></i> Immutable Event History & Audit Trail</h3>
+                        <p style="font-size: 13px; opacity: 0.85; margin-top: 4px;">Live tracking of all municipal user activities, authentication events, bookings, and accreditation decisions.</p>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="text" id="auditSearch" placeholder="Search actor, action, or details..." 
+                               onkeyup="filterAuditRows()" 
+                               style="padding: 8px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.15); color: white; font-size: 13px; width: 280px; outline: none;">
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 12px; margin-top: 15px; flex-wrap: wrap;">
+                    <div style="background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 8px; font-size: 12.5px;">
+                        Total Logged Events: <strong style="color: #93c5fd;">{{ count($logs ?? []) }}</strong>
+                    </div>
+                    <div style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; padding: 8px 16px; border-radius: 8px; font-size: 12.5px; color: #86efac;">
+                        System Integrity: <strong>Active & Tamper-Proof</strong>
+                    </div>
+                </div>
+
                 <hr>
 
                 <div style="overflow-x: auto;">
@@ -240,40 +259,52 @@
                             <tr>
                                 <th>Timestamp</th>
                                 <th>Actor / Account</th>
+                                <th>Role</th>
                                 <th>Action Event</th>
-                                <th>IP / Terminal</th>
+                                <th>Activity Details</th>
+                                <th>IP Address</th>
                                 <th>Status</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td>{{ now()->format('Y-m-d H:i:s') }}</td>
-                                <td><span style="color: #fca5a5;">admin@Admin</span></td>
-                                <td>Administrative Audit Inspection</td>
-                                <td>127.0.0.1</td>
-                                <td><span style="color: #4ade80;">Success</span></td>
-                            </tr>
-                            <tr>
-                                <td>{{ now()->subMinutes(15)->format('Y-m-d H:i:s') }}</td>
-                                <td><span style="color: #ddd6fe;">peso_officer@Staff</span></td>
-                                <td>Worker Accreditation Verification</td>
-                                <td>127.0.0.1</td>
-                                <td><span style="color: #4ade80;">Success</span></td>
-                            </tr>
-                            <tr>
-                                <td>{{ now()->subHours(1)->format('Y-m-d H:i:s') }}</td>
-                                <td><span style="color: #7dd3fc;">juan_plumber</span></td>
-                                <td>Service Stepper Status Updated to ACCEPTED</td>
-                                <td>127.0.0.1</td>
-                                <td><span style="color: #4ade80;">Success</span></td>
-                            </tr>
-                            <tr>
-                                <td>{{ now()->subHours(2)->format('Y-m-d H:i:s') }}</td>
-                                <td><span style="color: #a7f3d0;">Testing 1</span></td>
-                                <td>Direct Booking Request Created (BK-894102)</td>
-                                <td>127.0.0.1</td>
-                                <td><span style="color: #4ade80;">Success</span></td>
-                            </tr>
+                        <tbody id="auditTableBody">
+                            @forelse($logs as $log)
+                                <tr class="audit-row" data-search="{{ strtolower($log->actor_name . ' ' . $log->actor_role . ' ' . $log->action . ' ' . ($log->details ?? '') . ' ' . $log->ip_address) }}">
+                                    <td style="white-space: nowrap; font-size: 12px; color: #94a3b8;">{{ $log->created_at->format('Y-m-d H:i:s') }}</td>
+                                    <td>
+                                        <strong style="color: #ffffff;">{{ $log->actor_name }}</strong>
+                                    </td>
+                                    <td>
+                                        @php
+                                            $roleLower = strtolower($log->actor_role);
+                                            $badgeColor = match(true) {
+                                                str_contains($roleLower, 'admin') => 'background: rgba(239, 68, 68, 0.25); color: #fca5a5; border: 1px solid #ef4444;',
+                                                str_contains($roleLower, 'staff') || str_contains($roleLower, 'peso') => 'background: rgba(168, 85, 247, 0.25); color: #d8b4fe; border: 1px solid #a855f7;',
+                                                str_contains($roleLower, 'worker') || str_contains($roleLower, 'skilled') => 'background: rgba(59, 130, 246, 0.25); color: #93c5fd; border: 1px solid #3b82f6;',
+                                                default => 'background: rgba(16, 185, 129, 0.25); color: #86efac; border: 1px solid #10b981;',
+                                            };
+                                        @endphp
+                                        <span style="{{ $badgeColor }} padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: bold;">
+                                            {{ $log->actor_role }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span style="font-weight: bold; color: #fde047; font-size: 12.5px;">{{ str_replace('_', ' ', $log->action) }}</span>
+                                    </td>
+                                    <td style="font-size: 12px; opacity: 0.9; max-width: 320px;">
+                                        {{ $log->details ?? 'N/A' }}
+                                    </td>
+                                    <td style="font-size: 11.5px; color: #cbd5e1;">{{ $log->ip_address }}</td>
+                                    <td>
+                                        <span style="background: rgba(34, 197, 94, 0.2); border: 1px solid #22c55e; color: #4ade80; padding: 2px 7px; border-radius: 4px; font-size: 11px; font-weight: bold;">
+                                            {{ $log->status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="7" style="text-align: center; padding: 25px; opacity: 0.7;">No audit logs recorded yet.</td>
+                                </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
@@ -286,6 +317,20 @@
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('active');
             document.getElementById('sidebarOverlay').classList.toggle('active');
+        }
+
+        function filterAuditRows() {
+            const query = (document.getElementById('auditSearch').value || '').trim().toLowerCase();
+            const rows = document.querySelectorAll('.audit-row');
+
+            rows.forEach(row => {
+                const searchData = row.getAttribute('data-search') || '';
+                if (searchData.includes(query)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
         }
     </script>
 </body>

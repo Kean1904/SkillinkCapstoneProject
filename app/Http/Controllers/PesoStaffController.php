@@ -179,6 +179,14 @@ class PesoStaffController extends Controller
         $user->is_verified = true;
         $user->save();
 
+        \App\Models\AuditLog::log(
+            'ACCREDITATION_APPROVED',
+            "PESO Staff officially verified and accredited Skilled Worker: {$user->full_name} ({$user->skills}).",
+            Session::get('user_name', 'PESO Staff'),
+            'PESO Staff',
+            $user->user_id
+        );
+
         return back()->with('success', "Worker {$user->full_name} has been officially accredited by PESO Magalang!");
     }
 
@@ -187,6 +195,14 @@ class PesoStaffController extends Controller
         $user = User::findOrFail($id);
         $user->is_verified = false;
         $user->save();
+
+        \App\Models\AuditLog::log(
+            'ACCREDITATION_REVOKED',
+            "PESO Staff revoked accreditation status for worker: {$user->full_name}.",
+            Session::get('user_name', 'PESO Staff'),
+            'PESO Staff',
+            $user->user_id
+        );
 
         return back()->with('success', "Worker {$user->full_name} status updated to Unaccredited.");
     }
@@ -212,6 +228,14 @@ class PesoStaffController extends Controller
 
         $recipients = $query->get();
 
+        \App\Models\AuditLog::log(
+            'ANNOUNCEMENT_BROADCAST',
+            "Broadcasted municipal notice: '{$request->title}' to {$recipients->count()} recipients.",
+            Session::get('user_name', 'PESO Staff'),
+            'PESO Staff',
+            Session::get('user_id')
+        );
+
         return back()->with('success', "Municipal announcement broadcasted successfully to {$recipients->count()} registered constituents!");
     }
 
@@ -222,6 +246,14 @@ class PesoStaffController extends Controller
         $complaint->resolution_notes = $request->input('notes', 'Resolved amicably by PESO Staff mediation.');
         $complaint->resolved_at = now();
         $complaint->save();
+
+        \App\Models\AuditLog::log(
+            'COMPLAINT_RESOLVED',
+            "Incident complaint #{$complaint->complaint_id} resolved by PESO Staff mediation.",
+            Session::get('user_name', 'PESO Staff'),
+            'PESO Staff',
+            Session::get('user_id')
+        );
 
         return back()->with('success', "Incident complaint #{$complaint->complaint_id} marked as RESOLVED.");
     }

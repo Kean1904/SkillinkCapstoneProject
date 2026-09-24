@@ -32,8 +32,16 @@ class LoginController extends Controller
         Session::put('user_role', $user->role);
         Session::put('profile_image_uri', $user->profile_image_uri);
         Session::put('privacy_consent_accepted', (bool) $user->privacy_consent_accepted);
-        $user->update(['last_seen_at' => now()]);
         \Illuminate\Support\Facades\Auth::login($user);
+
+        // Record Audit Log event
+        \App\Models\AuditLog::log(
+            'USER_LOGIN',
+            "User {$user->name} ({$user->role}) authenticated successfully.",
+            $user->name,
+            $user->role,
+            $user->user_id
+        );
 
         // I-redirect base sa role
         return match ($user->role) {
@@ -75,10 +83,16 @@ class LoginController extends Controller
 
     public function logout(Request $request)
     {
-        $userId = Session::get('user_id') ?? (\Illuminate\Support\Facades\Auth::id());
-        if ($userId) {
-            User::where('user_id', $userId)->update(['last_seen_at' => null]);
-        }
+        $userName = Session::get('user_name', 'User');
+        $userRole = Session::get('user_role', 'User');
+
+        \App\Models\AuditLog::log(
+            'USER_LOGOUT',
+            "User {$userName} logged out of session.",
+            $userName,
+            $userRole,
+            $userId
+        );
 
         // Burahin lahat ng laman ng session
         Session::flush();

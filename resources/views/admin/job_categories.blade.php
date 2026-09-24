@@ -227,42 +227,64 @@
                 <a href="{{ route('dashboard.Admin') }}" class="back-link">&larr; Back to Admin Dashboard</a>
             </div>
 
-            <div class="card">
-                <h3><i class="fa-solid fa-list-check"></i> Accredited Employment Classifications in Magalang</h3>
-                <p style="font-size: 13px; opacity: 0.85;">Mga opisyal na kasanayang kinikilala ng PESO Magalang para sa accreditation at job matching.</p>
+            <div class="card" style="border: 4px solid #0033a0; background: rgba(30, 58, 138, 0.75);">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                    <div>
+                        <h3><i class="fa-solid fa-list-check"></i> Municipal Trade & Job Classifications in Magalang</h3>
+                        <p style="font-size: 13px; opacity: 0.85; margin-top: 4px;">Dynamic list of trade skills based on registered workers in Magalang and official TESDA classifications.</p>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="text" id="categorySearch" placeholder="Search trade category (e.g. IT, Plumber)..." 
+                               onkeyup="filterCategoryCards()" 
+                               style="padding: 8px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.15); color: white; font-size: 13px; width: 280px; outline: none;">
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 12px; margin-top: 15px; flex-wrap: wrap;">
+                    <div style="background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 8px; font-size: 12.5px;">
+                        Total Recognized Categories: <strong style="color: #93c5fd;">{{ count($categoriesMap ?? []) }}</strong>
+                    </div>
+                    <div style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; padding: 8px 16px; border-radius: 8px; font-size: 12.5px; color: #86efac;">
+                        Categories with Active Workers: <strong>{{ collect($categoriesMap ?? [])->where('worker_count', '>', 0)->count() }}</strong>
+                    </div>
+                </div>
+
                 <hr>
 
-                <div class="grid-categories">
-                    <div class="category-box">
-                        <div class="category-icon"><i class="fa-solid fa-faucet-drip"></i></div>
-                        <h4 style="font-size: 16px;">Plumbing Repair</h4>
-                        <p style="font-size: 12px; opacity: 0.75; margin-top: 4px;">Pipe fitting, drainage, leakage, seals</p>
-                    </div>
-                    <div class="category-box">
-                        <div class="category-icon"><i class="fa-solid fa-bolt"></i></div>
-                        <h4 style="font-size: 16px;">Electrical Installation</h4>
-                        <p style="font-size: 12px; opacity: 0.75; margin-top: 4px;">Wiring, breaker troubleshooting, outlets</p>
-                    </div>
-                    <div class="category-box">
-                        <div class="category-icon"><i class="fa-solid fa-hammer"></i></div>
-                        <h4 style="font-size: 16px;">Carpentry & Roofing</h4>
-                        <p style="font-size: 12px; opacity: 0.75; margin-top: 4px;">Furniture, ceiling, doors, roofing repair</p>
-                    </div>
-                    <div class="category-box">
-                        <div class="category-icon"><i class="fa-solid fa-fire"></i></div>
-                        <h4 style="font-size: 16px;">Welding & Fabrication</h4>
-                        <p style="font-size: 12px; opacity: 0.75; margin-top: 4px;">Steel gates, window grills, structural metal</p>
-                    </div>
-                    <div class="category-box">
-                        <div class="category-icon"><i class="fa-solid fa-trowel-bricks"></i></div>
-                        <h4 style="font-size: 16px;">Masonry & Construction</h4>
-                        <p style="font-size: 12px; opacity: 0.75; margin-top: 4px;">Concrete, tiling, plastering, wall repair</p>
-                    </div>
-                    <div class="category-box">
-                        <div class="category-icon"><i class="fa-solid fa-tv"></i></div>
-                        <h4 style="font-size: 16px;">Appliance Repair</h4>
-                        <p style="font-size: 12px; opacity: 0.75; margin-top: 4px;">Refrigeration, aircon, washing machine</p>
-                    </div>
+                <div class="grid-categories" id="categoriesGrid">
+                    @forelse($categoriesMap as $cat)
+                        <div class="category-box cat-card" data-title="{{ strtolower($cat['title']) }}" data-desc="{{ strtolower($cat['desc']) }}" style="border: 2px solid {{ $cat['worker_count'] > 0 ? '#10b981' : 'rgba(255, 255, 255, 0.25)' }}; text-align: left; display: flex; flex-direction: column; justify-content: space-between;">
+                            <div>
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                                    <div class="category-icon" style="margin-bottom: 0; color: {{ $cat['worker_count'] > 0 ? '#86efac' : '#60a5fa' }};">
+                                        <i class="fa-solid {{ $cat['icon'] }}"></i>
+                                    </div>
+                                    @if($cat['worker_count'] > 0)
+                                        <span style="background: #10b981; color: white; font-size: 10.5px; font-weight: bold; padding: 3px 8px; border-radius: 12px; display: inline-flex; align-items: center; gap: 4px;">
+                                            <i class="fa-solid fa-circle-check"></i> {{ $cat['worker_count'] }} {{ $cat['worker_count'] == 1 ? 'Worker' : 'Workers' }}
+                                        </span>
+                                    @else
+                                        <span style="background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.8); font-size: 10px; padding: 2px 7px; border-radius: 10px;">
+                                            {{ $cat['is_tesda_standard'] ? 'TESDA Trade' : 'Community' }}
+                                        </span>
+                                    @endif
+                                </div>
+                                <h4 style="font-size: 16px; font-weight: bold; color: white; margin-bottom: 6px;">{{ $cat['title'] }}</h4>
+                                <p style="font-size: 12px; opacity: 0.8; line-height: 1.4;">{{ $cat['desc'] }}</p>
+                            </div>
+
+                            <div style="margin-top: 14px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.15); font-size: 11.5px;">
+                                @if(!empty($cat['active_workers']))
+                                    <div style="color: #93c5fd; font-weight: bold; margin-bottom: 3px;">Active in Magalang:</div>
+                                    <div style="color: #e2e8f0; font-size: 11px;">{{ implode(', ', array_slice($cat['active_workers'], 0, 3)) }}</div>
+                                @else
+                                    <span style="color: rgba(255,255,255,0.5);"><i class="fa-regular fa-clock"></i> Open for skilled applicants</span>
+                                @endif
+                            </div>
+                        </div>
+                    @empty
+                        <div style="grid-column: 1 / -1; text-align: center; padding: 30px; opacity: 0.7;">No trade categories registered.</div>
+                    @endforelse
                 </div>
             </div>
 
@@ -273,6 +295,21 @@
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('active');
             document.getElementById('sidebarOverlay').classList.toggle('active');
+        }
+
+        function filterCategoryCards() {
+            const query = (document.getElementById('categorySearch').value || '').trim().toLowerCase();
+            const cards = document.querySelectorAll('.cat-card');
+
+            cards.forEach(card => {
+                const title = card.getAttribute('data-title') || '';
+                const desc = card.getAttribute('data-desc') || '';
+                if (title.includes(query) || desc.includes(query)) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
         }
     </script>
 </body>

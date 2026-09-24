@@ -565,7 +565,7 @@
                                 <i class="fa-solid fa-upload"></i> {{ ($worker->is_verified ?? false) ? 'Update Credentials / Re-submit Proof' : 'Upload Credentials & Submit Application for Accreditation' }}
                             </summary>
 
-                            <form action="{{ route('skilled_worker.submit_application') }}" method="POST" enctype="multipart/form-data" style="margin-top: 14px;">
+                            <form id="accreditationForm" action="{{ route('skilled_worker.submit_application') }}" method="POST" enctype="multipart/form-data" style="margin-top: 14px;" onsubmit="return validateAccreditationForm(event)">
                                 @csrf
                                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin-bottom: 12px;">
                                     <div>
@@ -581,7 +581,7 @@
                                         <label style="font-size: 11.5px; color: rgba(255,255,255,0.9); font-weight: bold; display: block; margin-bottom: 4px;">
                                             Upload TESDA Certificate File (Photo or PDF)
                                         </label>
-                                        <input type="file" name="certificate_file" accept="image/*,.pdf"
+                                        <input type="file" id="certFileInput" name="certificate_file" accept="image/*,.pdf"
                                                style="width: 100%; padding: 6px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.15); color: white; font-size: 12px;">
                                     </div>
 
@@ -589,9 +589,12 @@
                                         <label style="font-size: 11.5px; color: rgba(255,255,255,0.9); font-weight: bold; display: block; margin-bottom: 4px;">
                                             Upload Valid Government ID (Photo or PDF)
                                         </label>
-                                        <input type="file" name="valid_id_file" accept="image/*,.pdf"
+                                        <input type="file" id="validIdFileInput" name="valid_id_file" accept="image/*,.pdf"
                                                style="width: 100%; padding: 6px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.15); color: white; font-size: 12px;">
                                     </div>
+                                </div>
+
+                                <div id="accreditationErrorBox" style="display: none; background: rgba(239, 68, 68, 0.3); border: 1px solid #f87171; color: #fee2e2; padding: 10px 14px; border-radius: 8px; margin-bottom: 12px; font-size: 13px; font-weight: bold;">
                                 </div>
 
                                 <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
@@ -813,6 +816,31 @@
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#039;');
+    }
+
+    function validateAccreditationForm(event) {
+        const certInput = document.getElementById('certFileInput');
+        const validIdInput = document.getElementById('validIdFileInput');
+        const errBox = document.getElementById('accreditationErrorBox');
+
+        const hasCert = certInput && certInput.files && certInput.files.length > 0;
+        const hasValidId = validIdInput && validIdInput.files && validIdInput.files.length > 0;
+
+        if (!hasCert && !hasValidId) {
+            if (event) event.preventDefault();
+            if (errBox) {
+                errBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> You dont have attach file submitted';
+                errBox.style.display = 'block';
+                errBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            alert('You dont have attach file submitted');
+            return false;
+        }
+
+        if (errBox) {
+            errBox.style.display = 'none';
+        }
+        return true;
     }
 
     // Run polling every 4 seconds

@@ -459,8 +459,8 @@
         </div>
 
         <div class="search-box">
-            <input type="text" placeholder="Search here">
-            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="headerSearchInput" value="{{ $search ?? '' }}" placeholder="Search jobs (e.g. Plumbing)..." onkeyup="handleHeaderSearch(event)">
+            <i class="fa-solid fa-magnifying-glass" onclick="triggerSearch()"></i>
         </div>
     </div>
 
@@ -511,30 +511,77 @@
                     </div>
 
                     <!-- AVAILABLE SKILLED WORKER LIST -->
+                    <!-- AVAILABLE SKILLED WORKER LIST & FUNCTIONAL JOB SEARCH -->
                     <div class="panel">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <h3>AVAILABLE SKILLED WORKER</h3>
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                            <div>
+                                <h3>AVAILABLE SKILLED WORKER</h3>
+                                <p style="font-size: 11.5px; opacity: 0.8; margin-top: 2px;">Maghanap ng skilled worker sa pamamagitan ng trabaho (Job / Specialized Skill).</p>
+                            </div>
                             <a href="{{ route('residential.saved_workers') }}" style="color: #93c5fd; font-size: 12px; text-decoration: none;"><i class="fa-solid fa-bookmark"></i> View Saved</a>
                         </div>
-                        <hr>
+
+                        <!-- Dedicated In-Panel Search & Quick Filters -->
+                        <div style="margin-top: 14px; margin-bottom: 12px;">
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <div style="position: relative; flex: 1;">
+                                    <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 12px; top: 11px; color: #93c5fd; font-size: 13px;"></i>
+                                    <input type="text" id="panelSearchInput" value="{{ $search ?? '' }}" 
+                                           placeholder="Type job or skill needed (e.g., Plumbing, IT Technician, Electrical, Carpentry)..." 
+                                           onkeyup="syncAndFilterWorkers(this.value)"
+                                           style="width: 100%; padding: 8px 12px 8px 34px; border-radius: 8px; border: 1.5px solid rgba(147, 197, 253, 0.4); background: rgba(0, 0, 0, 0.25); color: white; font-size: 13px; outline: none;">
+                                </div>
+                                <button type="button" onclick="clearWorkerSearch()" title="Clear Search" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; border-radius: 8px; padding: 8px 14px; font-size: 12px; cursor: pointer; white-space: nowrap;">
+                                    Reset
+                                </button>
+                            </div>
+
+                            <!-- Quick Filter Pills -->
+                            <div style="display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; align-items: center;">
+                                <span style="font-size: 11px; color: rgba(255,255,255,0.7); margin-right: 4px;">Popular Trades:</span>
+                                @foreach(['All', 'Plumbing', 'Electrical', 'Carpentry', 'Welding', 'Masonry', 'IT Technician', 'Appliance', 'Cleaning'] as $pill)
+                                    <button type="button" class="trade-pill" onclick="applyQuickFilter('{{ $pill === 'All' ? '' : $pill }}')" 
+                                            style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.25); color: #e2e8f0; font-size: 11px; padding: 3px 10px; border-radius: 14px; cursor: pointer; transition: all 0.2s;">
+                                        {{ $pill }}
+                                    </button>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        <div id="searchResultsInfo" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 12px; color: #93c5fd;">
+                            <span id="resultCountText">Showing {{ count($workersList ?? []) }} skilled workers</span>
+                        </div>
+
+                        <hr style="margin-top: 4px; margin-bottom: 12px;">
+
+                        <div id="noWorkerFoundNotice" style="display: none; background: rgba(0,0,0,0.3); border: 1px dashed rgba(255,255,255,0.3); border-radius: 8px; padding: 20px; text-align: center; color: #cbd5e1; margin-bottom: 12px;">
+                            <i class="fa-solid fa-magnifying-glass" style="font-size: 24px; color: #93c5fd; margin-bottom: 8px;"></i>
+                            <h4 style="font-size: 14px; color: white;">No skilled workers found matching this job search.</h4>
+                            <p style="font-size: 12px; opacity: 0.75; margin-top: 4px;">Try searching for other trade services like Plumbing, Electrical, Carpentry, or IT Technician.</p>
+                        </div>
+
+                        <div id="workersContainer">
                         @if(isset($workersList) && count($workersList) > 0)
                             @foreach($workersList as $worker)
-                                <div style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; margin-bottom: 10px; border-left: 4px solid #10b981; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                <div class="worker-card-item" data-name="{{ strtolower($worker->full_name . ' ' . $worker->name) }}" data-skills="{{ strtolower($worker->skills ?? '') }}" data-barangay="{{ strtolower($worker->barangay ?? '') }}"
+                                     style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; margin-bottom: 10px; border-left: 4px solid #10b981; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
                                     <div>
-                                        <strong style="font-size: 14px;">{{ $worker->full_name }}</strong>
+                                        <strong style="font-size: 14px; color: white;">{{ $worker->full_name }}</strong>
                                         <span style="font-size: 11.5px; color: #86efac; font-weight: bold; margin-left: 8px; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; padding: 2px 7px; border-radius: 4px;">
                                             <i class="fa-solid fa-money-bill-wave"></i> {{ $worker->service_rate_display }} Fixed
                                         </span>
-                                        <p style="font-size: 12px; opacity: 0.9; margin: 3px 0;"><i class="fa-solid fa-wrench"></i> {{ $worker->skills ?? 'General Handyman' }}</p>
+                                        <p style="font-size: 12px; color: #fde047; font-weight: bold; margin: 3px 0;">
+                                            <i class="fa-solid fa-wrench"></i> <span class="worker-skills-display">{{ $worker->skills ?? 'General Handyman' }}</span>
+                                        </p>
                                         <span style="font-size: 11px; opacity: 0.75;"><i class="fa-solid fa-location-dot"></i> {{ $worker->barangay }}</span>
                                     </div>
                                     <div style="display: flex; align-items: center; gap: 8px;">
-                                        <button type="button" onclick="openBookModal('{{ $worker->name }}', '{{ $worker->full_name }}', '{{ $worker->skills }}', '{{ $worker->service_rate_display }}')" style="background: #0033a0; border: 1px solid #60a5fa; color: white; border-radius: 6px; padding: 5px 12px; cursor: pointer; font-size: 12px; font-weight: bold; display: inline-flex; align-items: center; gap: 4px;">
-                                            <i class="fa-solid fa-calendar-check"></i> Book
+                                        <button type="button" onclick="openBookModal('{{ $worker->name }}', '{{ $worker->full_name }}', '{{ $worker->skills }}', '{{ $worker->service_rate_display }}')" style="background: #0033a0; border: 1px solid #60a5fa; color: white; border-radius: 6px; padding: 6px 14px; cursor: pointer; font-size: 12px; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 6px rgba(0,0,0,0.25);">
+                                            <i class="fa-solid fa-calendar-check"></i> Book Now
                                         </button>
                                         <form method="POST" action="{{ route('residential.worker.toggle_save', $worker->user_id) }}" style="display: inline;">
                                             @csrf
-                                            <button type="submit" title="Save / Bookmark Worker" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.4); color: white; border-radius: 6px; padding: 5px 9px; cursor: pointer; font-size: 12px;">
+                                            <button type="submit" title="Save / Bookmark Worker" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.4); color: white; border-radius: 6px; padding: 6px 10px; cursor: pointer; font-size: 12px;">
                                                 <i class="fa-regular fa-bookmark"></i>
                                             </button>
                                         </form>
@@ -548,6 +595,7 @@
                         @else
                             <div class="no-data">No Data</div>
                         @endif
+                        </div>
                     </div>
 
                 </div>
@@ -621,6 +669,87 @@
             console.debug('Residential live sync error:', err);
         });
     }
+
+    function syncAndFilterWorkers(query) {
+        const headerInput = document.getElementById('headerSearchInput');
+        const panelInput = document.getElementById('panelSearchInput');
+        
+        if (headerInput && headerInput.value !== query) {
+            headerInput.value = query;
+        }
+        if (panelInput && panelInput.value !== query) {
+            panelInput.value = query;
+        }
+
+        const q = (query || '').trim().toLowerCase();
+        const items = document.querySelectorAll('.worker-card-item');
+        const countText = document.getElementById('resultCountText');
+        const noNotice = document.getElementById('noWorkerFoundNotice');
+
+        let visibleCount = 0;
+        items.forEach(card => {
+            const name = card.getAttribute('data-name') || '';
+            const skills = card.getAttribute('data-skills') || '';
+            const barangay = card.getAttribute('data-barangay') || '';
+
+            if (!q || name.includes(q) || skills.includes(q) || barangay.includes(q)) {
+                card.style.display = 'flex';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        if (countText) {
+            if (q) {
+                countText.innerHTML = `Found <strong style="color: #fde047;">${visibleCount}</strong> skilled workers matching "<strong>${escapeHtml(q)}</strong>"`;
+            } else {
+                countText.innerText = `Showing ${visibleCount} skilled workers`;
+            }
+        }
+
+        if (noNotice) {
+            noNotice.style.display = (visibleCount === 0 && items.length > 0) ? 'block' : 'none';
+        }
+    }
+
+    function handleHeaderSearch(e) {
+        syncAndFilterWorkers(e.target.value);
+        if (e.key === 'Enter') {
+            document.getElementById('panelSearchInput')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+
+    function triggerSearch() {
+        const val = document.getElementById('headerSearchInput')?.value || '';
+        syncAndFilterWorkers(val);
+        document.getElementById('panelSearchInput')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function applyQuickFilter(trade) {
+        syncAndFilterWorkers(trade);
+    }
+
+    function clearWorkerSearch() {
+        syncAndFilterWorkers('');
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const initialSearch = "{{ $search ?? '' }}";
+        if (initialSearch) {
+            syncAndFilterWorkers(initialSearch);
+        }
+    });
 
     setInterval(pollResidentialLiveStats, 5000);
     </script>
