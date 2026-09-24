@@ -328,4 +328,111 @@ class AdminDashboardController extends Controller
 
         return back()->with('success', 'Master Administrator password updated successfully!');
     }
+
+    public function complaints()
+    {
+        $complaints = Complaint::latest('complaint_id')->get();
+        return view('admin.complaints', compact('complaints'));
+    }
+
+    public function resolveComplaint(Request $request, $id)
+    {
+        $complaint = Complaint::findOrFail($id);
+        $complaint->status = 'Resolved';
+        $complaint->resolution_notes = $request->input('notes', 'Resolved by Municipal Administrator mediation.');
+        $complaint->resolved_at = now();
+        $complaint->save();
+
+        \App\Models\AuditLog::log(
+            'COMPLAINT_RESOLVED',
+            "Administrator resolved grievance #CMP-{$complaint->complaint_id} via executive mediation.",
+            Session::get('user_name', 'Administrator'),
+            'Administrator',
+            Session::get('user_id')
+        );
+
+        return back()->with('success', "Grievance #CMP-{$complaint->complaint_id} marked as RESOLVED (Case Close)!");
+    }
+
+    public function announcements()
+    {
+        $jobs = JobPost::latest()->get();
+        return view('admin.announcements', compact('jobs'));
+    }
+
+    public function broadcastAnnouncement(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'category' => 'required|string|max:100',
+            'message' => 'required|string',
+            'target_audience' => 'required|string|in:all,skilled_worker,residential',
+        ]);
+
+        $query = User::whereNotNull('email')->where('email', '!=', '');
+        if ($request->target_audience === 'skilled_worker') {
+            $query->where('role', 'skilled worker');
+        } elseif ($request->target_audience === 'residential') {
+            $query->where('role', 'residential');
+        }
+
+        $recipients = $query->get();
+
+        \App\Models\AuditLog::log(
+            'ANNOUNCEMENT_BROADCAST',
+            "Administrator broadcasted municipal announcement: '{$request->title}' to {$recipients->count()} recipients.",
+            Session::get('user_name', 'Administrator'),
+            'Administrator',
+            Session::get('user_id')
+        );
+
+        return back()->with('success', "Municipal announcement broadcasted successfully to {$recipients->count()} registered users!");
+    }
+
+    public function doleReports()
+    {
+        $totalWorkers = User::where('role', 'skilled worker')->count();
+        $accreditedWorkers = User::where('role', 'skilled worker')->where('is_verified', true)->count();
+        $pendingWorkers = User::where('role', 'skilled worker')->where('is_verified', false)->count();
+        $totalResidential = User::where('role', 'residential')->count();
+        $totalJobPosts = JobPost::count();
+        $totalBookings = Booking::count();
+        $completedBookings = Booking::where('status', 'COMPLETED')->count();
+        $resolvedComplaints = Complaint::where('status', 'Resolved')->count();
+        $totalComplaints = Complaint::count();
+
+        // Employment rate calculation
+        $employmentRate = $totalBookings > 0 ? round(($completedBookings / $totalBookings) * 100, 1) : 100.0;
+
+        // Trade breakdown
+        $topTrades = JobPost::select('category', \Illuminate\Support\Facades\DB::raw('count(*) as count'))
+            ->groupBy('category')
+            ->orderByDesc('count')
+            ->take(5)
+            ->get();
+
+        // Barangay breakdown
+        $barangayStats = User::select('barangay', \Illuminate\Support\Facades\DB::raw('count(*) as total'))
+            ->whereNotNull('barangay')
+            ->where('barangay', '!=', '')
+            ->groupBy('barangay')
+            ->orderByDesc('total')
+            ->take(8)
+            ->get();
+
+        return view('admin.dole_reports', compact(
+            'totalWorkers',
+            'accreditedWorkers',
+            'pendingWorkers',
+            'totalResidential',
+            'totalJobPosts',
+            'totalBookings',
+            'completedBookings',
+            'resolvedComplaints',
+            'totalComplaints',
+            'employmentRate',
+            'topTrades',
+            'barangayStats'
+        ));
+    }
 }

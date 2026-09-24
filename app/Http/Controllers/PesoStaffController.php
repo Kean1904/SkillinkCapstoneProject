@@ -48,7 +48,14 @@ class PesoStaffController extends Controller
             ->get();
 
         $jobsList = JobPost::latest()->get();
+        $bookingsList = Booking::latest()->get();
         $complaintsList = Complaint::latest()->get();
+        $workerActivities = \App\Models\AuditLog::where(function($q) {
+            $q->where('actor_role', 'like', '%worker%')
+              ->orWhere('action', 'like', '%BOOKING%')
+              ->orWhere('action', 'like', '%JOB%')
+              ->orWhere('action', 'like', '%CREDENTIAL%');
+        })->latest()->take(30)->get();
 
         return view('dashboard.PesoStaff', compact(
             'availableJobs',
@@ -59,7 +66,9 @@ class PesoStaffController extends Controller
             'accreditationQueue',
             'verifiedWorkers',
             'jobsList',
-            'complaintsList'
+            'bookingsList',
+            'complaintsList',
+            'workerActivities'
         ));
     }
 
@@ -72,7 +81,16 @@ class PesoStaffController extends Controller
     public function jobTracking()
     {
         $jobs = JobPost::latest()->get();
-        return view('peso_staff.job_tracking', compact('jobs'));
+        $bookings = Booking::latest()->get();
+        $workerActivities = \App\Models\AuditLog::where(function($q) {
+            $q->where('actor_role', 'like', '%worker%')
+              ->orWhere('action', 'like', '%BOOKING%')
+              ->orWhere('action', 'like', '%JOB%')
+              ->orWhere('action', 'like', '%CREDENTIAL%')
+              ->orWhere('action', 'like', '%SKILL%');
+        })->latest()->take(60)->get();
+
+        return view('peso_staff.job_tracking', compact('jobs', 'bookings', 'workerActivities'));
     }
 
     public function complaints()

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>SKILLINK - Municipal Job Tracking</title>
+    <title>SKILLINK - Municipal Job Tracking & Worker Activity Monitor</title>
     <link rel="icon" type="image/png" href="{{ asset('image/MP_Logo.png') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('css/dashboard-light.css') }}">
@@ -25,23 +25,32 @@
 
         .page-content { padding: 80px 25px 40px 25px; position: relative; min-height: 100vh; }
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(20, 55, 130, 0.65); z-index: 0; pointer-events: none; }
-        .page-inner { position: relative; z-index: 2; max-width: 1200px; margin: 0 auto; }
-        .page-title { color: white; font-size: 24px; font-weight: bold; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; }
+        .page-inner { position: relative; z-index: 2; max-width: 1250px; margin: 0 auto; }
+        .page-title { color: white; font-size: 24px; font-weight: bold; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
         .back-link { color: #93c5fd; font-size: 14px; text-decoration: none; display: flex; align-items: center; gap: 6px; }
 
         .card { background: rgba(20, 60, 130, 0.55); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 12px; padding: 24px; color: white; margin-bottom: 25px; }
         .card h3 { font-size: 18px; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; }
         .card hr { border: none; border-top: 1px solid rgba(255, 255, 255, 0.3); margin: 15px 0; }
 
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 20px; }
+        .stat-card { background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 10px; padding: 16px; display: flex; align-items: center; gap: 14px; }
+        .stat-icon { width: 44px; height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+
+        .tab-btn { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25); color: white; padding: 8px 18px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+        .tab-btn:hover, .tab-btn.active { background: #2563eb; border-color: #60a5fa; box-shadow: 0 2px 8px rgba(37,99,235,0.4); }
+        .search-box { padding: 9px 15px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.4); background: rgba(255, 255, 255, 0.15); color: white; outline: none; font-size: 13px; min-width: 260px; }
+
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { padding: 12px 14px; text-align: left; font-size: 13px; border-bottom: 1px solid rgba(255, 255, 255, 0.15); }
-        th { background: rgba(0, 51, 160, 0.5); color: #93c5fd; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; }
+        th, td { padding: 12px 14px; text-align: left; font-size: 13px; border-bottom: 1px solid rgba(255, 255, 255, 0.15); vertical-align: middle; }
+        th { background: rgba(0, 51, 160, 0.55); color: #93c5fd; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; white-space: nowrap; }
         tr:hover { background: rgba(255, 255, 255, 0.05); }
 
-        .badge { display: inline-block; padding: 3px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; }
-        .badge-pending { background: #eab308; color: black; }
-        .badge-applied { background: #3b82f6; color: white; }
-        .badge-completed { background: #16a34a; color: white; }
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; white-space: nowrap; }
+        .badge-pending { background: rgba(234, 179, 8, 0.25); color: #fef08a; border: 1px solid #eab308; }
+        .badge-accepted { background: rgba(59, 130, 246, 0.25); color: #93c5fd; border: 1px solid #3b82f6; }
+        .badge-completed { background: rgba(16, 185, 129, 0.25); color: #86efac; border: 1px solid #10b981; }
+        .badge-cancelled { background: rgba(239, 68, 68, 0.25); color: #fca5a5; border: 1px solid #ef4444; }
 
         /* STANDARDIZED COMPACT SIDEBAR (ADMIN-STYLE PROPORTIONS) */
         .sidebar {
@@ -64,7 +73,6 @@
             left: 0;
         }
 
-        /* Compact Header with 54px Avatar (Fits all screens cleanly) */
         .sidebar-profile {
             display: flex;
             flex-direction: column;
@@ -124,7 +132,6 @@
             letter-spacing: 0.5px;
         }
 
-        /* Compact Menu Items */
         .sidebar-menu {
             list-style: none;
             padding: 2px 0;
@@ -159,7 +166,6 @@
             color: white;
         }
 
-        /* Bottom Pinned Footer */
         .sidebar-footer {
             margin-top: auto;
             padding: 10px 22px 18px 22px;
@@ -177,16 +183,6 @@
             font-weight: bold;
             transition: opacity 0.2s ease;
             color: lightcoral;
-        }
-
-        .sidebar-footer .logout-btn:hover {
-            opacity: 0.8;
-        }
-
-        .sidebar-footer .logout-btn i {
-            width: 20px;
-            text-align: center;
-            font-size: 14px;
         }
 
         .sidebar-overlay {
@@ -229,21 +225,138 @@
         <div class="page-inner">
 
             <div class="page-title">
-                <span><i class="fa-solid fa-map-location-dot"></i> MUNICIPAL JOB TRACKING</span>
+                <span><i class="fa-solid fa-map-location-dot"></i> MUNICIPAL JOB TRACKING & WORKER MONITOR</span>
                 <a href="{{ route('dashboard.PesoStaff') }}" class="back-link">&larr; Back to PESO Dashboard</a>
             </div>
 
-            <div class="card">
-                <h3><i class="fa-solid fa-briefcase"></i> Active Municipal Employment Needs & Applicants</h3>
-                <p style="font-size: 13px; opacity: 0.85;">Real-time na pagsubaybay sa mga trabaho at kung sino-sinong manggagawa ang nag-apply.</p>
+            <!-- METRIC OVERVIEW CARDS -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: rgba(59, 130, 246, 0.25); color: #60a5fa;">
+                        <i class="fa-solid fa-handshake"></i>
+                    </div>
+                    <div>
+                        <div style="font-size: 22px; font-weight: bold;">{{ isset($bookings) ? count($bookings) : 0 }}</div>
+                        <div style="font-size: 12px; opacity: 0.75;">Skilled Worker Bookings</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: rgba(16, 185, 129, 0.25); color: #4ade80;">
+                        <i class="fa-solid fa-briefcase"></i>
+                    </div>
+                    <div>
+                        <div style="font-size: 22px; font-weight: bold;">{{ isset($jobs) ? count($jobs) : 0 }}</div>
+                        <div style="font-size: 12px; opacity: 0.75;">Job Postings & Needs</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: rgba(234, 179, 8, 0.25); color: #facc15;">
+                        <i class="fa-solid fa-user-check"></i>
+                    </div>
+                    <div>
+                        <div style="font-size: 22px; font-weight: bold;">{{ isset($jobs) ? $jobs->whereNotNull('applicant_username')->count() : 0 }}</div>
+                        <div style="font-size: 12px; opacity: 0.75;">Active Job Applicants</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: rgba(168, 85, 247, 0.25); color: #c084fc;">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                    </div>
+                    <div>
+                        <div style="font-size: 22px; font-weight: bold;">{{ isset($workerActivities) ? count($workerActivities) : 0 }}</div>
+                        <div style="font-size: 12px; opacity: 0.75;">Worker Activity Logs</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABS & SEARCH CONTROLS -->
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button class="tab-btn active" id="btnTabBookings" onclick="switchTrackingTab('bookings')">
+                        <i class="fa-solid fa-handshake"></i> Direct Bookings ({{ isset($bookings) ? count($bookings) : 0 }})
+                    </button>
+                    <button class="tab-btn" id="btnTabJobs" onclick="switchTrackingTab('jobs')">
+                        <i class="fa-solid fa-clipboard-list"></i> Job Posts & Applications ({{ isset($jobs) ? count($jobs) : 0 }})
+                    </button>
+                    <button class="tab-btn" id="btnTabLogs" onclick="switchTrackingTab('logs')">
+                        <i class="fa-solid fa-list-check"></i> Worker Activity Stream ({{ isset($workerActivities) ? count($workerActivities) : 0 }})
+                    </button>
+                </div>
+                <div>
+                    <input type="text" id="trackingSearch" class="search-box" placeholder="🔍 Search worker, client, trade, status..." onkeyup="filterTrackingTable()">
+                </div>
+            </div>
+
+            <!-- 1. DIRECT BOOKINGS TABLE -->
+            <div class="card" id="sectionBookings">
+                <h3><i class="fa-solid fa-handshake" style="color: #60a5fa;"></i> Skilled Worker Engagements & Direct Bookings</h3>
+                <p style="font-size: 13px; opacity: 0.85;">Rehistro ng mga residenteng nag-book sa skilled workers, takdang petsa, at fixed budget sa bawat barangay.</p>
                 <hr>
 
                 <div style="overflow-x: auto;">
-                    <table>
+                    <table id="tableBookings">
+                        <thead>
+                            <tr>
+                                <th>Booking Ref</th>
+                                <th>Resident Client</th>
+                                <th>Skilled Worker</th>
+                                <th>Trade / Service Category</th>
+                                <th>Barangay & Address</th>
+                                <th>Scheduled Date</th>
+                                <th>Fixed Rate</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if(isset($bookings) && count($bookings) > 0)
+                                @foreach($bookings as $b)
+                                    @php $st = strtoupper($b->status ?? 'PENDING'); @endphp
+                                    <tr class="tracking-row" data-search="{{ strtolower(($b->booking_reference ?? '') . ' ' . ($b->client_name ?? '') . ' ' . ($b->worker_name ?? '') . ' ' . ($b->service_category ?? '') . ' ' . ($b->barangay ?? '') . ' ' . $st) }}">
+                                        <td><strong style="color: #93c5fd;">{{ $b->booking_reference ?? 'BK-'.$b->booking_id }}</strong></td>
+                                        <td>
+                                            <strong>{{ $b->client_name ?? $b->client_username }}</strong>
+                                            <div style="font-size: 11px; opacity: 0.7;">@ {{ $b->client_username }}</div>
+                                        </td>
+                                        <td>
+                                            <strong style="color: #86efac;">{{ $b->worker_name ?? $b->worker_username }}</strong>
+                                            <div style="font-size: 11px; opacity: 0.7;">@ {{ $b->worker_username }}</div>
+                                        </td>
+                                        <td><span style="background: rgba(37,99,235,0.3); padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;">{{ $b->service_category }}</span></td>
+                                        <td>
+                                            <i class="fa-solid fa-location-dot" style="color: #f87171; font-size: 11px;"></i> {{ $b->barangay }}
+                                            <div style="font-size: 11px; opacity: 0.65; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $b->service_address }}</div>
+                                        </td>
+                                        <td>
+                                            <div style="white-space: nowrap;"><i class="fa-regular fa-calendar-check" style="color: #93c5fd;"></i> {{ $b->scheduled_date }}</div>
+                                        </td>
+                                        <td><strong style="color: #fde047;">{{ $b->estimated_budget ?? '₱500.00' }}</strong></td>
+                                        <td>
+                                            <span class="badge badge-{{ strtolower($st) }}">{{ $st }}</span>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            @else
+                                <tr>
+                                    <td colspan="8" style="text-align: center; padding: 25px; opacity: 0.7;">Walang aktibong direct booking sa kasalukuyan.</td>
+                                </tr>
+                            @endif
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 2. JOB POSTS & APPLICATIONS TABLE -->
+            <div class="card" id="sectionJobs" style="display: none;">
+                <h3><i class="fa-solid fa-briefcase" style="color: #4ade80;"></i> Community Job Requests & Worker Applications</h3>
+                <p style="font-size: 13px; opacity: 0.85;">Mga ipinaskil na trabaho ng residente at sinu-sinong manggagawa ang nag-apply.</p>
+                <hr>
+
+                <div style="overflow-x: auto;">
+                    <table id="tableJobs">
                         <thead>
                             <tr>
                                 <th>Job Title</th>
-                                <th>Category</th>
+                                <th>Trade Category</th>
                                 <th>Barangay</th>
                                 <th>Posted By</th>
                                 <th>Active Applicant</th>
@@ -254,19 +367,19 @@
                         <tbody>
                             @if(isset($jobs) && count($jobs) > 0)
                                 @foreach($jobs as $job)
-                                    <tr>
+                                    <tr class="tracking-row" data-search="{{ strtolower($job->title . ' ' . $job->category . ' ' . $job->barangay . ' ' . $job->posted_by . ' ' . ($job->applicant_username ?? '') . ' ' . ($job->status ?? '')) }}">
                                         <td>
                                             <strong>{{ $job->title }}</strong>
-                                            <div style="font-size: 11px; opacity: 0.75; max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $job->description }}</div>
+                                            <div style="font-size: 11px; opacity: 0.75; max-width: 280px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $job->description }}</div>
                                         </td>
-                                        <td><span style="background: rgba(37,99,235,0.3); padding: 2px 8px; border-radius: 10px; font-size: 11px;">{{ $job->category }}</span></td>
+                                        <td><span style="background: rgba(37,99,235,0.3); padding: 3px 10px; border-radius: 12px; font-size: 11px;">{{ $job->category }}</span></td>
                                         <td>{{ $job->barangay }}</td>
                                         <td>{{ $job->posted_by }}</td>
                                         <td>
                                             @if(!empty($job->applicant_username))
                                                 <span style="color: #86efac; font-weight: bold;"><i class="fa-solid fa-user-check"></i> {{ $job->applicant_username }}</span>
                                             @else
-                                                <span style="opacity: 0.5;">None</span>
+                                                <span style="opacity: 0.5;">Walang nag-apply pa</span>
                                             @endif
                                         </td>
                                         <td>{{ $job->date_posted }}</td>
@@ -285,6 +398,52 @@
                 </div>
             </div>
 
+            <!-- 3. WORKER ACTIVITY LOGS STREAM -->
+            <div class="card" id="sectionLogs" style="display: none;">
+                <h3><i class="fa-solid fa-list-check" style="color: #c084fc;"></i> Real-Time Skilled Worker Activity Monitor</h3>
+                <p style="font-size: 13px; opacity: 0.85;">Audit trail ng bawat galaw ng mga skilled worker sa Magalang (nag-apply, tumanggap ng booking, nagpasa ng credential, o nag-post ng serbisyo).</p>
+                <hr>
+
+                <div style="overflow-x: auto;">
+                    <table id="tableLogs">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Worker / Actor</th>
+                                <th>Role</th>
+                                <th>Event Action</th>
+                                <th>Activity Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if(isset($workerActivities) && count($workerActivities) > 0)
+                                @foreach($workerActivities as $log)
+                                    <tr class="tracking-row" data-search="{{ strtolower($log->actor_name . ' ' . $log->actor_role . ' ' . $log->action . ' ' . ($log->details ?? '')) }}">
+                                        <td style="white-space: nowrap; font-size: 12px; color: #94a3b8;">{{ $log->created_at->format('Y-m-d H:i') }}</td>
+                                        <td><strong style="color: #86efac;">{{ $log->actor_name }}</strong></td>
+                                        <td>
+                                            <span style="background: rgba(59, 130, 246, 0.25); color: #93c5fd; border: 1px solid #3b82f6; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; white-space: nowrap;">
+                                                {{ $log->actor_role }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span style="font-weight: bold; color: #fde047; font-size: 12px; white-space: nowrap;">{{ str_replace('_', ' ', $log->action) }}</span>
+                                        </td>
+                                        <td style="font-size: 12px; opacity: 0.9;">
+                                            {{ $log->details ?? 'N/A' }}
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            @else
+                                <tr>
+                                    <td colspan="5" style="text-align: center; padding: 25px; opacity: 0.7;">Walang naitalang aktibidad ng manggagawa.</td>
+                                </tr>
+                            @endif
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -292,6 +451,25 @@
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('active');
             document.getElementById('sidebarOverlay').classList.toggle('active');
+        }
+
+        function switchTrackingTab(tab) {
+            document.getElementById('btnTabBookings').classList.toggle('active', tab === 'bookings');
+            document.getElementById('btnTabJobs').classList.toggle('active', tab === 'jobs');
+            document.getElementById('btnTabLogs').classList.toggle('active', tab === 'logs');
+
+            document.getElementById('sectionBookings').style.display = (tab === 'bookings') ? 'block' : 'none';
+            document.getElementById('sectionJobs').style.display = (tab === 'jobs') ? 'block' : 'none';
+            document.getElementById('sectionLogs').style.display = (tab === 'logs') ? 'block' : 'none';
+        }
+
+        function filterTrackingTable() {
+            const query = (document.getElementById('trackingSearch').value || '').toLowerCase().trim();
+            const rows = document.querySelectorAll('.tracking-row');
+            rows.forEach(r => {
+                const searchData = r.getAttribute('data-search') || '';
+                r.style.display = (query === '' || searchData.includes(query)) ? '' : 'none';
+            });
         }
     </script>
 </body>

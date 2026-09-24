@@ -569,14 +569,14 @@
                                         <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                                             <form action="{{ route('peso.accredit', $worker->user_id) }}" method="POST" style="margin: 0;">
                                                 @csrf
-                                                <button type="submit" style="background: #10b981; color: white; border: none; padding: 7px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 12px; transition: all 0.2s;" title="Accredit Worker">
-                                                    <i class="fa-solid fa-check"></i> Accredition
+                                                <button type="submit" style="background: #10b981; color: white; border: none; padding: 7px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 12px; transition: all 0.2s;" title="Approve & Accredit Worker">
+                                                    <i class="fa-solid fa-check"></i> Approved
                                                 </button>
                                             </form>
                                             <form action="{{ route('peso.unaccredit', $worker->user_id) }}" method="POST" style="margin: 0;">
                                                 @csrf
-                                                <button type="submit" style="background: #ef4444; color: white; border: none; padding: 7px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 12px; transition: all 0.2s;" title="Unaccredit Worker">
-                                                    <i class="fa-solid fa-xmark"></i> Unaccredition
+                                                <button type="submit" style="background: #ef4444; color: white; border: none; padding: 7px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 12px; transition: all 0.2s;" title="Deny / Unaccredit Worker">
+                                                    <i class="fa-solid fa-xmark"></i> Denied
                                                 </button>
                                             </form>
                                         </div>
@@ -588,15 +588,47 @@
 
                     <!-- MUNICIPAL JOB TRACKING -->
                     <div class="panel" id="jobtracking" style="max-height: none; margin-bottom: 25px;">
-                        <h3 style="color: #38bdf8; font-size: 16px;"><i class="fa-solid fa-map-location-dot"></i> MUNICIPAL JOB TRACKING</h3>
-                        <p style="font-size: 12px; color: rgba(255,255,255,0.7);">Live monitoring of residential repair postings and worker applications</p>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h3 style="color: #38bdf8; font-size: 16px;"><i class="fa-solid fa-map-location-dot"></i> MUNICIPAL JOB TRACKING</h3>
+                                <p style="font-size: 12px; color: rgba(255,255,255,0.7);">Live monitoring of skilled worker bookings, repair requests, and applications</p>
+                            </div>
+                            <a href="{{ route('peso_staff.job_tracking') }}" style="background: rgba(37,99,235,0.3); border: 1px solid #3b82f6; color: #93c5fd; padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; text-decoration: none;">
+                                <i class="fa-solid fa-chart-line"></i> Full Monitor &rarr;
+                            </a>
+                        </div>
                         <hr style="width: 100%; border-color: rgba(255,255,255,0.2); margin: 12px 0;">
 
+                        <!-- Direct Bookings Preview -->
+                        <h4 style="font-size: 13px; color: #60a5fa; margin-bottom: 8px;"><i class="fa-solid fa-handshake"></i> Recent Skilled Worker Bookings</h4>
+                        @if(isset($bookingsList) && $bookingsList->isNotEmpty())
+                            <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
+                                @foreach($bookingsList->take(3) as $bk)
+                                    <div style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                                        <div>
+                                            <strong style="color: #93c5fd; font-size: 13px;">{{ $bk->booking_reference }}</strong>
+                                            <span style="font-size: 12px; color: white;"> — Client: {{ $bk->client_name ?? $bk->client_username }} &bull; Worker: <strong style="color: #86efac;">{{ $bk->worker_name ?? $bk->worker_username }}</strong></span>
+                                            <div style="font-size: 11px; opacity: 0.7; margin-top: 2px;">{{ $bk->service_category }} &bull; Brgy. {{ $bk->barangay }} &bull; {{ $bk->scheduled_date }} &bull; Rate: <span style="color: #fde047;">{{ $bk->estimated_budget }}</span></div>
+                                        </div>
+                                        <div>
+                                            <span style="background: rgba(16, 185, 129, 0.2); color: #86efac; border: 1px solid #10b981; padding: 3px 8px; border-radius: 10px; font-size: 10px; font-weight: bold;">
+                                                {{ strtoupper($bk->status) }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <p style="font-size: 12px; opacity: 0.6; margin-bottom: 14px;">No active bookings yet.</p>
+                        @endif
+
+                        <!-- Job Postings -->
+                        <h4 style="font-size: 13px; color: #4ade80; margin-bottom: 8px;"><i class="fa-solid fa-clipboard-list"></i> Community Job Needs & Requests</h4>
                         @if($jobsList->isEmpty())
-                            <div class="no-data" style="padding: 20px 0; font-size: 14px;">No active job posts in database yet.</div>
+                            <div class="no-data" style="padding: 15px 0; font-size: 13px;">No active job posts in database yet.</div>
                         @else
                             <div style="display: flex; flex-direction: column; gap: 10px;">
-                                @foreach($jobsList as $job)
+                                @foreach($jobsList->take(3) as $job)
                                     <div style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;">
                                         <div style="flex: 1; padding-right: 15px;">
                                             <p style="font-weight: bold; color: white; font-size: 14px;">{{ $job->title }}</p>
@@ -654,16 +686,17 @@
                                             From: <strong>{{ $comp->complainant_username }}</strong> vs <strong>{{ $comp->respondent_username }}</strong>
                                         </p>
                                         <div style="margin-top: 8px; display: flex; justify-content: space-between; align-items: center;">
-                                            <span style="font-size: 10px; padding: 2px 6px; border-radius: 4px; background: {{ $comp->status === 'Resolved' ? '#10b981' : '#f59e0b' }}; color: white; font-weight: bold;">
-                                                {{ $comp->status }}
+                                            <span style="font-size: 10px; padding: 2px 8px; border-radius: 4px; background: {{ $comp->status === 'Resolved' ? '#10b981' : '#ef4444' }}; color: white; font-weight: bold;">
+                                                {{ $comp->status === 'Resolved' ? 'RESOLVED' : 'INVESTIGATION' }}
                                             </span>
                                             @if($comp->status !== 'Resolved')
-                                                <form action="{{ route('peso.resolve_complaint', $comp->complaint_id) }}" method="POST" style="margin: 0;">
-                                                    @csrf
-                                                    <button type="submit" style="background: #10b981; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">
-                                                        Resolve
-                                                    </button>
-                                                </form>
+                                                <a href="{{ route('peso_staff.complaints') }}" style="background: #10b981; color: white; text-decoration: none; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; display: inline-flex; align-items: center; gap: 4px;">
+                                                    <i class="fa-solid fa-comment-medical"></i> Solusyon / Resolve
+                                                </a>
+                                            @else
+                                                <span style="font-size: 11px; color: #86efac; font-weight: bold; background: rgba(16, 185, 129, 0.2); padding: 3px 8px; border-radius: 4px; border: 1px solid #10b981;">
+                                                    <i class="fa-solid fa-check-circle"></i> Case Close
+                                                </span>
                                             @endif
                                         </div>
                                     </div>

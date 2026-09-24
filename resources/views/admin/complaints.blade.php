@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>SKILLINK - Complaints Resolution & Grievance Mediation</title>
+    <title>SKILLINK - Admin Grievance & Complaints Executive Oversight</title>
     <link rel="icon" type="image/png" href="{{ asset('image/MP_Logo.png') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('css/dashboard-light.css') }}">
@@ -24,7 +24,7 @@
         .header-left p { font-size: 11px; }
 
         .page-content { padding: 80px 25px 40px 25px; position: relative; min-height: 100vh; }
-        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(20, 55, 130, 0.65); z-index: 0; pointer-events: none; }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 25, 70, 0.75); z-index: 0; pointer-events: none; }
         .page-inner { position: relative; z-index: 2; max-width: 1250px; margin: 0 auto; }
         .page-title { color: white; font-size: 24px; font-weight: bold; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
         .back-link { color: #93c5fd; font-size: 14px; text-decoration: none; display: flex; align-items: center; gap: 6px; }
@@ -35,7 +35,7 @@
 
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th, td { padding: 12px 14px; text-align: left; font-size: 13px; border-bottom: 1px solid rgba(255, 255, 255, 0.15); vertical-align: middle; }
-        th { background: rgba(0, 51, 160, 0.55); color: #93c5fd; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; white-space: nowrap; }
+        th { background: rgba(0, 51, 160, 0.6); color: #93c5fd; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; white-space: nowrap; }
         tr:hover { background: rgba(255, 255, 255, 0.05); }
 
         .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; white-space: nowrap; }
@@ -271,24 +271,24 @@
             <img src="{{ asset('image/MP_Logo.png') }}" alt="Logo" class="logo">
             <div>
                 <h1>SKILLINK</h1>
-                <p>Magalang, Pampanga &bull; PESO Staff Management</p>
+                <p>Magalang, Pampanga &bull; Municipal Administrator</p>
             </div>
         </div>
         <div>
-            <a href="{{ route('dashboard.PesoStaff') }}" class="back-link"><i class="fa-solid fa-house"></i> PESO Dashboard</a>
+            <a href="{{ route('dashboard.Admin') }}" class="back-link"><i class="fa-solid fa-house"></i> Admin Dashboard</a>
         </div>
     </div>
 
     <!-- UNIFIED SIDEBAR -->
-    @include('partials.sidebar_peso_staff', ['active' => 'complaints'])
+    @include('partials.sidebar_admin', ['active' => 'complaints'])
 
     <div class="page-content">
         <div class="overlay"></div>
         <div class="page-inner">
 
             <div class="page-title">
-                <span><i class="fa-solid fa-triangle-exclamation" style="color: #f87171;"></i> CITIZEN COMPLAINTS & GRIEVANCE RESOLUTION</span>
-                <a href="{{ route('dashboard.PesoStaff') }}" class="back-link">&larr; Back to PESO Dashboard</a>
+                <span><i class="fa-solid fa-triangle-exclamation" style="color: #f87171;"></i> CITIZEN COMPLAINTS & GRIEVANCE OVERSIGHT</span>
+                <a href="{{ route('dashboard.Admin') }}" class="back-link">&larr; Back to Admin Dashboard</a>
             </div>
 
             @if(session('success'))
@@ -301,17 +301,17 @@
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                     <div>
-                        <h3><i class="fa-solid fa-scale-balanced" style="color: #60a5fa;"></i> Grievance Records & Dispute Mediation</h3>
-                        <p style="font-size: 13px; opacity: 0.85;">I-click ang reklamo upang makita ang buong detalye, ilagay ang solusyon ng PESO, at i-resolve upang maging Case Close.</p>
+                        <h3><i class="fa-solid fa-scale-balanced" style="color: #60a5fa;"></i> Municipal Grievance Registry & Resolution Hub</h3>
+                        <p style="font-size: 13px; opacity: 0.85;">Kumpletong talaan ng mga reklamo ng residente o manggagawa sa Magalang na may executive access upang siyasatin at i-resolve.</p>
                     </div>
                     <div>
-                        <input type="text" id="complaintSearch" placeholder="🔍 Search complaint, citizen, worker..." onkeyup="filterComplaints()" style="padding: 8px 16px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.15); color: white; font-size: 13px; outline: none; min-width: 250px;">
+                        <input type="text" id="adminComplaintSearch" placeholder="🔍 Search case, citizen, worker..." onkeyup="filterAdminComplaints()" style="padding: 8px 16px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.15); color: white; font-size: 13px; outline: none; min-width: 250px;">
                     </div>
                 </div>
                 <hr>
 
                 <div style="overflow-x: auto;">
-                    <table id="complaintTable">
+                    <table id="adminComplaintTable">
                         <thead>
                             <tr>
                                 <th>Case ID</th>
@@ -327,7 +327,7 @@
                             @if(isset($complaints) && count($complaints) > 0)
                                 @foreach($complaints as $c)
                                     @php $isResolved = strtolower($c->status ?? '') === 'resolved'; @endphp
-                                    <tr class="complaint-row" data-search="{{ strtolower(($c->complaint_id ?? '') . ' ' . ($c->complainant_username ?? '') . ' ' . ($c->respondent_username ?? '') . ' ' . ($c->complaint_type ?? '') . ' ' . ($c->description ?? '') . ' ' . ($isResolved ? 'case close resolved' : 'pending')) }}">
+                                    <tr class="admin-complaint-row" data-search="{{ strtolower(($c->complaint_id ?? '') . ' ' . ($c->complainant_username ?? '') . ' ' . ($c->respondent_username ?? '') . ' ' . ($c->complaint_type ?? '') . ' ' . ($c->description ?? '') . ' ' . ($isResolved ? 'case close resolved' : 'pending')) }}">
                                         <td><strong>#CMP-{{ $c->complaint_id }}</strong></td>
                                         <td>
                                             <strong>{{ $c->complainant_username }}</strong>
@@ -344,7 +344,7 @@
                                         </td>
                                         <td>
                                             <!-- CLICKABLE COMPLAINT NARRATIVE -->
-                                            <div class="clickable-complaint" onclick="openComplaintModal({{ json_encode($c) }})" title="Click to view full complaint & enter PESO solution">
+                                            <div class="clickable-complaint" onclick="openAdminComplaintModal({{ json_encode($c) }})" title="Click to view full complaint & enter Administrator resolution">
                                                 <div style="max-width: 320px; font-size: 12.5px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
                                                     <i class="fa-solid fa-comment-dots" style="color: #fde047; margin-right: 4px;"></i> {{ $c->description }}
                                                 </div>
@@ -366,8 +366,8 @@
                                                     <i class="fa-solid fa-folder-closed"></i> Case Close
                                                 </span>
                                             @else
-                                                <button type="button" class="btn btn-review" onclick="openComplaintModal({{ json_encode($c) }})" title="Open mediation screen to submit solution and resolve case">
-                                                    <i class="fa-solid fa-handshake"></i> Review & Resolve
+                                                <button type="button" class="btn btn-review" onclick="openAdminComplaintModal({{ json_encode($c) }})" title="Review complaint & resolve case">
+                                                    <i class="fa-solid fa-scale-balanced"></i> Review & Resolve
                                                 </button>
                                             @endif
                                         </td>
@@ -375,7 +375,7 @@
                                 @endforeach
                             @else
                                 <tr>
-                                    <td colspan="7" style="text-align: center; padding: 30px; opacity: 0.7;">Walang nakabinbing reklamo sa kasalukuyan.</td>
+                                    <td colspan="7" style="text-align: center; padding: 30px; opacity: 0.7;">Walang nakabinbing reklamo sa database.</td>
                                 </tr>
                             @endif
                         </tbody>
@@ -386,8 +386,8 @@
         </div>
     </div>
 
-    <!-- POP-UP SCREEN (MODAL) PARA SA COMPLAINT AT SOLUSYON NG PESO -->
-    <div class="modal-overlay" id="complaintModalOverlay" onclick="closeComplaintModal(event)">
+    <!-- POP-UP SCREEN (MODAL) PARA SA COMPLAINT AT RESOLUTION -->
+    <div class="modal-overlay" id="adminComplaintModalOverlay" onclick="closeAdminComplaintModal(event)">
         <div class="modal-card" onclick="event.stopPropagation();">
             <div class="modal-header">
                 <div>
@@ -397,12 +397,12 @@
                     </h3>
                     <div style="font-size: 11.5px; color: #94a3b8;" id="modalDateFiled">Date Filed: Recent</div>
                 </div>
-                <button type="button" onclick="closeComplaintModal()" style="background: none; border: none; color: #94a3b8; font-size: 20px; cursor: pointer; padding: 4px 8px;">
+                <button type="button" onclick="closeAdminComplaintModal()" style="background: none; border: none; color: #94a3b8; font-size: 20px; cursor: pointer; padding: 4px 8px;">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
 
-            <form id="resolveComplaintForm" method="POST" action="">
+            <form id="adminResolveComplaintForm" method="POST" action="">
                 @csrf
                 <div class="modal-body">
                     <!-- DETAILS SUMMARY -->
@@ -431,24 +431,24 @@
                         </div>
                     </div>
 
-                    <!-- PESO STAFF SOLUTION / MESSAGE BOX -->
+                    <!-- MEDIATION & SOLUTION BOX -->
                     <div style="margin-bottom: 14px;">
                         <label style="display: block; font-size: 12.5px; font-weight: bold; color: #60a5fa; margin-bottom: 6px;">
-                            <i class="fa-solid fa-comment-medical"></i> Solusyon at Aksyon ng PESO (Staff Mediation & Resolution Notes):
+                            <i class="fa-solid fa-comment-medical"></i> Solusyon at Mediation Action (Staff / Admin Resolution Notes):
                         </label>
-                        <textarea id="modalNotes" name="notes" rows="4" required placeholder="Isulat dito ang opisyal na solusyon, kasunduan sa pamamagitan ng PESO mediation, o naging aksyon para masolusyunan ang reklamo..." style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(96,165,250,0.5); background: #1e293b; color: white; font-size: 13px; outline: none; font-family: inherit; resize: vertical;"></textarea>
+                        <textarea id="modalNotes" name="notes" rows="4" required placeholder="Isulat dito ang opisyal na solusyon, kasunduan sa pamamagitan ng mediation, o aksyon ng munisipyo..." style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(96,165,250,0.5); background: #1e293b; color: white; font-size: 13px; outline: none; font-family: inherit; resize: vertical;"></textarea>
                     </div>
 
                     <div id="modalResolvedBadge" style="display: none; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #86efac; padding: 10px; border-radius: 8px; font-size: 12px; font-weight: bold; text-align: center;">
-                        <i class="fa-solid fa-check-circle"></i> Ang reklamong ito ay ganap nang naresolba. Status: CASE CLOSE.
+                        <i class="fa-solid fa-check-circle"></i> Ang kasong ito ay naresolba na. Status: CASE CLOSE.
                     </div>
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" onclick="closeComplaintModal()" style="background: rgba(255,255,255,0.15); color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 13px; cursor: pointer;">
+                    <button type="button" onclick="closeAdminComplaintModal()" style="background: rgba(255,255,255,0.15); color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 13px; cursor: pointer;">
                         Isara
                     </button>
-                    <button type="submit" id="btnModalSubmitResolve" class="btn btn-resolve" style="padding: 8px 20px; font-size: 13px;">
+                    <button type="submit" id="btnAdminModalSubmitResolve" class="btn btn-resolve" style="padding: 8px 20px; font-size: 13px;">
                         <i class="fa-solid fa-check"></i> Resolve
                     </button>
                 </div>
@@ -462,7 +462,7 @@
             document.getElementById('sidebarOverlay').classList.toggle('active');
         }
 
-        function openComplaintModal(complaint) {
+        function openAdminComplaintModal(complaint) {
             const isResolved = (complaint.status || '').toLowerCase() === 'resolved';
 
             document.getElementById('modalCaseId').innerText = '#CMP-' + complaint.complaint_id;
@@ -475,7 +475,7 @@
             const notesField = document.getElementById('modalNotes');
             notesField.value = complaint.resolution_notes || '';
 
-            const submitBtn = document.getElementById('btnModalSubmitResolve');
+            const submitBtn = document.getElementById('btnAdminModalSubmitResolve');
             const resolvedNotice = document.getElementById('modalResolvedBadge');
 
             if (isResolved) {
@@ -492,22 +492,21 @@
                 resolvedNotice.style.display = 'none';
             }
 
-            // Set Form Action Route to resolve_complaint
-            const form = document.getElementById('resolveComplaintForm');
-            form.action = "{{ url('/dashboard/PesoStaff/complaint') }}/" + complaint.complaint_id + "/resolve";
+            const form = document.getElementById('adminResolveComplaintForm');
+            form.action = "{{ url('/admin/complaint') }}/" + complaint.complaint_id + "/resolve";
 
-            document.getElementById('complaintModalOverlay').classList.add('active');
+            document.getElementById('adminComplaintModalOverlay').classList.add('active');
         }
 
-        function closeComplaintModal(event) {
-            if (!event || event.target.id === 'complaintModalOverlay' || event.target.closest('button')) {
-                document.getElementById('complaintModalOverlay').classList.remove('active');
+        function closeAdminComplaintModal(event) {
+            if (!event || event.target.id === 'adminComplaintModalOverlay' || event.target.closest('button')) {
+                document.getElementById('adminComplaintModalOverlay').classList.remove('active');
             }
         }
 
-        function filterComplaints() {
-            const query = (document.getElementById('complaintSearch').value || '').toLowerCase().trim();
-            const rows = document.querySelectorAll('.complaint-row');
+        function filterAdminComplaints() {
+            const query = (document.getElementById('adminComplaintSearch').value || '').toLowerCase().trim();
+            const rows = document.querySelectorAll('.admin-complaint-row');
             rows.forEach(r => {
                 const searchData = r.getAttribute('data-search') || '';
                 r.style.display = (query === '' || searchData.includes(query)) ? '' : 'none';

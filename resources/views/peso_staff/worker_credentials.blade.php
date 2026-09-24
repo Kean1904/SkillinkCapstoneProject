@@ -319,16 +319,16 @@
                     <!-- CONFIRM & ACCREDIT -->
                     <form method="POST" action="{{ route('peso.accredit', $worker->user_id) }}" style="margin: 0;">
                         @csrf
-                        <button type="submit" class="btn-action btn-confirm" title="Confirm validity and accredit this skilled worker">
-                            <i class="fa-solid fa-circle-check"></i> CONFIRM & ACCREDIT WORKER
+                        <button type="submit" class="btn-action btn-confirm" title="Confirm validity and approve accreditation for this skilled worker">
+                            <i class="fa-solid fa-circle-check"></i> APPROVED (ACCREDIT WORKER)
                         </button>
                     </form>
 
                     <!-- UNACCREDIT / REVOKE -->
                     <form method="POST" action="{{ route('peso.unaccredit', $worker->user_id) }}" style="margin: 0;">
                         @csrf
-                        <button type="submit" class="btn-action btn-unaccredit" title="Revoke accreditation or mark as unaccredited">
-                            <i class="fa-solid fa-circle-xmark"></i> REVOKE / UNACCREDIT
+                        <button type="submit" class="btn-action btn-unaccredit" title="Deny accreditation or mark as unaccredited">
+                            <i class="fa-solid fa-circle-xmark"></i> DENIED (REVOKE ACCREDITATION)
                         </button>
                     </form>
 

@@ -157,6 +157,11 @@ Route::get('/admin/users', [AdminDashboardController::class, 'users'])->name('ad
 Route::get('/admin/staff', [AdminDashboardController::class, 'staff'])->name('admin.staff');
 Route::get('/admin/categories', [AdminDashboardController::class, 'categories'])->name('admin.categories');
 Route::get('/admin/audit-logs', [AdminDashboardController::class, 'auditLogs'])->name('admin.audit_logs');
+Route::get('/admin/complaints', [AdminDashboardController::class, 'complaints'])->name('admin.complaints');
+Route::post('/admin/complaint/{id}/resolve', [AdminDashboardController::class, 'resolveComplaint'])->name('admin.resolve_complaint');
+Route::get('/admin/announcements', [AdminDashboardController::class, 'announcements'])->name('admin.announcements');
+Route::post('/admin/announcements/broadcast', [AdminDashboardController::class, 'broadcastAnnouncement'])->name('admin.announcements.broadcast');
+Route::get('/admin/dole-reports', [AdminDashboardController::class, 'doleReports'])->name('admin.dole_reports');
 Route::get('/admin/profile', [AdminDashboardController::class, 'profile'])->name('admin.profile');
 Route::post('/admin/profile/update', [AdminDashboardController::class, 'updateProfile'])->name('admin.profile.update');
 Route::get('/admin/settings', [AdminDashboardController::class, 'settings'])->name('admin.settings');
