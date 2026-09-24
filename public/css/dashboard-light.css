@@ -6,20 +6,29 @@
    - Containers: Reverted to Municipal Blue with 4px Solid Stroke
    ========================================================================== */
 
-/* 1. Global Reset & White Smoke (#F5F5F5) Background */
+/* 1. Global Reset & Dark Navy Blue with 0.5 Shade Background */
 body {
     background-image: none !important;
-    background-color: #F5F5F5 !important;
-    color: #0f172a !important;
+    background-color: #07152b !important;
+    background: linear-gradient(rgba(10, 25, 47, 0.5), rgba(10, 25, 47, 0.5)), #07152b !important;
+    min-height: 100vh !important;
 }
 
-/* Eliminate full-page dark blue overlay so #F5F5F5 is clean and visible */
+/* Full-page dark navy blue overlay with 0.5 shade */
 .overlay, .page-overlay, .bg-overlay {
-    display: none !important;
+    display: block !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(10, 25, 47, 0.5) !important;
+    z-index: 0 !important;
+    pointer-events: none !important;
 }
 
 .page-content {
-    background-color: #F5F5F5 !important;
+    background: transparent !important;
 }
 
 /* 2. Top Header - Revert Brand Text ("Skillink Magalang Pampanga") to Pure White */
@@ -227,14 +236,14 @@ body {
     background: rgba(255, 255, 255, 0.08) !important;
 }
 
-/* 8. Headings OUTSIDE containers directly on the #F5F5F5 page */
+/* 8. Headings OUTSIDE containers directly on the Dark Navy Blue page */
 .page-inner > h1,
 .page-inner > h2,
 .page-content > h1,
 .page-content > h2,
 .page-title,
 .section-title {
-    color: #0f172a !important;
+    color: #ffffff !important;
     font-weight: 800 !important;
 }
 
