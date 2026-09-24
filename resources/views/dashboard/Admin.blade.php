@@ -826,7 +826,7 @@
 
             <!-- ADMINISTRATIVE MODULES SHORTCUT HUB -->
             <div class="section-header">
-                <h3><i class="fa-solid fa-cubes" style="color: #60a5fa;"></i> ADMINISTRATIVE MANAGEMENT MODULES</h3>
+                <h3><i class="fa-solid fa-cubes" style="color: black"></i> ADMINISTRATIVE MANAGEMENT MODULES</h3>
             </div>
 
             <div class="modules-grid">
