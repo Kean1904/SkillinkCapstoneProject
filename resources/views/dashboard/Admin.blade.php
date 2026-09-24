@@ -311,6 +311,7 @@
             grid-template-columns: repeat(3, 1fr);
             gap: 18px;
             margin-bottom: 25px;
+            background: rgba(255, 255, 255, 0.05);
         }
 
         @media (max-width: 900px) {
