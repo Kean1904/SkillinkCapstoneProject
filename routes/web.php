@@ -53,6 +53,10 @@ Route::post('/user/consent/accept', [LoginController::class, 'acceptConsent'])->
 |--------------------------------------------------------------------------
 */
 Route::get('/dashboard/SkilledWorker', function () {
+    $worker = \App\Models\User::where('name', session('user_name'))->first()
+        ?? \App\Models\User::where('role', 'skilled worker')->first()
+        ?? new \App\Models\User(['name' => 'juan_plumber', 'first_name' => 'Juan', 'last_name' => 'Dela Cruz']);
+
     $availableJobs = \App\Models\JobPost::where(function ($q) {
         $q->whereNull('applicant_username')
           ->orWhere('applicant_username', '');
@@ -64,7 +68,7 @@ Route::get('/dashboard/SkilledWorker', function () {
         ->count();
 
     $jobsList = \App\Models\JobPost::whereNotIn('status', ['Completed', 'Cancelled'])->latest('created_at')->take(10)->get();
-    return view('dashboard.SkilledWorker', compact('availableJobs', 'pendingJobs', 'jobsList'));
+    return view('dashboard.SkilledWorker', compact('availableJobs', 'pendingJobs', 'jobsList', 'worker'));
 })->name('dashboard.SkilledWorker');
 
 Route::get('/skilled-worker/tracking-service', [SkilledWorkerWebController::class, 'trackingService'])->name('skilled_worker.tracking_service');
@@ -73,6 +77,7 @@ Route::post('/skilled-worker/bookings/{id}/status', [SkilledWorkerWebController:
 Route::get('/skilled-worker/my-services', [SkilledWorkerWebController::class, 'myServices'])->name('skilled_worker.my_services');
 Route::post('/skilled-worker/job-offer/create', [SkilledWorkerWebController::class, 'createJobOffer'])->name('skilled_worker.job_offer.create');
 Route::post('/skilled-worker/services/update', [SkilledWorkerWebController::class, 'updateServices'])->name('skilled_worker.services.update');
+Route::post('/skilled-worker/submit-application', [SkilledWorkerWebController::class, 'submitApplication'])->name('skilled_worker.submit_application');
 Route::get('/skilled-worker/profile', [SkilledWorkerWebController::class, 'profile'])->name('skilled_worker.profile');
 Route::post('/skilled-worker/profile/update', [SkilledWorkerWebController::class, 'updateProfile'])->name('skilled_worker.profile.update');
 Route::get('/skilled-worker/settings', [SkilledWorkerWebController::class, 'settings'])->name('skilled_worker.settings');
@@ -116,6 +121,7 @@ Route::post('/residential/password/update', [ResidentialWebController::class, 'u
 Route::get('/dashboard/PesoStaff', [PesoStaffController::class, 'index'])->name('dashboard.PesoStaff');
 Route::get('/peso-staff/users', [PesoStaffController::class, 'users'])->name('peso_staff.users');
 Route::get('/peso-staff/accreditation', [PesoStaffController::class, 'accreditation'])->name('peso_staff.accreditation');
+Route::get('/peso-staff/worker/{id}/credentials', [PesoStaffController::class, 'viewCredentials'])->name('peso_staff.worker_credentials');
 Route::post('/dashboard/PesoStaff/accredit/{id}', [PesoStaffController::class, 'accreditWorker'])->name('peso.accredit');
 Route::post('/dashboard/PesoStaff/unaccredit/{id}', [PesoStaffController::class, 'unaccreditWorker'])->name('peso.unaccredit');
 Route::get('/peso-staff/job-tracking', [PesoStaffController::class, 'jobTracking'])->name('peso_staff.job_tracking');

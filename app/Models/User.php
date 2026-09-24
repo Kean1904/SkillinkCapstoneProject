@@ -27,6 +27,8 @@ class User extends Authenticatable
         'skills',
         'service_rate',
         'certificate_proof',
+        'certificate_file',
+        'valid_id_proof',
         'is_verified',
         'rating',
         'profile_image_uri',

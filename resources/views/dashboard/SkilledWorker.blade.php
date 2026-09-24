@@ -496,6 +496,113 @@
                         </div>
                     </div>
 
+                    <!-- PESO ACCREDITATION STATUS & CREDENTIAL APPLICATION -->
+                    <div class="panel" style="background: rgba(30, 58, 138, 0.55); border: 2px solid {{ ($worker->is_verified ?? false) ? '#10b981' : '#f59e0b' }}; margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                            <div>
+                                <h3 style="color: white; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fa-solid fa-certificate" style="color: {{ ($worker->is_verified ?? false) ? '#10b981' : '#fde047' }};"></i>
+                                    PESO ACCREDITATION & TESDA CREDENTIALS
+                                </h3>
+                                <p style="font-size: 12px; color: rgba(255,255,255,0.85); margin-top: 2px;">
+                                    @if($worker->is_verified ?? false)
+                                        Opisyal kang kinikilala at accredited ng Public Employment Service Office (PESO) ng Munisipyo ng Magalang.
+                                    @else
+                                        Mag-submit ng patunay ng TESDA Certificate at Valid ID para suriin at ma-accredit ng PESO Staff.
+                                    @endif
+                                </p>
+                            </div>
+                            <div>
+                                @if($worker->is_verified ?? false)
+                                    <span style="background: #10b981; color: white; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: bold; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 10px rgba(16,185,129,0.5);">
+                                        <i class="fa-solid fa-circle-check"></i> OFFICIALLY ACCREDITED
+                                    </span>
+                                @else
+                                    <span style="background: #f59e0b; color: white; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: bold; display: inline-flex; align-items: center; gap: 6px;">
+                                        <i class="fa-solid fa-clock"></i> PENDING PESO REVIEW
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+
+                        <hr style="margin: 14px 0; border-color: rgba(255,255,255,0.2);">
+
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-bottom: 14px;">
+                            <div style="background: rgba(255,255,255,0.08); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15);">
+                                <div style="font-size: 11px; color: #93c5fd; font-weight: bold; text-transform: uppercase;">Current Certificate / Qualification</div>
+                                <div style="font-size: 14px; font-weight: bold; color: #fde047; margin-top: 4px;">
+                                    <i class="fa-solid fa-award"></i> {{ $worker->certificate_proof ?? 'TESDA NC II Certification' }}
+                                </div>
+                                @if(!empty($worker->certificate_file))
+                                    <div style="margin-top: 6px; font-size: 11.5px; color: #86efac;">
+                                        <i class="fa-solid fa-file-circle-check"></i> Digital Certificate Attached
+                                        <a href="{{ asset($worker->certificate_file) }}" target="_blank" style="color: #93c5fd; margin-left: 6px; text-decoration: underline;">View</a>
+                                    </div>
+                                @endif
+                            </div>
+
+                            <div style="background: rgba(255,255,255,0.08); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15);">
+                                <div style="font-size: 11px; color: #93c5fd; font-weight: bold; text-transform: uppercase;">Valid ID Proof</div>
+                                <div style="font-size: 14px; font-weight: bold; color: white; margin-top: 4px;">
+                                    <i class="fa-solid fa-id-card"></i> Brgy. {{ $worker->barangay ?? 'Magalang' }} Resident
+                                </div>
+                                @if(!empty($worker->valid_id_proof))
+                                    <div style="margin-top: 6px; font-size: 11.5px; color: #86efac;">
+                                        <i class="fa-solid fa-file-circle-check"></i> Valid ID Attached
+                                        <a href="{{ asset($worker->valid_id_proof) }}" target="_blank" style="color: #93c5fd; margin-left: 6px; text-decoration: underline;">View</a>
+                                    </div>
+                                @else
+                                    <div style="margin-top: 6px; font-size: 11px; color: rgba(255,255,255,0.6);">
+                                        <i class="fa-solid fa-circle-info"></i> Upload valid government ID below
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+
+                        <!-- SUBMIT APPLICATION FORM -->
+                        <details style="background: rgba(0,0,0,0.25); border-radius: 8px; padding: 12px 16px; border: 1px solid rgba(255,255,255,0.2);" {{ !($worker->is_verified ?? false) ? 'open' : '' }}>
+                            <summary style="cursor: pointer; font-weight: bold; color: #93c5fd; font-size: 13.5px; user-select: none;">
+                                <i class="fa-solid fa-upload"></i> {{ ($worker->is_verified ?? false) ? 'Update Credentials / Re-submit Proof' : 'Upload Credentials & Submit Application for Accreditation' }}
+                            </summary>
+
+                            <form action="{{ route('skilled_worker.submit_application') }}" method="POST" enctype="multipart/form-data" style="margin-top: 14px;">
+                                @csrf
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin-bottom: 12px;">
+                                    <div>
+                                        <label style="font-size: 11.5px; color: rgba(255,255,255,0.9); font-weight: bold; display: block; margin-bottom: 4px;">
+                                            TESDA Certificate Title / Qualification *
+                                        </label>
+                                        <input type="text" name="certificate_proof" value="{{ old('certificate_proof', $worker->certificate_proof ?? 'TESDA NC II - ' . ($worker->skills ?? 'General Handyman')) }}" required
+                                               placeholder="e.g. TESDA NC II - Plumbing"
+                                               style="width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.15); color: white; font-size: 13px;">
+                                    </div>
+
+                                    <div>
+                                        <label style="font-size: 11.5px; color: rgba(255,255,255,0.9); font-weight: bold; display: block; margin-bottom: 4px;">
+                                            Upload TESDA Certificate File (Photo or PDF)
+                                        </label>
+                                        <input type="file" name="certificate_file" accept="image/*,.pdf"
+                                               style="width: 100%; padding: 6px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.15); color: white; font-size: 12px;">
+                                    </div>
+
+                                    <div>
+                                        <label style="font-size: 11.5px; color: rgba(255,255,255,0.9); font-weight: bold; display: block; margin-bottom: 4px;">
+                                            Upload Valid Government ID (Photo or PDF)
+                                        </label>
+                                        <input type="file" name="valid_id_file" accept="image/*,.pdf"
+                                               style="width: 100%; padding: 6px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.15); color: white; font-size: 12px;">
+                                    </div>
+                                </div>
+
+                                <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
+                                    <button type="submit" style="background: #0033a0; color: white; border: 2px solid #60a5fa; padding: 10px 24px; border-radius: 8px; font-weight: bold; font-size: 13.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: all 0.2s;">
+                                        <i class="fa-solid fa-paper-plane"></i> Submit Application
+                                    </button>
+                                </div>
+                            </form>
+                        </details>
+                    </div>
+
                     <!-- CREATE A SERVICE OFFER -->
                     <div class="create-offer-btn" onclick="window.location.href='{{ route('skilled_worker.my_services') }}'" style="cursor: pointer;" title="Manage Your Skills and Service Catalog">
                         <div class="plus-icon"><i class="fa-solid fa-plus"></i></div>

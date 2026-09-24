@@ -167,6 +167,12 @@ class PesoStaffController extends Controller
         return back()->with('success', 'Staff password updated successfully!');
     }
 
+    public function viewCredentials($id)
+    {
+        $worker = User::findOrFail($id);
+        return view('peso_staff.worker_credentials', compact('worker'));
+    }
+
     public function accreditWorker(Request $request, $id)
     {
         $user = User::findOrFail($id);

@@ -270,7 +270,10 @@
                                         <td>{{ $w->skills ?? 'General Handyman' }}</td>
                                         <td>{{ $w->barangay }}</td>
                                         <td>
-                                            <span style="color: #93c5fd;"><i class="fa-solid fa-file-lines"></i> {{ $w->certificate_proof ?? 'TESDA NC II Document' }}</span>
+                                            <a href="{{ route('peso_staff.worker_credentials', $w->user_id) }}" style="color: #93c5fd; text-decoration: underline; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;" title="Click to view submitted TESDA credentials & documents">
+                                                <i class="fa-solid fa-file-lines"></i> {{ $w->certificate_proof ?? 'TESDA NC II Document' }}
+                                                <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 11px;"></i>
+                                            </a>
                                         </td>
                                         <td>
                                             @if($w->is_verified)

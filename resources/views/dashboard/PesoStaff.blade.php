@@ -556,7 +556,11 @@
                                                 <i class="fa-solid fa-location-dot" style="color: #f87171;"></i> Brgy. {{ $worker->barangay }} • Contact: {{ $worker->contact_number }}
                                             </p>
                                             <p style="font-size: 12px; color: #fde047; font-weight: 500;">
-                                                <i class="fa-solid fa-award"></i> Certificate Proof: <strong>{{ $worker->certificate_proof ?? 'TESDA NC II Submitted for review' }}</strong>
+                                                <i class="fa-solid fa-award"></i> Certificate Proof:
+                                                <a href="{{ route('peso_staff.worker_credentials', $worker->user_id) }}" style="color: #fde047; text-decoration: underline; font-weight: bold; margin-left: 4px; display: inline-flex; align-items: center; gap: 4px;" title="Click to view submitted TESDA credentials & documents">
+                                                    <strong>{{ $worker->certificate_proof ?? 'TESDA NC II Submitted for review' }}</strong>
+                                                    <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 10px;"></i>
+                                                </a>
                                             </p>
                                             <p style="font-size: 11px; color: rgba(255,255,255,0.6);">
                                                 Trade Skills: {{ $worker->skills }}

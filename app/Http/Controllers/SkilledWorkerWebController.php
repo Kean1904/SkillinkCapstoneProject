@@ -190,6 +190,53 @@ class SkilledWorkerWebController extends Controller
         return back()->with('success', 'Your skills and services have been updated successfully!');
     }
 
+    public function submitApplication(Request $request)
+    {
+        $worker = $this->getCurrentWorker();
+
+        $request->validate([
+            'certificate_proof' => 'required|string|max:255',
+            'certificate_file' => 'nullable|file|mimes:jpeg,png,jpg,pdf,webp|max:10240',
+            'valid_id_file' => 'nullable|file|mimes:jpeg,png,jpg,pdf,webp|max:10240',
+            'skills' => 'nullable|string|max:255',
+            'service_rate' => 'nullable|string|max:50',
+        ]);
+
+        $worker->certificate_proof = $request->certificate_proof;
+        if ($request->filled('skills')) $worker->skills = $request->skills;
+        if ($request->filled('service_rate')) $worker->service_rate = $request->service_rate;
+
+        // Upload certificate file
+        if ($request->hasFile('certificate_file')) {
+            $certFile = $request->file('certificate_file');
+            $certName = 'cert_' . $worker->user_id . '_' . time() . '.' . $certFile->getClientOriginalExtension();
+            $destPath = public_path('uploads/certificates');
+            if (!file_exists($destPath)) {
+                mkdir($destPath, 0777, true);
+            }
+            $certFile->move($destPath, $certName);
+            $worker->certificate_file = 'uploads/certificates/' . $certName;
+        }
+
+        // Upload valid ID file
+        if ($request->hasFile('valid_id_file')) {
+            $idFile = $request->file('valid_id_file');
+            $idName = 'valid_id_' . $worker->user_id . '_' . time() . '.' . $idFile->getClientOriginalExtension();
+            $destPath = public_path('uploads/valid_ids');
+            if (!file_exists($destPath)) {
+                mkdir($destPath, 0777, true);
+            }
+            $idFile->move($destPath, $idName);
+            $worker->valid_id_proof = 'uploads/valid_ids/' . $idName;
+        }
+
+        // Accreditation application state: Pending PESO Staff Review
+        $worker->is_verified = false;
+        $worker->save();
+
+        return back()->with('success', 'Your PESO accreditation application has been submitted successfully! PESO Staff will verify your TESDA certificate and credentials.');
+    }
+
     public function profile()
     {
         $worker = $this->getCurrentWorker();
