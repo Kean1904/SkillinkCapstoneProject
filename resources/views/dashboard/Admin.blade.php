@@ -729,7 +729,7 @@
 
             <!-- PERFORMANCE OVERVIEW (Matching Mobile) -->
             <div class="section-header">
-                <h3><i class="fa-solid fa-chart-line" style="color: #60a5fa;"></i> WEEKLY PERFORMANCE OVERVIEW</h3>
+                <h3><i class="fa-solid fa-chart-line" style="color: black;"></i> WEEKLY PERFORMANCE OVERVIEW</h3>
             </div>
 
             @php
