@@ -89,6 +89,7 @@ class SkilledWorkerWebController extends Controller
             'certificate_proof' => 'nullable|string|max:255',
             'age' => 'nullable|integer|min:15|max:120',
             'gender' => 'nullable|string|max:20',
+            'service_rate' => 'nullable|string|max:50',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:4096',
         ]);
 
@@ -98,6 +99,7 @@ class SkilledWorkerWebController extends Controller
         $worker->barangay = $request->barangay;
         $worker->address = $request->address;
         if ($request->filled('skills')) $worker->skills = $request->skills;
+        if ($request->filled('service_rate')) $worker->service_rate = $request->service_rate;
         if ($request->filled('certificate_proof')) $worker->certificate_proof = $request->certificate_proof;
         if ($request->filled('age')) $worker->age = $request->age;
         if ($request->filled('gender')) $worker->gender = $request->gender;

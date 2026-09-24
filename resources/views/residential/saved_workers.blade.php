@@ -257,11 +257,12 @@
                                 <div style="margin: 12px 0; font-size: 12px; opacity: 0.9;">
                                     <p><i class="fa-solid fa-wrench"></i> <strong>Skills:</strong> {{ $worker->skills ?? 'General Handyman' }}</p>
                                     <p style="margin-top: 4px;"><i class="fa-solid fa-location-dot"></i> <strong>Barangay:</strong> {{ $worker->barangay }}</p>
-                                    <p style="margin-top: 4px; color: #86efac;"><i class="fa-solid fa-certificate"></i> {{ $worker->certificate_proof ?? 'TESDA NC II' }}</p>
+                                    <p style="margin-top: 4px; color: #86efac; font-weight: bold;"><i class="fa-solid fa-money-bill-wave"></i> <strong>Rate:</strong> {{ $worker->service_rate_display }} (Fixed)</p>
+                                    <p style="margin-top: 4px; color: #93c5fd;"><i class="fa-solid fa-certificate"></i> {{ $worker->certificate_proof ?? 'TESDA NC II' }}</p>
                                 </div>
 
                                 <div style="display: flex; gap: 8px; margin-top: 10px;">
-                                    <button class="btn btn-primary" style="flex: 1; justify-content: center;" onclick="openBookModal('{{ $worker->name }}', '{{ $worker->full_name }}', '{{ $worker->skills }}')">
+                                    <button class="btn btn-primary" style="flex: 1; justify-content: center;" onclick="openBookModal('{{ $worker->name }}', '{{ $worker->full_name }}', '{{ $worker->skills }}', '{{ $worker->service_rate_display }}')">
                                         <i class="fa-solid fa-calendar-check"></i> Book Now
                                     </button>
                                     <form method="POST" action="{{ route('residential.worker.toggle_save', $worker->user_id) }}" style="display: inline;">
@@ -287,64 +288,13 @@
         </div>
     </div>
 
-    <!-- DIRECT BOOKING MODAL -->
-    <div id="bookingModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 3000; align-items: center; justify-content: center;">
-        <div style="background: #1e3a8a; border: 1px solid rgba(255,255,255,0.3); border-radius: 12px; padding: 25px; width: 90%; max-width: 500px; color: white;">
-            <h3 style="margin-bottom: 6px;"><i class="fa-solid fa-calendar-plus" style="color: #60a5fa;"></i> Direct Service Booking</h3>
-            <p style="font-size: 12px; opacity: 0.85; margin-bottom: 15px;">Mag-request ng serbisyo kay <strong id="bookWorkerName" style="color: #93c5fd;">Worker</strong></p>
-
-            <form method="POST" action="{{ route('residential.booking.create') }}">
-                @csrf
-                <input type="hidden" name="workerUsername" id="bookWorkerUsername">
-                <div style="margin-bottom: 12px;">
-                    <label style="display: block; font-size: 12px; font-weight: bold; margin-bottom: 4px;">Service Category</label>
-                    <input type="text" name="serviceCategory" id="bookServiceCategory" style="width: 100%; padding: 9px; border-radius: 6px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.4);" required>
-                </div>
-                <div style="margin-bottom: 12px;">
-                    <label style="display: block; font-size: 12px; font-weight: bold; margin-bottom: 4px;">Detailed Task Description</label>
-                    <textarea name="taskDescription" rows="2" style="width: 100%; padding: 9px; border-radius: 6px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.4);" placeholder="hal. Kailangan ayusin ang tumutulong lababo sa kusina..." required></textarea>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
-                    <div>
-                        <label style="display: block; font-size: 12px; font-weight: bold; margin-bottom: 4px;">Service Address</label>
-                        <input type="text" name="serviceAddress" placeholder="Purok / Street" style="width: 100%; padding: 9px; border-radius: 6px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.4);" required>
-                    </div>
-                    <div>
-                        <label style="display: block; font-size: 12px; font-weight: bold; margin-bottom: 4px;">Barangay</label>
-                        <input type="text" name="barangay" value="San Nicolas 1st" style="width: 100%; padding: 9px; border-radius: 6px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.4);" required>
-                    </div>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;">
-                    <div>
-                        <label style="display: block; font-size: 12px; font-weight: bold; margin-bottom: 4px;">Estimated Budget</label>
-                        <input type="text" name="estimatedBudget" placeholder="hal. ₱600.00" style="width: 100%; padding: 9px; border-radius: 6px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.4);" required>
-                    </div>
-                    <div>
-                        <label style="display: block; font-size: 12px; font-weight: bold; margin-bottom: 4px;">Preferred Schedule</label>
-                        <input type="text" name="scheduledDate" placeholder="hal. Bukas 9:00 AM" style="width: 100%; padding: 9px; border-radius: 6px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.4);" required>
-                    </div>
-                </div>
-                <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                    <button type="button" class="btn" style="background: rgba(255,255,255,0.2); color: white;" onclick="closeBookModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i> Send Booking Request</button>
-                </div>
-            </form>
-        </div>
-    </div>
+    <!-- DIRECT BOOKING MODAL WITH DYNAMIC CALENDAR & FIXED WORKER RATE -->
+    @include('partials.booking_modal_with_calendar')
 
     <script>
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('active');
             document.getElementById('sidebarOverlay').classList.toggle('active');
-        }
-        function openBookModal(username, fullName, skills) {
-            document.getElementById('bookWorkerUsername').value = username;
-            document.getElementById('bookWorkerName').innerText = fullName + ' (@' + username + ')';
-            document.getElementById('bookServiceCategory').value = skills ? skills.split(',')[0].trim() : 'Home Repair';
-            document.getElementById('bookingModal').style.display = 'flex';
-        }
-        function closeBookModal() {
-            document.getElementById('bookingModal').style.display = 'none';
         }
     </script>
 </body>

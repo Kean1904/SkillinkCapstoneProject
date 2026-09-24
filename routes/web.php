@@ -98,6 +98,7 @@ Route::post('/residential/review/submit', [ResidentialWebController::class, 'sub
 Route::post('/residential/complaint/submit', [ResidentialWebController::class, 'submitComplaint'])->name('residential.complaint.submit');
 Route::get('/residential/saved-workers', [ResidentialWebController::class, 'savedWorkers'])->name('residential.saved_workers');
 Route::post('/residential/worker/{id}/toggle-save', [ResidentialWebController::class, 'toggleSaveWorker'])->name('residential.worker.toggle_save');
+Route::get('/residential/worker-booked-dates/{username}', [ResidentialWebController::class, 'getWorkerBookedDates'])->name('residential.worker_booked_dates');
 Route::post('/residential/booking/create', [ResidentialWebController::class, 'createBooking'])->name('residential.booking.create');
 Route::get('/residential/job-posts', [ResidentialWebController::class, 'jobPosts'])->name('residential.job_posts');
 Route::post('/residential/job/create', [ResidentialWebController::class, 'createJob'])->name('residential.job.create');

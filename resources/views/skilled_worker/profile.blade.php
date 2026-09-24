@@ -311,6 +311,10 @@
                         <div style="flex: 1;"><span style="opacity: 0.7; font-size: 11px; display: block;">SKILLS</span><strong style="color: #60a5fa;">{{ $worker->skills ?? 'General Handyman' }}</strong></div>
                     </div>
                     <div style="display: flex; align-items: center; gap: 12px;">
+                        <i class="fa-solid fa-money-bill-wave" style="width: 20px; text-align: center; color: #86efac;"></i>
+                        <div style="flex: 1;"><span style="opacity: 0.7; font-size: 11px; display: block;">FIXED ESTIMATED SERVICE RATE</span><strong style="color: #86efac; font-size: 15px;">{{ $worker->service_rate_display }}</strong></div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
                         <i class="fa-solid fa-certificate" style="width: 20px; text-align: center; color: #93c5fd;"></i>
                         <div style="flex: 1;"><span style="opacity: 0.7; font-size: 11px; display: block;">CERTIFICATE / TESDA</span><strong style="color: #86efac;">{{ $worker->certificate_proof ?? 'TESDA NC II Certified' }}</strong></div>
                     </div>
@@ -390,6 +394,12 @@
                 <div style="margin-bottom: 12px;">
                     <label style="display: block; font-size: 11px; font-weight: bold; margin-bottom: 4px; opacity: 0.85;">PRIMARY SKILLS / TRADE</label>
                     <input type="text" name="skills" value="{{ $worker->skills }}" placeholder="e.g. Plumbing Repair, Pipe Fitting" style="width: 100%; padding: 9px; border-radius: 6px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.3);">
+                </div>
+
+                <div style="margin-bottom: 12px;">
+                    <label style="display: block; font-size: 11px; font-weight: bold; margin-bottom: 4px; opacity: 0.85;">ESTIMATED SERVICE RATE (FIXED COST)</label>
+                    <input type="text" name="service_rate" value="{{ $worker->service_rate ?? $worker->service_rate_display }}" placeholder="e.g. ₱600.00" style="width: 100%; padding: 9px; border-radius: 6px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.3);">
+                    <p style="font-size: 10.5px; opacity: 0.7; margin-top: 3px;">Ito ang fixed rate na babayaran ng household client kapag ikaw ay binook.</p>
                 </div>
 
                 <div style="margin-bottom: 12px;">

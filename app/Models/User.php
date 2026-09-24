@@ -25,6 +25,7 @@ class User extends Authenticatable
         'barangay',
         'contact_number',
         'skills',
+        'service_rate',
         'certificate_proof',
         'is_verified',
         'rating',
@@ -57,6 +58,29 @@ class User extends Authenticatable
     public function getFullNameAttribute()
     {
         return trim("{$this->first_name} {$this->last_name}") ?: $this->name;
+    }
+
+    public function getServiceRateDisplayAttribute(): string
+    {
+        if (!empty($this->service_rate)) {
+            $cleaned = trim($this->service_rate);
+            if (str_starts_with($cleaned, '₱')) {
+                return $cleaned;
+            }
+            if (is_numeric(preg_replace('/[^0-9.]/', '', $cleaned))) {
+                return '₱' . number_format((float) preg_replace('/[^0-9.]/', '', $cleaned), 2);
+            }
+            return '₱' . $cleaned;
+        }
+
+        // Sensible defaults based on primary skill
+        $skills = strtolower($this->skills ?? '');
+        if (str_contains($skills, 'electric')) return '₱650.00';
+        if (str_contains($skills, 'plumb')) return '₱600.00';
+        if (str_contains($skills, 'carpent')) return '₱550.00';
+        if (str_contains($skills, 'appliance')) return '₱600.00';
+        if (str_contains($skills, 'paint') || str_contains($skills, 'mason')) return '₱500.00';
+        return '₱500.00';
     }
 
     public function getRoleDisplayAttribute()

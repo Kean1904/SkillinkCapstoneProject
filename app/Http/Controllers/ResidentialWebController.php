@@ -133,6 +133,40 @@ class ResidentialWebController extends Controller
         }
     }
 
+    public function getWorkerBookedDates($username)
+    {
+        $bookings = Booking::where('worker_username', $username)
+            ->whereNotIn('status', ['CANCELLED', 'REJECTED'])
+            ->get(['scheduled_date', 'status']);
+
+        $bookedDates = [];
+        foreach ($bookings as $b) {
+            $raw = trim($b->scheduled_date);
+            if (empty($raw)) continue;
+
+            // Extract date part (handle formats like "Sep 25, 2026 (08:00 AM)" or "2026-09-25")
+            $clean = preg_replace('/\s*\(.*?\)/', '', $raw);
+            $clean = explode(' - ', $clean)[0];
+            $clean = trim($clean);
+
+            try {
+                $parsed = \Carbon\Carbon::parse($clean);
+                $bookedDates[] = $parsed->format('Y-m-d');
+            } catch (\Throwable $e) {
+                $bookedDates[] = $clean;
+            }
+        }
+
+        $worker = User::where('name', $username)->first();
+
+        return response()->json([
+            'success' => true,
+            'worker_username' => $username,
+            'fixed_rate' => $worker ? $worker->service_rate_display : '₱500.00',
+            'booked_dates' => array_values(array_unique($bookedDates)),
+        ]);
+    }
+
     public function createBooking(Request $request)
     {
         $validated = $request->validate([
@@ -141,13 +175,16 @@ class ResidentialWebController extends Controller
             'taskDescription' => 'required|string',
             'serviceAddress' => 'required|string',
             'barangay' => 'required|string',
-            'estimatedBudget' => 'required|string',
+            'estimatedBudget' => 'nullable|string',
             'scheduledDate' => 'required|string',
         ]);
 
         $user = $this->getCurrentUser();
         $worker = User::where('name', $validated['workerUsername'])->first();
         $workerProfile = $worker ? DB::table('worker_profiles')->where('user_id', $worker->user_id)->first() : null;
+
+        // Enforce worker's fixed rate - household client cannot alter worker rate
+        $fixedBudget = $worker ? $worker->service_rate_display : (!empty($validated['estimatedBudget']) ? $validated['estimatedBudget'] : '₱500.00');
 
         $refNumber = 'BK-' . rand(100000, 999999);
 
@@ -163,12 +200,12 @@ class ResidentialWebController extends Controller
             'task_description' => $validated['taskDescription'],
             'service_address' => $validated['serviceAddress'],
             'barangay' => $validated['barangay'],
-            'estimated_budget' => $validated['estimatedBudget'],
+            'estimated_budget' => $fixedBudget,
             'scheduled_date' => $validated['scheduledDate'],
             'status' => 'PENDING',
         ]);
 
-        return redirect()->route('residential.hiring_history')->with('success', "Service booking request ({$refNumber}) submitted successfully!");
+        return redirect()->route('residential.hiring_history')->with('success', "Service booking request ({$refNumber}) submitted successfully with fixed rate {$fixedBudget}!");
     }
 
     public function jobPosts()
