@@ -47,7 +47,7 @@ class DashboardStatsController extends Controller
 
         // 5. Complaints & Audit
         $complaints = Complaint::where('status', '!=', 'Resolved')->count();
-        $auditLogsCount = \App\Models\AuditLog::count();
+        $auditLogsCount = \App\Models\AuditLog::enforceBounds();
 
         // 6. User-specific counts
         $myAppliedJobs = 0;

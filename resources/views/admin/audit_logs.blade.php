@@ -242,13 +242,26 @@
                     </div>
                 </div>
 
-                <div style="display: flex; gap: 12px; margin-top: 15px; flex-wrap: wrap;">
+                @if(session('success'))
+                    <div style="background: rgba(16, 185, 129, 0.25); border: 1px solid #10b981; color: #86efac; padding: 12px 18px; border-radius: 8px; font-size: 13px; font-weight: bold; margin-top: 15px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-circle-check"></i> {{ session('success') }}
+                    </div>
+                @endif
+
+                <div style="display: flex; gap: 12px; margin-top: 15px; flex-wrap: wrap; align-items: center;">
                     <div style="background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 8px; font-size: 12.5px;">
                         Total Logged Events: <strong style="color: #93c5fd;">{{ count($logs ?? []) }}</strong>
+                        <span style="font-size: 11px; opacity: 0.8; margin-left: 6px;">(Min: 20 &bull; Max: 30 &bull; Auto-resets after 30)</span>
                     </div>
                     <div style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; padding: 8px 16px; border-radius: 8px; font-size: 12.5px; color: #86efac;">
                         System Integrity: <strong>Active & Tamper-Proof</strong>
                     </div>
+                    <form action="{{ route('admin.audit_logs.reset') }}" method="POST" style="margin-left: auto;" onsubmit="return confirm('Nais mo bang i-reset ang Audit Logs sa baseline (20 events)?')">
+                        @csrf
+                        <button type="submit" style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #fca5a5; padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                            <i class="fa-solid fa-arrows-rotate"></i> Reset Audit Logs (Min 20)
+                        </button>
+                    </form>
                 </div>
 
                 <hr>

@@ -70,7 +70,7 @@ class AdminDashboardController extends Controller
             ->take(3)
             ->get();
 
-        $auditLogsCount = \App\Models\AuditLog::count();
+        $auditLogsCount = \App\Models\AuditLog::enforceBounds();
 
         return view('dashboard.Admin', compact(
             'numberOfJobs',
@@ -259,8 +259,15 @@ class AdminDashboardController extends Controller
 
     public function auditLogs()
     {
-        $logs = \App\Models\AuditLog::latest('log_id')->take(100)->get();
+        \App\Models\AuditLog::enforceBounds();
+        $logs = \App\Models\AuditLog::latest('log_id')->take(\App\Models\AuditLog::MAX_LOGS)->get();
         return view('admin.audit_logs', compact('logs'));
+    }
+
+    public function resetAuditLogs()
+    {
+        $count = \App\Models\AuditLog::resetLogs();
+        return back()->with('success', "Audit trail logs successfully reset to baseline ({$count} events)!");
     }
 
     public function profile()

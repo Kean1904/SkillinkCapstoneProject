@@ -724,6 +724,7 @@
                         <span class="stat-number" id="statAdminAuditLogs">{{ $auditLogsCount ?? 0 }}</span>
                         <div class="stat-icon" style="color: #c084fc;"><i class="fa-solid fa-file-shield"></i></div>
                     </div>
+                    <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">Min 20 &bull; Max 30 (Resets after 30)</div>
                 </div>
             </div>
 
