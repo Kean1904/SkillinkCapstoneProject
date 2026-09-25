@@ -530,7 +530,7 @@ $tesdaCertificates = [
                         <select name="role" id="roleSelect" onchange="onRoleChange()" required>
                             <option value="" disabled selected hidden>Role</option>
                             <option value="Skilled Worker">Skilled Worker</option>
-                            <option value="Residential">Residential</option>
+                            <option value="Residential">House Hold</option>
                             <option value="Peso Staff">Peso Staff</option>
                             <option value="Admin">Admin</option>
                         </select>
