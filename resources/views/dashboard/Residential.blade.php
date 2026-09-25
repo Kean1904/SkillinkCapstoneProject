@@ -473,7 +473,7 @@
         <div class="page-inner">
 
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
-                <h2 class="page-title" style="margin-bottom: 0;">RESIDENTIAL</h2>
+                <h2 class="page-title" style="margin-bottom: 0;">House Hold Dashboard</h2>
                 <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; padding: 5px 14px; border-radius: 20px; font-size: 11.5px; color: #6ee7b7; font-weight: 600;">
                     <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block; box-shadow: 0 0 8px #10b981;"></span>
                     <span>Live Cloud Sync</span>
