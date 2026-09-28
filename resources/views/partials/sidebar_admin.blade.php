@@ -13,7 +13,7 @@
         <li><a href="{{ route('admin.categories') }}" class="{{ ($active ?? '') === 'categories' ? 'active' : '' }}"><i class="fa-solid fa-tags"></i> Job Categories</a></li>
         <li><a href="{{ route('admin.complaints') }}" class="{{ ($active ?? '') === 'complaints' ? 'active' : '' }}"><i class="fa-solid fa-triangle-exclamation"></i> Complaints</a></li>
         <li><a href="{{ route('admin.announcements') }}" class="{{ ($active ?? '') === 'announcements' ? 'active' : '' }}"><i class="fa-solid fa-bullhorn"></i> Announcements</a></li>
-        <li><a href="{{ route('admin.dole_reports') }}" class="{{ ($active ?? '') === 'dole_reports' ? 'active' : '' }}"><i class="fa-solid fa-chart-line"></i> DOLE Reports</a></li>
+        <li><a href="{{ route('admin.tesda_reports') }}" class="{{ in_array(($active ?? ''), ['tesda_reports', 'dole_reports']) ? 'active' : '' }}"><i class="fa-solid fa-certificate"></i> TESDA Reports</a></li>
         <li><a href="{{ route('admin.audit_logs') }}" class="{{ ($active ?? '') === 'audit_logs' ? 'active' : '' }}"><i class="fa-solid fa-list-check"></i> Audit Logs</a></li>
         <li><a href="{{ route('admin.profile') }}" class="{{ ($active ?? '') === 'profile' ? 'active' : '' }}"><i class="fa-solid fa-user"></i> Profile</a></li>
         <li><a href="{{ route('admin.settings') }}" class="{{ ($active ?? '') === 'settings' ? 'active' : '' }}"><i class="fa-solid fa-gear"></i> Settings</a></li>

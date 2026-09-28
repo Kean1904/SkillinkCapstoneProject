@@ -160,6 +160,8 @@ Route::get('/admin/complaints', [AdminDashboardController::class, 'complaints'])
 Route::post('/admin/complaint/{id}/resolve', [AdminDashboardController::class, 'resolveComplaint'])->name('admin.resolve_complaint');
 Route::get('/admin/announcements', [AdminDashboardController::class, 'announcements'])->name('admin.announcements');
 Route::post('/admin/announcements/broadcast', [AdminDashboardController::class, 'broadcastAnnouncement'])->name('admin.announcements.broadcast');
+Route::get('/admin/tesda-reports', [AdminDashboardController::class, 'tesdaReports'])->name('admin.tesda_reports');
+Route::get('/admin/tesda-reports/live-data', [AdminDashboardController::class, 'tesdaReportsLiveData'])->name('admin.tesda_reports.live_data');
 Route::get('/admin/dole-reports', [AdminDashboardController::class, 'doleReports'])->name('admin.dole_reports');
 Route::get('/admin/profile', [AdminDashboardController::class, 'profile'])->name('admin.profile');
 Route::post('/admin/profile/update', [AdminDashboardController::class, 'updateProfile'])->name('admin.profile.update');

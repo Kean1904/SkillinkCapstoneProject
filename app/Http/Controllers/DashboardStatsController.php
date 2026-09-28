@@ -39,8 +39,14 @@ class DashboardStatsController extends Controller
             + JobPost::where('status', 'Completed')->count();
 
         // 4. Workers & Residents
-        $availableWorkers = User::where('role', 'skilled worker')->where('is_verified', true)->count();
-        $totalWorkers = User::where('role', 'skilled worker')->count();
+        $allSkilledWorkers = User::where('role', 'skilled worker')->get();
+        $totalWorkers = $allSkilledWorkers->count();
+        $certifiedWorkers = $allSkilledWorkers->filter(function($w) {
+            return (bool)$w->is_verified && !empty($w->certificate_proof) && 
+                (stripos($w->certificate_proof, 'TESDA') !== false || stripos($w->certificate_proof, 'NC') !== false);
+        })->count();
+        $uncertifiedWorkers = $totalWorkers - $certifiedWorkers;
+        $availableWorkers = $certifiedWorkers;
         $residential = User::where('role', 'residential')->count();
         $staffCount = User::where('role', 'peso staff')->count();
         $adminCount = User::where('role', 'admin')->count();
@@ -96,8 +102,10 @@ class DashboardStatsController extends Controller
             'pendingJobs'      => $pendingJobs,
             'totalJobs'        => $totalJobs,
             'completedJobs'    => $completedJobs,
-            'availableWorkers' => $availableWorkers,
-            'totalWorkers'     => $totalWorkers,
+            'availableWorkers'   => $availableWorkers,
+            'totalWorkers'       => $totalWorkers,
+            'certifiedWorkers'   => $certifiedWorkers,
+            'uncertifiedWorkers' => $uncertifiedWorkers,
             'residential'      => $residential,
             'staffCount'       => $staffCount,
             'adminCount'       => $adminCount,

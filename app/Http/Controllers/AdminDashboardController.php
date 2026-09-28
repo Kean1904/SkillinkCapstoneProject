@@ -402,52 +402,110 @@ class AdminDashboardController extends Controller
         return back()->with('success', "Municipal announcement broadcasted successfully to {$recipients->count()} registered users!");
     }
 
+    public function getTesdaReportData()
+    {
+        $allWorkers = User::where('role', 'skilled worker')->get();
+        $totalWorkers = $allWorkers->count();
+
+        $certifiedWorkers = $allWorkers->filter(function($w) {
+            return (bool)$w->is_verified && !empty($w->certificate_proof) && 
+                (stripos($w->certificate_proof, 'TESDA') !== false || stripos($w->certificate_proof, 'NC') !== false);
+        })->values();
+        $certifiedCount = $certifiedWorkers->count();
+
+        $uncertifiedWorkers = $allWorkers->filter(function($w) use ($certifiedWorkers) {
+            return !$certifiedWorkers->contains('user_id', $w->user_id);
+        })->values();
+        $uncertifiedCount = $uncertifiedWorkers->count();
+
+        $certificationRate = $totalWorkers > 0 ? round(($certifiedCount / $totalWorkers) * 100, 1) : 0;
+
+        // Trade / Skill breakdown among uncertified workers (services to request from TESDA)
+        $tradesNeedingTraining = [];
+        foreach ($uncertifiedWorkers as $w) {
+            $tradeList = array_map('trim', explode(',', $w->skills ?: 'General Handyman'));
+            foreach ($tradeList as $t) {
+                if (!empty($t)) {
+                    $tradesNeedingTraining[$t] = ($tradesNeedingTraining[$t] ?? 0) + 1;
+                }
+            }
+        }
+        arsort($tradesNeedingTraining);
+        $prioritySkillsCount = count($tradesNeedingTraining);
+
+        // Barangay breakdown for uncertified workers
+        $uncertifiedByBarangay = [];
+        foreach ($uncertifiedWorkers as $w) {
+            $bgy = !empty($w->barangay) ? trim($w->barangay) : 'Unassigned';
+            if (!isset($uncertifiedByBarangay[$bgy])) {
+                $uncertifiedByBarangay[$bgy] = [
+                    'barangay' => $bgy,
+                    'count' => 0,
+                    'trades' => [],
+                ];
+            }
+            $uncertifiedByBarangay[$bgy]['count']++;
+            $tradeList = array_map('trim', explode(',', $w->skills ?: 'General Handyman'));
+            foreach ($tradeList as $t) {
+                if (!in_array($t, $uncertifiedByBarangay[$bgy]['trades'])) {
+                    $uncertifiedByBarangay[$bgy]['trades'][] = $t;
+                }
+            }
+        }
+        uasort($uncertifiedByBarangay, fn($a, $b) => $b['count'] <=> $a['count']);
+        $uncertifiedByBarangay = array_values($uncertifiedByBarangay);
+
+        return compact(
+            'allWorkers',
+            'totalWorkers',
+            'certifiedWorkers',
+            'certifiedCount',
+            'uncertifiedWorkers',
+            'uncertifiedCount',
+            'certificationRate',
+            'tradesNeedingTraining',
+            'prioritySkillsCount',
+            'uncertifiedByBarangay'
+        );
+    }
+
+    public function tesdaReports()
+    {
+        $data = $this->getTesdaReportData();
+        return view('admin.dole_reports', $data);
+    }
+
     public function doleReports()
     {
-        $totalWorkers = User::where('role', 'skilled worker')->count();
-        $accreditedWorkers = User::where('role', 'skilled worker')->where('is_verified', true)->count();
-        $pendingWorkers = User::where('role', 'skilled worker')->where('is_verified', false)->count();
-        $totalResidential = User::where(function($q) {
-            $q->where('role', 'residential')->orWhere('role', 'like', '%household%')->orWhere('role', 'like', '%client%');
-        })->count();
-        $totalJobPosts = JobPost::count();
-        $totalBookings = Booking::count();
-        $completedBookings = Booking::where('status', 'COMPLETED')->count();
-        $resolvedComplaints = Complaint::where('status', 'Resolved')->count();
-        $totalComplaints = Complaint::count();
+        return $this->tesdaReports();
+    }
 
-        // Employment rate calculation
-        $employmentRate = $totalBookings > 0 ? round(($completedBookings / $totalBookings) * 100, 1) : 100.0;
-
-        // Trade breakdown
-        $topTrades = JobPost::select('category', \Illuminate\Support\Facades\DB::raw('count(*) as count'))
-            ->groupBy('category')
-            ->orderByDesc('count')
-            ->take(5)
-            ->get();
-
-        // Barangay breakdown
-        $barangayStats = User::select('barangay', \Illuminate\Support\Facades\DB::raw('count(*) as total'))
-            ->whereNotNull('barangay')
-            ->where('barangay', '!=', '')
-            ->groupBy('barangay')
-            ->orderByDesc('total')
-            ->take(8)
-            ->get();
-
-        return view('admin.dole_reports', compact(
-            'totalWorkers',
-            'accreditedWorkers',
-            'pendingWorkers',
-            'totalResidential',
-            'totalJobPosts',
-            'totalBookings',
-            'completedBookings',
-            'resolvedComplaints',
-            'totalComplaints',
-            'employmentRate',
-            'topTrades',
-            'barangayStats'
-        ));
+    public function tesdaReportsLiveData()
+    {
+        $data = $this->getTesdaReportData();
+        return response()->json([
+            'success'               => true,
+            'timestamp'             => now()->toIso8601String(),
+            'totalWorkers'          => $data['totalWorkers'],
+            'certifiedCount'        => $data['certifiedCount'],
+            'uncertifiedCount'      => $data['uncertifiedCount'],
+            'certificationRate'     => $data['certificationRate'],
+            'prioritySkillsCount'   => $data['prioritySkillsCount'],
+            'tradesNeedingTraining' => $data['tradesNeedingTraining'],
+            'uncertifiedByBarangay' => $data['uncertifiedByBarangay'],
+            'uncertifiedWorkers'    => $data['uncertifiedWorkers']->map(function($w) {
+                return [
+                    'user_id'           => $w->user_id,
+                    'name'              => $w->name,
+                    'full_name'         => trim(($w->first_name ?? '') . ' ' . ($w->last_name ?? '')) ?: $w->name,
+                    'contact'           => $w->contact_number ?: $w->email ?: 'N/A',
+                    'skills'            => $w->skills ?: 'General Handyman',
+                    'barangay'          => $w->barangay ?: 'Magalang',
+                    'rating'            => $w->rating ? number_format((float)$w->rating, 1) : '5.0',
+                    'certificate_proof' => $w->certificate_proof ?: 'None',
+                    'has_nc'            => false
+                ];
+            }),
+        ]);
     }
 }

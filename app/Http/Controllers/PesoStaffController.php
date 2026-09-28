@@ -103,16 +103,66 @@ class PesoStaffController extends Controller
 
     public function reports()
     {
-        $totalWorkers = User::where('role', 'skilled worker')->count();
-        $accreditedWorkers = User::where('role', 'skilled worker')->where('is_verified', true)->count();
-        $totalBookings = Booking::count();
-        $resolvedComplaints = Complaint::where('status', 'Resolved')->count();
+        $allWorkers = User::where('role', 'skilled worker')->get();
+        $totalWorkers = $allWorkers->count();
+
+        $certifiedWorkers = $allWorkers->filter(function($w) {
+            return (bool)$w->is_verified && !empty($w->certificate_proof) && 
+                (stripos($w->certificate_proof, 'TESDA') !== false || stripos($w->certificate_proof, 'NC') !== false);
+        })->values();
+        $certifiedCount = $certifiedWorkers->count();
+
+        $uncertifiedWorkers = $allWorkers->filter(function($w) use ($certifiedWorkers) {
+            return !$certifiedWorkers->contains('user_id', $w->user_id);
+        })->values();
+        $uncertifiedCount = $uncertifiedWorkers->count();
+
+        $certificationRate = $totalWorkers > 0 ? round(($certifiedCount / $totalWorkers) * 100, 1) : 0;
+
+        $tradesNeedingTraining = [];
+        foreach ($uncertifiedWorkers as $w) {
+            $tradeList = array_map('trim', explode(',', $w->skills ?: 'General Handyman'));
+            foreach ($tradeList as $t) {
+                if (!empty($t)) {
+                    $tradesNeedingTraining[$t] = ($tradesNeedingTraining[$t] ?? 0) + 1;
+                }
+            }
+        }
+        arsort($tradesNeedingTraining);
+        $prioritySkillsCount = count($tradesNeedingTraining);
+
+        $uncertifiedByBarangay = [];
+        foreach ($uncertifiedWorkers as $w) {
+            $bgy = !empty($w->barangay) ? trim($w->barangay) : 'Unassigned';
+            if (!isset($uncertifiedByBarangay[$bgy])) {
+                $uncertifiedByBarangay[$bgy] = [
+                    'barangay' => $bgy,
+                    'count' => 0,
+                    'trades' => [],
+                ];
+            }
+            $uncertifiedByBarangay[$bgy]['count']++;
+            $tradeList = array_map('trim', explode(',', $w->skills ?: 'General Handyman'));
+            foreach ($tradeList as $t) {
+                if (!in_array($t, $uncertifiedByBarangay[$bgy]['trades'])) {
+                    $uncertifiedByBarangay[$bgy]['trades'][] = $t;
+                }
+            }
+        }
+        uasort($uncertifiedByBarangay, fn($a, $b) => $b['count'] <=> $a['count']);
+        $uncertifiedByBarangay = array_values($uncertifiedByBarangay);
 
         return view('peso_staff.reports', compact(
+            'allWorkers',
             'totalWorkers',
-            'accreditedWorkers',
-            'totalBookings',
-            'resolvedComplaints'
+            'certifiedWorkers',
+            'certifiedCount',
+            'uncertifiedWorkers',
+            'uncertifiedCount',
+            'certificationRate',
+            'tradesNeedingTraining',
+            'prioritySkillsCount',
+            'uncertifiedByBarangay'
         ));
     }
 

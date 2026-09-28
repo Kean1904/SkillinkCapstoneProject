@@ -12,7 +12,7 @@
         <li><a href="{{ route('peso_staff.accreditation') }}" class="{{ ($active ?? '') === 'accreditation' ? 'active' : '' }}"><i class="fa-solid fa-certificate"></i> Worker Accreditation</a></li>
         <li><a href="{{ route('peso_staff.job_tracking') }}" class="{{ ($active ?? '') === 'job_tracking' ? 'active' : '' }}"><i class="fa-solid fa-location-dot"></i> Job Tracking</a></li>
         <li><a href="{{ route('peso_staff.complaints') }}" class="{{ ($active ?? '') === 'complaints' ? 'active' : '' }}"><i class="fa-solid fa-triangle-exclamation"></i> Complaints</a></li>
-        <li><a href="{{ route('peso_staff.reports') }}" class="{{ ($active ?? '') === 'reports' ? 'active' : '' }}"><i class="fa-solid fa-file-invoice"></i> Reports & DOLE</a></li>
+        <li><a href="{{ route('peso_staff.reports') }}" class="{{ ($active ?? '') === 'reports' ? 'active' : '' }}"><i class="fa-solid fa-certificate"></i> TESDA Reports</a></li>
         <li><a href="{{ route('peso_staff.announcements') }}" class="{{ ($active ?? '') === 'announcements' ? 'active' : '' }}"><i class="fa-solid fa-bullhorn"></i> Announcements</a></li>
         <li><a href="{{ route('peso_staff.profile') }}" class="{{ ($active ?? '') === 'profile' ? 'active' : '' }}"><i class="fa-solid fa-user"></i> Profile</a></li>
         <li><a href="{{ route('peso_staff.settings') }}" class="{{ ($active ?? '') === 'settings' ? 'active' : '' }}"><i class="fa-solid fa-gear"></i> Settings</a></li>
