@@ -250,7 +250,7 @@
                     <div class="stat-box">
                         <span style="font-size: 12px; text-transform: uppercase; color: #fde047;">Total Service Bookings</span>
                         <div class="stat-number" style="color: #facc15;">{{ $totalBookings ?? 2 }}</div>
-                        <span style="font-size: 11px; opacity: 0.8;">Direct Residential Bookings</span>
+                        <span style="font-size: 11px; opacity: 0.8;">Direct HouseHold Client Bookings</span>
                     </div>
                     <div class="stat-box">
                         <span style="font-size: 12px; text-transform: uppercase; color: #fca5a5;">Resolved Grievances</span>

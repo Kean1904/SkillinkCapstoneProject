@@ -202,16 +202,16 @@
             <img src="{{ asset('image/MP_Logo.png') }}" alt="Logo" class="logo">
             <div>
                 <h1>SKILLINK</h1>
-                <p>Magalang, Pampanga &bull; Residential Client Portal</p>
+                <p>Magalang, Pampanga &bull; HouseHold Client Portal</p>
             </div>
         </div>
         <div>
-            <a href="{{ route('dashboard.Residential') }}" class="back-link"><i class="fa-solid fa-house"></i> Main Dashboard</a>
+            <a href="{{ route('dashboard.HouseholdClient') }}" class="back-link"><i class="fa-solid fa-house"></i> Main Dashboard</a>
         </div>
     </div>
 
     <!-- UNIFIED SIDEBAR -->
-    @include('partials.sidebar_residential', ['active' => 'profile'])
+    @include('partials.sidebar_household_client', ['active' => 'profile'])
 
     <div class="page-content">
         <div class="overlay"></div>
@@ -219,7 +219,7 @@
 
             <div class="page-title">
                 <span><i class="fa-solid fa-user"></i> MY PROFILE</span>
-                <a href="{{ route('dashboard.Residential') }}" class="back-link">&larr; Back to Dashboard</a>
+                <a href="{{ route('dashboard.HouseholdClient') }}" class="back-link">&larr; Back to Dashboard</a>
             </div>
 
             @if(session('success'))
@@ -249,13 +249,13 @@
 
                 <div style="margin-top: 6px;">
                     <span style="background: #1e3a8a; color: #93c5fd; padding: 4px 14px; border-radius: 12px; font-size: 12px; font-weight: bold; border: 1px solid rgba(255,255,255,0.3); display: inline-block;">
-                        RESIDENTIAL CLIENT
+                        HOUSEHOLD CLIENT
                     </span>
                 </div>
 
                 <div style="margin-top: 8px;">
                     <span style="background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid #10b981; padding: 4px 12px; border-radius: 8px; font-size: 11px; font-weight: bold; display: inline-flex; align-items: center; gap: 6px;">
-                        <i class="fa-solid fa-circle-check"></i> VERIFIED RESIDENTIAL CLIENT
+                        <i class="fa-solid fa-circle-check"></i> VERIFIED HOUSEHOLD CLIENT
                     </span>
                 </div>
             </div>
@@ -311,7 +311,7 @@
                 <i class="fa-solid fa-xmark" style="cursor: pointer; font-size: 20px; opacity: 0.8;" onclick="closeEditProfileModal()"></i>
             </div>
 
-            <form method="POST" action="{{ route('residential.profile.update') }}" enctype="multipart/form-data">
+            <form method="POST" action="{{ route('household_client.profile.update') }}" enctype="multipart/form-data">
                 @csrf
 
                 <!-- AVATAR UPLOAD PREVIEW -->

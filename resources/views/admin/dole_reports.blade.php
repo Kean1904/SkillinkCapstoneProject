@@ -221,7 +221,7 @@
                 </div>
 
                 <div class="kpi-card green">
-                    <div class="kpi-title"><i class="fa-solid fa-house-user"></i> Residential Clients</div>
+                    <div class="kpi-title"><i class="fa-solid fa-house-user"></i> HouseHold Clients</div>
                     <div class="kpi-value">{{ number_format($totalResidential ?? 0) }}</div>
                     <div class="kpi-sub">Households sourcing verified labor in Magalang</div>
                 </div>
@@ -272,7 +272,7 @@
                     <div style="background: rgba(255,255,255,0.05); padding: 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12);">
                         <div style="font-size: 12px; font-weight: bold; text-transform: uppercase; color: #94a3b8; margin-bottom: 8px;">Job Creation & Posting Volume</div>
                         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                            <span style="font-size: 14px; font-weight: bold;">Residential Job Vacancies</span>
+                            <span style="font-size: 14px; font-weight: bold;">HouseHold Client Job Vacancies</span>
                             <span style="font-size: 16px; font-weight: 900; color: #60a5fa;">{{ $totalJobPosts ?? 0 }} Posts</span>
                         </div>
                         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
@@ -292,7 +292,7 @@
                 <!-- Top Trade Breakdown -->
                 <div class="card">
                     <h3><i class="fa-solid fa-screwdriver-wrench" style="color: #60a5fa;"></i> Top Labor Trades & Demand Categories</h3>
-                    <p style="font-size: 12.5px; color: #cbd5e1; margin-top: 3px;">Distribution of residential job requests categorized by technical trade specialization.</p>
+                    <p style="font-size: 12.5px; color: #cbd5e1; margin-top: 3px;">Distribution of household client job requests categorized by technical trade specialization.</p>
                     <hr>
 
                     @if(isset($topTrades) && count($topTrades) > 0)

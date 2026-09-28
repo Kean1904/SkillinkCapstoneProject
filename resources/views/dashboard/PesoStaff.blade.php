@@ -518,7 +518,7 @@
                         </div>
 
                         <div class="stat-card">
-                            <p class="label">RESIDENTIAL</p>
+                            <p class="label">HOUSEHOLD CLIENTS</p>
                             <div class="value-row">
                                 <div class="stat-icon"><i class="fa-solid fa-house-chimney"></i></div>
                                 <span class="stat-number" id="statResidential">{{ $residential ?? 0 }}</span>

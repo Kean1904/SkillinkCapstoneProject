@@ -36,12 +36,17 @@ class CheckRole
 
     private function redirectToOwnDashboard($role)
     {
-        return match ($role) {
-            'admin'          => redirect()->route('dashboard.Admin')->with('error', 'You are not authorized to access that page.'),
-            'peso staff'     => redirect()->route('dashboard.PesoStaff')->with('error', 'You are not authorized to access that page.'),
-            'skilled worker' => redirect()->route('dashboard.SkilledWorker')->with('error', 'You are not authorized to access that page.'),
-            'residential'    => redirect()->route('dashboard.Residential')->with('error', 'You are not authorized to access that page.'),
-            default          => redirect()->route('Login'),
-        };
+        $roleLower = strtolower(trim($role));
+        if ($roleLower === 'admin') {
+            return redirect()->route('dashboard.Admin')->with('error', 'You are not authorized to access that page.');
+        } elseif ($roleLower === 'peso staff' || $roleLower === 'staff') {
+            return redirect()->route('dashboard.PesoStaff')->with('error', 'You are not authorized to access that page.');
+        } elseif ($roleLower === 'skilled worker' || $roleLower === 'skilled') {
+            return redirect()->route('dashboard.SkilledWorker')->with('error', 'You are not authorized to access that page.');
+        } elseif ($roleLower === 'residential' || str_contains($roleLower, 'household') || str_contains($roleLower, 'client')) {
+            return redirect()->route('dashboard.HouseholdClient')->with('error', 'You are not authorized to access that page.');
+        } else {
+            return redirect()->route('Login');
+        }
     }
 }

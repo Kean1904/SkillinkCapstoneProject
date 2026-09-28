@@ -239,7 +239,7 @@
             <!-- CURRENT PROFILE & SKILLS -->
             <div class="card">
                 <h3><i class="fa-solid fa-id-card"></i> Current Service Offerings</h3>
-                <p style="font-size: 13px; opacity: 0.85;">Ito ang mga serbisyong nakikita ng mga residente sa Magalang kapag hinahanap ka nila.</p>
+                <p style="font-size: 13px; opacity: 0.85;">Ito ang mga serbisyong nakikita ng mga HouseHold Clients sa Magalang kapag hinahanap ka nila.</p>
                 <hr>
 
                 <div style="margin-bottom: 20px;">
@@ -292,7 +292,7 @@
                         <i class="fa-solid fa-plus"></i> Post Another Offer
                     </button>
                 </div>
-                <p style="font-size: 13px; opacity: 0.85; margin-top: 4px;">Mga aktibong alok na serbisyo na nakikita ng mga residente sa Magalang at naka-sync sa Android app at PESO.</p>
+                <p style="font-size: 13px; opacity: 0.85; margin-top: 4px;">Mga aktibong alok na serbisyo na nakikita ng mga HouseHold Clients sa Magalang at naka-sync sa Android app at PESO.</p>
                 <hr>
 
                 @if(isset($myJobOffers) && count($myJobOffers) > 0)
@@ -341,13 +341,13 @@
                 </h3>
                 <span onclick="closeJobOfferModal()" style="cursor: pointer; font-size: 20px; color: rgba(255,255,255,0.7);">&times;</span>
             </div>
-            <p style="font-size: 12.5px; opacity: 0.85; margin-bottom: 16px;">I-post ang iyong alok na serbisyo upang makita ito ng mga residente sa Magalang at sa lahat ng portal.</p>
+            <p style="font-size: 12.5px; opacity: 0.85; margin-bottom: 16px;">I-post ang iyong alok na serbisyo upang makita ito ng mga HouseHold Clients sa Magalang at sa lahat ng portal.</p>
 
             <form method="POST" action="{{ route('skilled_worker.job_offer.create') }}">
                 @csrf
                 <div style="margin-bottom: 12px;">
                     <label style="display: block; font-size: 12px; font-weight: bold; margin-bottom: 4px;">Service Title / Alok na Trabaho</label>
-                    <input type="text" name="title" placeholder="hal. Residential Plumbing & Pipe Leak Repair" style="width: 100%; padding: 10px; border-radius: 6px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.4);" required>
+                    <input type="text" name="title" placeholder="hal. HouseHold Plumbing & Pipe Leak Repair" style="width: 100%; padding: 10px; border-radius: 6px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.4);" required>
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
                     <div>

@@ -44,13 +44,18 @@ class LoginController extends Controller
         );
 
         // I-redirect base sa role
-        return match ($user->role) {
-            'admin'          => redirect()->route('dashboard.Admin'),
-            'peso staff'     => redirect()->route('dashboard.PesoStaff'),
-            'skilled worker' => redirect()->route('dashboard.SkilledWorker'),
-            'residential'    => redirect()->route('dashboard.Residential'),
-            default          => redirect()->route('Login')->withErrors(['username' => 'Unknown role.']),
-        };
+        $roleLower = strtolower(trim($user->role));
+        if ($roleLower === 'admin') {
+            return redirect()->route('dashboard.Admin');
+        } elseif ($roleLower === 'peso staff' || $roleLower === 'staff') {
+            return redirect()->route('dashboard.PesoStaff');
+        } elseif ($roleLower === 'skilled worker' || $roleLower === 'skilled') {
+            return redirect()->route('dashboard.SkilledWorker');
+        } elseif ($roleLower === 'residential' || str_contains($roleLower, 'household') || str_contains($roleLower, 'client')) {
+            return redirect()->route('dashboard.HouseholdClient');
+        } else {
+            return redirect()->route('Login')->withErrors(['username' => 'Unknown role.']);
+        }
     }
 
     /**

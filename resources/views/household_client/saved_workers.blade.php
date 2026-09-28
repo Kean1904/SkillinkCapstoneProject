@@ -210,16 +210,16 @@
             <img src="{{ asset('image/MP_Logo.png') }}" alt="Logo" class="logo">
             <div>
                 <h1>SKILLINK</h1>
-                <p>Magalang, Pampanga &bull; Residential Client Portal</p>
+                <p>Magalang, Pampanga &bull; HouseHold Client Portal</p>
             </div>
         </div>
         <div>
-            <a href="{{ route('dashboard.Residential') }}" class="back-link"><i class="fa-solid fa-house"></i> Main Dashboard</a>
+            <a href="{{ route('dashboard.HouseholdClient') }}" class="back-link"><i class="fa-solid fa-house"></i> Main Dashboard</a>
         </div>
     </div>
 
     <!-- UNIFIED SIDEBAR -->
-    @include('partials.sidebar_residential', ['active' => 'saved_workers'])
+    @include('partials.sidebar_household_client', ['active' => 'saved_workers'])
 
     <div class="page-content">
         <div class="overlay"></div>
@@ -227,7 +227,7 @@
 
             <div class="page-title">
                 <span><i class="fa-solid fa-bookmark"></i> SAVED WORKERS & BOOKMARKS</span>
-                <a href="{{ route('dashboard.Residential') }}" class="back-link">&larr; Back to Dashboard</a>
+                <a href="{{ route('dashboard.HouseholdClient') }}" class="back-link">&larr; Back to Dashboard</a>
             </div>
 
             @if(session('success'))
@@ -265,7 +265,7 @@
                                     <button class="btn btn-primary" style="flex: 1; justify-content: center;" onclick="openBookModal('{{ $worker->name }}', '{{ $worker->full_name }}', '{{ $worker->skills }}', '{{ $worker->service_rate_display }}')">
                                         <i class="fa-solid fa-calendar-check"></i> Book Now
                                     </button>
-                                    <form method="POST" action="{{ route('residential.worker.toggle_save', $worker->user_id) }}" style="display: inline;">
+                                    <form method="POST" action="{{ route('household_client.worker.toggle_save', $worker->user_id) }}" style="display: inline;">
                                         @csrf
                                         <button type="submit" class="btn" style="background: rgba(239,68,68,0.25); color: #fca5a5; border: 1px solid #ef4444;" title="Remove from Saved">
                                             <i class="fa-solid fa-trash"></i>
@@ -279,7 +279,7 @@
                             <i class="fa-regular fa-bookmark" style="font-size: 38px; color: #93c5fd; margin-bottom: 12px; display: inline-block;"></i>
                             <p style="font-size: 16px; font-weight: bold; margin-bottom: 6px;">Walang naka-save na manggagawa sa ngayon.</p>
                             <p style="font-size: 13px; opacity: 0.75; margin-bottom: 16px;">Maaari kang mag-bookmark ng mga rehistradong skilled workers mula sa Main Dashboard.</p>
-                            <a href="{{ route('dashboard.Residential') }}" class="btn btn-primary"><i class="fa-solid fa-user-plus"></i> Maghanap ng Manggagawa</a>
+                            <a href="{{ route('dashboard.HouseholdClient') }}" class="btn btn-primary"><i class="fa-solid fa-user-plus"></i> Maghanap ng Manggagawa</a>
                         </div>
                     @endif
                 </div>

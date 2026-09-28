@@ -87,12 +87,15 @@ class User extends Authenticatable
 
     public function getRoleDisplayAttribute()
     {
-        return match (strtolower($this->role)) {
+        $r = strtolower(trim($this->role ?? ''));
+        if (str_contains($r, 'resident') || str_contains($r, 'household') || $r === 'client') {
+            return 'HouseHold Client';
+        }
+        return match ($r) {
             'skilled worker' => 'Skilled Worker',
-            'residential' => 'Residential Client',
             'peso staff' => 'PESO Staff',
             'admin' => 'Administrator',
-            default => ucfirst($this->role),
+            default => ucfirst($this->role ?? ''),
         };
     }
 

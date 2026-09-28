@@ -212,16 +212,16 @@
             <img src="{{ asset('image/MP_Logo.png') }}" alt="Logo" class="logo">
             <div>
                 <h1>SKILLINK</h1>
-                <p>Magalang, Pampanga &bull; Residential Client Portal</p>
+                <p>Magalang, Pampanga &bull; HouseHold Client Portal</p>
             </div>
         </div>
         <div>
-            <a href="{{ route('dashboard.Residential') }}" class="back-link"><i class="fa-solid fa-house"></i> Main Dashboard</a>
+            <a href="{{ route('dashboard.HouseholdClient') }}" class="back-link"><i class="fa-solid fa-house"></i> Main Dashboard</a>
         </div>
     </div>
 
     <!-- UNIFIED SIDEBAR -->
-    @include('partials.sidebar_residential', ['active' => 'hiring_history'])
+    @include('partials.sidebar_household_client', ['active' => 'hiring_history'])
 
     <div class="page-content">
         <div class="overlay"></div>
@@ -229,7 +229,7 @@
 
             <div class="page-title">
                 <span><i class="fa-solid fa-clock-rotate-left"></i> HIRING HISTORY & SERVICE BOOKINGS</span>
-                <a href="{{ route('dashboard.Residential') }}" class="back-link">&larr; Back to Dashboard</a>
+                <a href="{{ route('dashboard.HouseholdClient') }}" class="back-link">&larr; Back to Dashboard</a>
             </div>
 
             @if(session('success'))
@@ -344,7 +344,7 @@
     <div id="reviewModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 3000; align-items: center; justify-content: center;">
         <div style="background: #1e3a8a; border: 1px solid rgba(255,255,255,0.3); border-radius: 12px; padding: 25px; width: 90%; max-width: 450px; color: white;">
             <h3 style="margin-bottom: 15px;"><i class="fa-solid fa-star" style="color: #eab308;"></i> Rate Worker Service</h3>
-            <form method="POST" action="{{ route('residential.review.submit') }}">
+            <form method="POST" action="{{ route('household_client.review.submit') }}">
                 @csrf
                 <input type="hidden" name="bookingId" id="revBookingId">
                 <input type="hidden" name="workerUsername" id="revWorkerUsername">
@@ -374,7 +374,7 @@
     <div id="complaintModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 3000; align-items: center; justify-content: center;">
         <div style="background: #1e3a8a; border: 1px solid rgba(255,255,255,0.3); border-radius: 12px; padding: 25px; width: 90%; max-width: 480px; color: white;">
             <h3 style="margin-bottom: 15px;"><i class="fa-solid fa-triangle-exclamation" style="color: #ef4444;"></i> File Grievance to PESO Magalang</h3>
-            <form method="POST" action="{{ route('residential.complaint.submit') }}">
+            <form method="POST" action="{{ route('household_client.complaint.submit') }}">
                 @csrf
                 <input type="hidden" name="bookingId" id="compBookingId">
                 <input type="hidden" name="respondentUsername" id="compWorkerUsername">

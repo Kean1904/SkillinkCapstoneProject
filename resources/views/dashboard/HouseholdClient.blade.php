@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>SKILLINK - Residential Dashboard</title>
+    <title>SKILLINK - HouseHold Client Dashboard</title>
     <link rel="icon" type="image/png" href="{{ asset('image/MP_Logo.png') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('css/dashboard-light.css') }}">
@@ -464,8 +464,8 @@
         </div>
     </div>
 
-    <!-- UNIFIED RESIDENTIAL SIDEBAR (PARTIAL) -->
-    @include('partials.sidebar_residential', ['active' => 'dashboard']) 
+    <!-- UNIFIED HOUSEHOLD CLIENT SIDEBAR (PARTIAL) -->
+    @include('partials.sidebar_household_client', ['active' => 'dashboard']) 
 
     <!-- PAGE CONTENT -->
     <div class="page-content">
@@ -473,7 +473,7 @@
         <div class="page-inner">
 
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
-                <h2 class="page-title" style="margin-bottom: 0;">House Hold Dashboard</h2>
+                <h2 class="page-title" style="margin-bottom: 0;">HouseHold Client Dashboard</h2>
                 <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; padding: 5px 14px; border-radius: 20px; font-size: 11.5px; color: #6ee7b7; font-weight: 600;">
                     <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block; box-shadow: 0 0 8px #10b981;"></span>
                     <span>Live Cloud Sync</span>
@@ -495,7 +495,7 @@
                             </div>
                         </div>
 
-                        <div class="stat-card" style="cursor: pointer;" onclick="window.location.href='{{ route('residential.job_posts') }}'" title="View Your Posted Jobs">
+                        <div class="stat-card" style="cursor: pointer;" onclick="window.location.href='{{ route('household_client.job_posts') }}'" title="View Your Posted Jobs">
                             <p class="label">POST JOB</p>
                             <div class="value-row">
                                 <div class="stat-icon"><i class="fa-solid fa-briefcase"></i></div>
@@ -505,7 +505,7 @@
                     </div>
 
                     <!-- CREATE A JOBS (INTERACTIVE) -->
-                    <div class="create-offer-btn" onclick="window.location.href='{{ route('residential.job_posts') }}?action=create'" style="cursor: pointer;" title="Click to Post a Job Need in Magalang">
+                    <div class="create-offer-btn" onclick="window.location.href='{{ route('household_client.job_posts') }}?action=create'" style="cursor: pointer;" title="Click to Post a Job Need in Magalang">
                         <div class="plus-icon"><i class="fa-solid fa-plus"></i></div>
                         <span>CREATE A JOBS</span>
                     </div>
@@ -518,7 +518,7 @@
                                 <h3>AVAILABLE SKILLED WORKER</h3>
                                 <p style="font-size: 11.5px; opacity: 0.8; margin-top: 2px;">Maghanap ng skilled worker sa pamamagitan ng trabaho (Job / Specialized Skill).</p>
                             </div>
-                            <a href="{{ route('residential.saved_workers') }}" style="color: #93c5fd; font-size: 12px; text-decoration: none;"><i class="fa-solid fa-bookmark"></i> View Saved</a>
+                            <a href="{{ route('household_client.saved_workers') }}" style="color: #93c5fd; font-size: 12px; text-decoration: none;"><i class="fa-solid fa-bookmark"></i> View Saved</a>
                         </div>
 
                         <!-- Dedicated In-Panel Search & Quick Filters -->
@@ -579,7 +579,7 @@
                                         <button type="button" onclick="openBookModal('{{ $worker->name }}', '{{ $worker->full_name }}', '{{ $worker->skills }}', '{{ $worker->service_rate_display }}')" style="background: #0033a0; border: 1px solid #60a5fa; color: white; border-radius: 6px; padding: 6px 14px; cursor: pointer; font-size: 12px; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 6px rgba(0,0,0,0.25);">
                                             <i class="fa-solid fa-calendar-check"></i> Book Now
                                         </button>
-                                        <form method="POST" action="{{ route('residential.worker.toggle_save', $worker->user_id) }}" style="display: inline;">
+                                        <form method="POST" action="{{ route('household_client.worker.toggle_save', $worker->user_id) }}" style="display: inline;">
                                             @csrf
                                             <button type="submit" title="Save / Bookmark Worker" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.4); color: white; border-radius: 6px; padding: 6px 10px; cursor: pointer; font-size: 12px;">
                                                 <i class="fa-regular fa-bookmark"></i>
@@ -626,8 +626,8 @@
         document.getElementById('sidebarOverlay').classList.toggle('active');
     }
 
-    // Live Cloudbase Stats Synchronizer for Residential Dashboard (5-second interval)
-    function pollResidentialLiveStats() {
+    // Live Cloudbase Stats Synchronizer for Household Client Dashboard (5-second interval)
+    function pollHouseholdClientLiveStats() {
         fetch("{{ route('dashboard.live_stats') }}?username={{ urlencode(session('user_name') ?? '') }}", {
             headers: {
                 'Accept': 'application/json',
@@ -666,7 +666,7 @@
             }
         })
         .catch(err => {
-            console.debug('Residential live sync error:', err);
+            console.debug('HouseHold Client live sync error:', err);
         });
     }
 
@@ -751,7 +751,7 @@
         }
     });
 
-    setInterval(pollResidentialLiveStats, 5000);
+    setInterval(pollHouseholdClientLiveStats, 5000);
     </script>
 
     @include('partials.privacy_consent_modal')

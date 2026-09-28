@@ -26,7 +26,7 @@
             </div>
         </div>
 
-        <form method="POST" action="{{ route('residential.booking.create') }}" id="serviceBookingForm" onsubmit="return validateBookingSchedule()">
+        <form method="POST" action="{{ route('household_client.booking.create') }}" id="serviceBookingForm" onsubmit="return validateBookingSchedule()">
             @csrf
             <input type="hidden" name="workerUsername" id="bookWorkerUsername">
             <input type="hidden" name="estimatedBudget" id="bookEstimatedBudget" value="₱500.00">
@@ -195,7 +195,7 @@ function openBookModal(username, fullName, skills, fixedRate) {
     document.getElementById('bookingModal').style.display = 'flex';
 
     // Fetch existing booked dates for this worker
-    fetch("{{ url('/residential/worker-booked-dates') }}/" + encodeURIComponent(username), {
+    fetch("{{ url('/household_client/worker-booked-dates') }}/" + encodeURIComponent(username), {
         headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
     })
     .then(res => res.json())

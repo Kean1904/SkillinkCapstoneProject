@@ -284,7 +284,7 @@
                 <div class="settings-row" style="cursor: default;">
                     <div>
                         <p class="row-title">Job Match Alerts</p>
-                        <p class="row-sub">Receive alerts when residential clients post jobs matching your trade</p>
+                        <p class="row-sub">Receive alerts when household clients post jobs matching your trade</p>
                     </div>
                     <label class="switch">
                         <input type="checkbox" checked>
@@ -419,7 +419,7 @@
             <div style="font-size: 13px; line-height: 1.6; opacity: 0.9; display: flex; flex-direction: column; gap: 12px;">
                 <p>By using SKILLINK (PESO Magalang), you agree to:</p>
                 <p><strong>1.</strong> Provide truthful and verifiable information regarding your identity, skills, and barangay residency.</p>
-                <p><strong>2.</strong> Treat employers, residential clients, and skilled workers with utmost professional courtesy and respect.</p>
+                <p><strong>2.</strong> Treat employers, household clients, and skilled workers with utmost professional courtesy and respect.</p>
                 <p><strong>3.</strong> Post only lawful, legitimate, and safe job opportunities within the Municipality of Magalang.</p>
                 <p><strong>4.</strong> Adhere to municipal safety, health, and fair labor compensation standards.</p>
             </div>
@@ -438,7 +438,7 @@
             </div>
             <div style="font-size: 13px; line-height: 1.6; opacity: 0.9; display: flex; flex-direction: column; gap: 12px;">
                 <p>SKILLINK is a municipal employment matching and worker accreditation application developed for the Public Employment Service Office (PESO) of the Municipality of Magalang, Pampanga.</p>
-                <p>Developed as a Capstone Research Project to bridge skilled local workers (plumbers, carpenters, electricians, etc.) and residential employers across all 27 barangays of Magalang.</p>
+                <p>Developed as a Capstone Research Project to bridge skilled local workers (plumbers, carpenters, electricians, etc.) and household clients across all 27 barangays of Magalang.</p>
                 <div style="background: rgba(255,255,255,0.08); padding: 12px; border-radius: 8px; font-size: 12px;">
                     <p><i class="fa-solid fa-location-dot" style="color: #60a5fa;"></i> Municipal Hall Complex, Magalang, Pampanga</p>
                     <p style="margin-top: 4px;"><i class="fa-solid fa-phone" style="color: #60a5fa;"></i> (045) 866-0000 &bull; peso@magalang.gov.ph</p>

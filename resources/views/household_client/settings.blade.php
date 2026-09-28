@@ -222,16 +222,16 @@
             <img src="{{ asset('image/MP_Logo.png') }}" alt="Logo" class="logo">
             <div>
                 <h1>SKILLINK</h1>
-                <p>Magalang, Pampanga &bull; Residential Client Portal</p>
+                <p>Magalang, Pampanga &bull; HouseHold Client Portal</p>
             </div>
         </div>
         <div>
-            <a href="{{ route('dashboard.Residential') }}" class="back-link"><i class="fa-solid fa-house"></i> Main Dashboard</a>
+            <a href="{{ route('dashboard.HouseholdClient') }}" class="back-link"><i class="fa-solid fa-house"></i> Main Dashboard</a>
         </div>
     </div>
 
     <!-- UNIFIED SIDEBAR -->
-    @include('partials.sidebar_residential', ['active' => 'settings'])
+    @include('partials.sidebar_household_client', ['active' => 'settings'])
 
     <div class="page-content">
         <div class="overlay"></div>
@@ -242,7 +242,7 @@
                     <span><i class="fa-solid fa-gear"></i> APP SETTINGS & PREFERENCES</span>
                     <p style="font-size: 12.5px; opacity: 0.75; font-weight: normal; margin-top: 4px;">Manage account security, notifications, and municipal compliance</p>
                 </div>
-                <a href="{{ route('dashboard.Residential') }}" class="back-link">&larr; Back to Dashboard</a>
+                <a href="{{ route('dashboard.HouseholdClient') }}" class="back-link">&larr; Back to Dashboard</a>
             </div>
 
             @if(session('success'))
@@ -368,7 +368,7 @@
                 <h3 style="font-size: 17px; font-weight: bold;"><i class="fa-solid fa-lock" style="color: #60a5fa;"></i> Change Account Password</h3>
                 <i class="fa-solid fa-xmark" style="cursor: pointer; font-size: 18px;" onclick="closeModal('passwordModal')"></i>
             </div>
-            <form method="POST" action="{{ route('residential.password.update') }}">
+            <form method="POST" action="{{ route('household_client.password.update') }}">
                 @csrf
                 <div style="margin-bottom: 12px;">
                     <label style="display: block; font-size: 11px; font-weight: bold; margin-bottom: 4px; opacity: 0.85;">CURRENT PASSWORD</label>
@@ -415,7 +415,7 @@
             <div style="font-size: 13px; line-height: 1.6; opacity: 0.9; display: flex; flex-direction: column; gap: 12px;">
                 <p>By using SKILLINK (PESO Magalang), you agree to:</p>
                 <p><strong>1.</strong> Provide truthful and verifiable information regarding your identity, skills, and barangay residency.</p>
-                <p><strong>2.</strong> Treat employers, residential clients, and skilled workers with utmost professional courtesy and respect.</p>
+                <p><strong>2.</strong> Treat employers, household clients, and skilled workers with utmost professional courtesy and respect.</p>
                 <p><strong>3.</strong> Post only lawful, legitimate, and safe job opportunities within the Municipality of Magalang.</p>
                 <p><strong>4.</strong> Adhere to municipal safety, health, and fair labor compensation standards.</p>
             </div>
@@ -434,7 +434,7 @@
             </div>
             <div style="font-size: 13px; line-height: 1.6; opacity: 0.9; display: flex; flex-direction: column; gap: 12px;">
                 <p>SKILLINK is a municipal employment matching and worker accreditation application developed for the Public Employment Service Office (PESO) of the Municipality of Magalang, Pampanga.</p>
-                <p>Developed as a Capstone Research Project to bridge skilled local workers (plumbers, carpenters, electricians, etc.) and residential employers across all 27 barangays of Magalang.</p>
+                <p>Developed as a Capstone Research Project to bridge skilled local workers (plumbers, carpenters, electricians, etc.) and household clients across all 27 barangays of Magalang.</p>
                 <div style="background: rgba(255,255,255,0.08); padding: 12px; border-radius: 8px; font-size: 12px;">
                     <p><i class="fa-solid fa-location-dot" style="color: #60a5fa;"></i> Municipal Hall Complex, Magalang, Pampanga</p>
                     <p style="margin-top: 4px;"><i class="fa-solid fa-phone" style="color: #60a5fa;"></i> (045) 866-0000 &bull; peso@magalang.gov.ph</p>

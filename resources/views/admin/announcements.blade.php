@@ -235,9 +235,9 @@
                                 <i class="fa-solid fa-users"></i> Target Audience
                             </label>
                             <select name="target_audience" required style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.25); background: #1e293b; color: white; font-size: 13.5px; outline: none;">
-                                <option value="all">Lahat ng Rehistradong Mamamayan (Workers & Residents)</option>
+                                <option value="all">Lahat ng Rehistradong Mamamayan (Workers & HouseHold Clients)</option>
                                 <option value="skilled_worker">Mga Skilled Workers Lamang</option>
-                                <option value="residential">Mga Household Residential Clients Lamang</option>
+                                <option value="residential">Mga HouseHold Clients Lamang</option>
                             </select>
                         </div>
                         <div>

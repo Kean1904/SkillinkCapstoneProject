@@ -212,16 +212,16 @@
             <img src="{{ asset('image/MP_Logo.png') }}" alt="Logo" class="logo">
             <div>
                 <h1>SKILLINK</h1>
-                <p>Magalang, Pampanga &bull; Residential Client Portal</p>
+                <p>Magalang, Pampanga &bull; HouseHold Client Portal</p>
             </div>
         </div>
         <div>
-            <a href="{{ route('dashboard.Residential') }}" class="back-link"><i class="fa-solid fa-house"></i> Main Dashboard</a>
+            <a href="{{ route('dashboard.HouseholdClient') }}" class="back-link"><i class="fa-solid fa-house"></i> Main Dashboard</a>
         </div>
     </div>
 
     <!-- UNIFIED SIDEBAR -->
-    @include('partials.sidebar_residential', ['active' => 'job_posts'])
+    @include('partials.sidebar_household_client', ['active' => 'job_posts'])
 
     <div class="page-content">
         <div class="overlay"></div>
@@ -283,7 +283,7 @@
                                 @endif
 
                                 <div>
-                                    <form method="POST" action="{{ route('residential.job.complete', $job->request_id) }}" style="display: inline;">
+                                    <form method="POST" action="{{ route('household_client.job.complete', $job->request_id) }}" style="display: inline;">
                                         @csrf
                                         <button type="submit" class="btn btn-success" style="padding: 7px 14px; font-size: 12px;" onclick="return confirm('Sigurado ka bang tapos na ang trabaho para sa \'{{ $job->title }}\'? Awtomatiko itong mawawala sa active list.')">
                                             <i class="fa-solid fa-circle-check"></i> Mark as Completed
@@ -343,7 +343,7 @@
             <h3 style="margin-bottom: 6px;"><i class="fa-solid fa-bullhorn" style="color: #60a5fa;"></i> Post a Job Need in Magalang</h3>
             <p style="font-size: 12px; opacity: 0.85; margin-bottom: 15px;">Makikita ito ng mga accredited skilled workers sa kanilang dashboard.</p>
 
-            <form method="POST" action="{{ route('residential.job.create') }}">
+            <form method="POST" action="{{ route('household_client.job.create') }}">
                 @csrf
                 <div style="margin-bottom: 12px;">
                     <label style="display: block; font-size: 12px; font-weight: bold; margin-bottom: 4px;">Job Title / Trabaho</label>

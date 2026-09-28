@@ -703,7 +703,7 @@
                 </div>
 
                 <div class="stat-card">
-                    <p class="label"><i class="fa-solid fa-house-chimney" style="color: #34d399;"></i> RESIDENTS</p>
+                    <p class="label"><i class="fa-solid fa-house-chimney" style="color: #34d399;"></i> HOUSEHOLD CLIENTS</p>
                     <div class="value-row">
                         <span class="stat-number" id="statAdminResidents">{{ $residential ?? 0 }}</span>
                         <div class="stat-icon" style="color: #34d399;"><i class="fa-solid fa-house-chimney"></i></div>

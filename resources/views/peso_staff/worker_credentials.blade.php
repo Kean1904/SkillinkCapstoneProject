@@ -299,7 +299,7 @@
                                 Registered Barangay Constituent ID
                             </p>
                             <p style="font-size: 12px; color: rgba(255,255,255,0.7); max-width: 320px;">
-                                Residential verification on record: {{ $worker->address ?? ('Brgy. ' . $worker->barangay) }}.
+                                Residency verification on record: {{ $worker->address ?? ('Brgy. ' . $worker->barangay) }}.
                             </p>
                         @endif
                     </div>

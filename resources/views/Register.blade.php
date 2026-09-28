@@ -530,7 +530,7 @@ $tesdaCertificates = [
                         <select name="role" id="roleSelect" onchange="onRoleChange()" required>
                             <option value="" disabled selected hidden>Role</option>
                             <option value="Skilled Worker">Skilled Worker</option>
-                            <option value="Residential">House Hold</option>
+                            <option value="HouseHold Client">HouseHold Client</option>
                             <option value="Peso Staff">Peso Staff</option>
                             <option value="Admin">Admin</option>
                         </select>
@@ -703,7 +703,7 @@ $tesdaCertificates = [
                 if (val.endsWith('@admin') || val.endsWith('@staff')) {
                     usernameHint.style.display = 'block';
                     usernameHint.style.color = '#fca5a5';
-                    usernameHint.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Bawal gamitin ang extension na <strong>@admin</strong> o <strong>@staff</strong> para sa mga Residential o Skilled Worker.';
+                    usernameHint.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Bawal gamitin ang extension na <strong>@admin</strong> o <strong>@staff</strong> para sa mga HouseHold Client o Skilled Worker.';
                     usernameInput.setCustomValidity('Ang @admin at @staff ay para lamang sa mga opisyal.');
                 } else {
                     usernameHint.style.display = 'none';

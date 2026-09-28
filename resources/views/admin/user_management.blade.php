@@ -78,7 +78,7 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.25);
         }
         .role-skilled { background: rgba(2, 132, 199, 0.28); color: #7dd3fc; border: 1.5px solid #0284c7; }
-        .role-residential { background: rgba(16, 185, 129, 0.28); color: #a7f3d0; border: 1.5px solid #10b981; }
+        .role-residential, .role-household { background: rgba(16, 185, 129, 0.28); color: #a7f3d0; border: 1.5px solid #10b981; }
         .role-staff { background: rgba(139, 92, 246, 0.28); color: #ddd6fe; border: 1.5px solid #8b5cf6; }
         .role-admin { background: rgba(239, 68, 68, 0.28); color: #fca5a5; border: 1.5px solid #ef4444; }
 
@@ -274,7 +274,7 @@
 
             <div class="card">
                 <h3><i class="fa-solid fa-id-card-clip"></i> Master Citizen List & Role Segregation</h3>
-                <p style="font-size: 13px; opacity: 0.85;">I-filter ang mga gumagamit batay sa kanilang tungkulin (Skilled Worker, Residential, PESO Staff, Admin).</p>
+                <p style="font-size: 13px; opacity: 0.85;">I-filter ang mga gumagamit batay sa kanilang tungkulin (Skilled Worker, HouseHold Client, PESO Staff, Admin).</p>
                 <hr>
 
                 <!-- ROLE FILTER BUTTONS & LIVE SEARCH -->
@@ -286,8 +286,8 @@
                         <button type="button" class="filter-btn" onclick="filterRole('SKILLED', this)">
                             <i class="fa-solid fa-screwdriver-wrench"></i> SKILLED WORKERS <span class="filter-badge">{{ $users->filter(fn($u) => str_contains(strtolower($u->role), 'skilled'))->count() }}</span>
                         </button>
-                        <button type="button" class="filter-btn" onclick="filterRole('RESIDENTIAL', this)">
-                            <i class="fa-solid fa-house-user"></i> RESIDENTIAL <span class="filter-badge">{{ $users->filter(fn($u) => str_contains(strtolower($u->role), 'resident'))->count() }}</span>
+                        <button type="button" class="filter-btn" onclick="filterRole('HOUSEHOLD', this)">
+                            <i class="fa-solid fa-house-user"></i> HOUSEHOLD CLIENT <span class="filter-badge">{{ $users->filter(fn($u) => str_contains(strtolower($u->role), 'resident') || str_contains(strtolower($u->role), 'household') || str_contains(strtolower($u->role), 'client'))->count() }}</span>
                         </button>
                         <button type="button" class="filter-btn" onclick="filterRole('STAFF', this)">
                             <i class="fa-solid fa-building-user"></i> PESO STAFF <span class="filter-badge">{{ $users->filter(fn($u) => str_contains(strtolower($u->role), 'staff'))->count() }}</span>
@@ -428,7 +428,7 @@
                     matchesRole = true;
                 } else if (currentRoleFilter === 'SKILLED' && userRole.includes('SKILLED')) {
                     matchesRole = true;
-                } else if (currentRoleFilter === 'RESIDENTIAL' && userRole.includes('RESIDENT')) {
+                } else if ((currentRoleFilter === 'HOUSEHOLD' || currentRoleFilter === 'RESIDENTIAL') && (userRole.includes('RESIDENT') || userRole.includes('HOUSEHOLD') || userRole.includes('CLIENT'))) {
                     matchesRole = true;
                 } else if (currentRoleFilter === 'STAFF' && (userRole.includes('STAFF') || userRole.includes('PESO'))) {
                     matchesRole = true;

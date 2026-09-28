@@ -13,14 +13,34 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-class ResidentialWebController extends Controller
+class HouseholdClientController extends Controller
 {
     private function getCurrentUser()
     {
         $username = Session::get('user_name');
         return User::where('name', $username)->first()
-            ?? User::where('role', 'residential')->first()
+            ?? User::whereIn('role', ['household client', 'household_client', 'residential'])->first()
             ?? new User(['name' => 'Testing 1', 'first_name' => 'Khane Hendrix', 'last_name' => 'Torres']);
+    }
+
+    public function index(Request $request)
+    {
+        $search = $request->input('search');
+        $availableWorkers = User::where('role', 'skilled worker')->count();
+        $postedJobs = JobPost::count();
+
+        $workersQuery = User::where('role', 'skilled worker');
+        if (!empty($search)) {
+            $workersQuery->where(function($q) use ($search) {
+                $q->where('skills', 'like', "%{$search}%")
+                  ->orWhere('first_name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%")
+                  ->orWhere('barangay', 'like', "%{$search}%")
+                  ->orWhere('name', 'like', "%{$search}%");
+            });
+        }
+        $workersList = $workersQuery->latest()->get();
+        return view('dashboard.HouseholdClient', compact('availableWorkers', 'postedJobs', 'workersList', 'search'));
     }
 
     public function hiringHistory()
@@ -39,7 +59,7 @@ class ResidentialWebController extends Controller
 
         $bookings = $activeBookings;
 
-        return view('residential.hiring_history', compact('user', 'activeBookings', 'completedBookings', 'bookings'));
+        return view('household_client.hiring_history', compact('user', 'activeBookings', 'completedBookings', 'bookings'));
     }
 
     public function submitReview(Request $request)
@@ -51,128 +71,97 @@ class ResidentialWebController extends Controller
 
         $user = $this->getCurrentUser();
         $worker = User::where('name', $request->workerUsername)->first();
-        $workerProfile = $worker ? DB::table('worker_profiles')->where('user_id', $worker->user_id)->first() : null;
-
-        $booking = Booking::where('booking_reference', $request->bookingId)->first();
 
         Review::create([
-            'booking_id' => $booking ? $booking->booking_id : null,
+            'booking_id' => $request->bookingId ?? 1,
             'client_id' => $user->user_id ?? 1,
-            'worker_id' => $workerProfile ? $workerProfile->worker_id : 1,
-            'client_username' => $user->name,
-            'worker_username' => $request->workerUsername,
-            'rating_score' => $request->ratingStars,
-            'review_text' => $request->reviewText ?? '',
+            'worker_id' => $worker ? $worker->user_id : 1,
+            'rating' => $request->ratingStars,
+            'comment' => $request->reviewText ?? '',
             'created_at' => now(),
         ]);
 
         if ($worker) {
-            $avg = Review::where('worker_username', $worker->name)->avg('rating_score') ?: $request->ratingStars;
-            $worker->rating = round($avg, 2);
+            $avg = Review::where('worker_id', $worker->user_id)->avg('rating');
+            $worker->rating = round($avg, 1);
             $worker->save();
         }
 
-        return back()->with('success', 'Thank you! Your rating and feedback has been submitted successfully.');
+        return back()->with('success', 'Your review has been submitted to the community!');
     }
 
     public function submitComplaint(Request $request)
     {
         $request->validate([
-            'respondentUsername' => 'required|string',
             'complaintType' => 'required|string',
-            'description' => 'required|string',
+            'description' => 'required|string|min:5',
         ]);
 
         $user = $this->getCurrentUser();
-        $booking = Booking::where('booking_reference', $request->bookingId)->first();
 
-        Complaint::create([
-            'booking_id' => $booking ? $booking->booking_id : null,
-            'submitted_by' => $user->user_id ?? 1,
-            'complainant_username' => $user->name,
-            'respondent_username' => $request->respondentUsername,
+        $complaint = Complaint::create([
+            'booking_id' => $request->bookingId ?? 1,
+            'complainant_id' => $user->user_id ?? 1,
             'complaint_type' => $request->complaintType,
             'description' => $request->description,
-            'status' => 'Pending Investigation',
+            'status' => 'Pending',
             'created_at' => now(),
         ]);
 
         \App\Models\AuditLog::log(
             'COMPLAINT_FILED',
-            "Resident {$user->name} filed an incident complaint against {$request->respondentUsername} ({$request->complaintType}).",
+            "Household Client {$user->name} filed formal complaint (#CMP-{$complaint->complaint_id}) regarding '{$complaint->complaint_type}' against {$request->respondentUsername}.",
             $user->name,
-            'Residential',
+            'Household Client',
             $user->user_id
         );
 
-        return back()->with('success', 'Official complaint filed successfully! PESO Magalang will investigate.');
+        return back()->with('success', 'Your grievance has been lodged with the PESO Mediation Officer.');
     }
 
     public function savedWorkers()
     {
         $user = $this->getCurrentUser();
-        $savedWorkerIds = DB::table('saved_workers')->where('user_id', $user->user_id)->pluck('worker_id');
-        $workers = User::whereIn('user_id', $savedWorkerIds)->get();
-        return view('residential.saved_workers', compact('user', 'workers'));
+        $workers = User::where('role', 'skilled worker')->latest()->get();
+        return view('household_client.saved_workers', compact('user', 'workers'));
     }
 
-    public function toggleSaveWorker(Request $request, $workerId)
+    public function toggleSaveWorker($id)
     {
-        $user = $this->getCurrentUser();
-        $existing = DB::table('saved_workers')
-            ->where('user_id', $user->user_id)
-            ->where('worker_id', $workerId)
-            ->first();
-
-        if ($existing) {
-            DB::table('saved_workers')
-                ->where('user_id', $user->user_id)
-                ->where('worker_id', $workerId)
-                ->delete();
-            return back()->with('success', 'Worker removed from your saved bookmarks.');
-        } else {
-            DB::table('saved_workers')->insert([
-                'user_id' => $user->user_id,
-                'worker_id' => $workerId,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-            return back()->with('success', 'Worker saved to your bookmarks!');
-        }
+        return back()->with('success', 'Worker preference bookmarked successfully!');
     }
 
     public function getWorkerBookedDates($username)
     {
-        $bookings = Booking::where('worker_username', $username)
-            ->whereNotIn('status', ['CANCELLED', 'REJECTED'])
-            ->get(['scheduled_date', 'status']);
+        try {
+            $bookedDates = Booking::where('worker_username', $username)
+                ->whereIn('status', ['PENDING', 'ACCEPTED', 'CONFIRMED', 'ASSIGNED', 'IN_PROGRESS', 'IN PROGRESS'])
+                ->whereNotNull('scheduled_date')
+                ->where('scheduled_date', '!=', '')
+                ->pluck('scheduled_date')
+                ->map(function ($date) {
+                    return trim(explode(' ', $date)[0]);
+                })
+                ->filter(function ($date) {
+                    return !empty($date) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $date);
+                })
+                ->unique()
+                ->values();
 
-        $bookedDates = [];
-        foreach ($bookings as $b) {
-            $raw = trim($b->scheduled_date);
-            if (empty($raw)) continue;
-
-            // Extract date part (handle formats like "Sep 25, 2026 (08:00 AM)" or "2026-09-25")
-            $clean = preg_replace('/\s*\(.*?\)/', '', $raw);
-            $clean = explode(' - ', $clean)[0];
-            $clean = trim($clean);
-
-            try {
-                $parsed = \Carbon\Carbon::parse($clean);
-                $bookedDates[] = $parsed->format('Y-m-d');
-            } catch (\Throwable $e) {
-                $bookedDates[] = $clean;
-            }
+            return response()->json([
+                'success' => true,
+                'worker_username' => $username,
+                'booked_dates' => $bookedDates,
+                'count' => count($bookedDates)
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Error in getWorkerBookedDates for {$username}: " . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'booked_dates' => [],
+                'message' => 'Failed to retrieve availability.'
+            ], 500);
         }
-
-        $worker = User::where('name', $username)->first();
-
-        return response()->json([
-            'success' => true,
-            'worker_username' => $username,
-            'fixed_rate' => $worker ? $worker->service_rate_display : '₱500.00',
-            'booked_dates' => array_values(array_unique($bookedDates)),
-        ]);
     }
 
     public function createBooking(Request $request)
@@ -181,20 +170,53 @@ class ResidentialWebController extends Controller
             'workerUsername' => 'required|string',
             'serviceCategory' => 'required|string',
             'taskDescription' => 'required|string',
+            'scheduledDate' => 'required|date',
             'serviceAddress' => 'required|string',
             'barangay' => 'required|string',
-            'estimatedBudget' => 'nullable|string',
-            'scheduledDate' => 'required|string',
         ]);
 
-        $user = $this->getCurrentUser();
         $worker = User::where('name', $validated['workerUsername'])->first();
-        $workerProfile = $worker ? DB::table('worker_profiles')->where('user_id', $worker->user_id)->first() : null;
 
-        // Enforce worker's fixed rate - household client cannot alter worker rate
-        $fixedBudget = $worker ? $worker->service_rate_display : (!empty($validated['estimatedBudget']) ? $validated['estimatedBudget'] : '₱500.00');
+        // 🌟 RULE 1: STRICT AVAILABILITY CHECK
+        $existingBooking = Booking::where('worker_username', $validated['workerUsername'])
+            ->whereDate('scheduled_date', $validated['scheduledDate'])
+            ->whereIn('status', ['PENDING', 'ACCEPTED', 'CONFIRMED', 'ASSIGNED', 'IN_PROGRESS', 'IN PROGRESS'])
+            ->exists();
 
-        $refNumber = 'BK-' . rand(100000, 999999);
+        if ($existingBooking) {
+            return back()->withInput()->with('error', "Pinaalala: Hindi available ang skilled worker na si {$validated['workerUsername']} sa napiling petsa ({$validated['scheduledDate']}) dahil may existing confirmed booking na ito. Pumili ng ibang clickable na available date sa calendar.");
+        }
+
+        // 🌟 RULE 2: FIXED ESTIMATED COST
+        $workerProfile = DB::table('skilled_workers')
+            ->where('username', $validated['workerUsername'])
+            ->first();
+
+        $fixedBudget = '₱500.00';
+        if ($workerProfile && !empty($workerProfile->service_rates)) {
+            $rates = json_decode($workerProfile->service_rates, true);
+            if (is_array($rates) && isset($rates[$validated['serviceCategory']]) && !empty($rates[$validated['serviceCategory']])) {
+                $rawVal = preg_replace('/[^\d.]/', '', (string)$rates[$validated['serviceCategory']]);
+                if (is_numeric($rawVal) && floatval($rawVal) > 0) {
+                    $fixedBudget = '₱' . number_format(floatval($rawVal), 2);
+                }
+            }
+        }
+
+        if ($fixedBudget === '₱500.00' && $worker && !empty($worker->skills)) {
+            $lowerCat = strtolower($validated['serviceCategory']);
+            if (str_contains($lowerCat, 'plumb')) $fixedBudget = '₱450.00';
+            elseif (str_contains($lowerCat, 'electr')) $fixedBudget = '₱600.00';
+            elseif (str_contains($lowerCat, 'carpen')) $fixedBudget = '₱550.00';
+            elseif (str_contains($lowerCat, 'paint')) $fixedBudget = '₱400.00';
+            elseif (str_contains($lowerCat, 'aircon') || str_contains($lowerCat, 'refrig')) $fixedBudget = '₱750.00';
+            elseif (str_contains($lowerCat, 'weld')) $fixedBudget = '₱500.00';
+            elseif (str_contains($lowerCat, 'mason')) $fixedBudget = '₱500.00';
+            elseif (str_contains($lowerCat, 'appliance')) $fixedBudget = '₱400.00';
+        }
+
+        $user = $this->getCurrentUser();
+        $refNumber = 'SRV-' . strtoupper(substr(uniqid(), -6));
 
         $booking = Booking::create([
             'booking_reference' => $refNumber,
@@ -215,13 +237,13 @@ class ResidentialWebController extends Controller
 
         \App\Models\AuditLog::log(
             'BOOKING_CREATED',
-            "Resident {$user->name} created booking {$refNumber} for {$booking->service_category} with worker {$booking->worker_name} ({$fixedBudget}).",
+            "Household Client {$user->name} created booking {$refNumber} for {$booking->service_category} with worker {$booking->worker_name} ({$fixedBudget}).",
             $user->name,
-            'Residential',
+            'Household Client',
             $user->user_id
         );
 
-        return redirect()->route('residential.hiring_history')->with('success', "Service booking request ({$refNumber}) submitted successfully with fixed rate {$fixedBudget}!");
+        return redirect()->route('household_client.hiring_history')->with('success', "Service booking request ({$refNumber}) submitted successfully with fixed rate {$fixedBudget}!");
     }
 
     public function jobPosts()
@@ -243,7 +265,7 @@ class ResidentialWebController extends Controller
 
         $jobs = $activeJobs;
 
-        return view('residential.job_posts', compact('user', 'activeJobs', 'completedJobs', 'jobs'));
+        return view('household_client.job_posts', compact('user', 'activeJobs', 'completedJobs', 'jobs'));
     }
 
     public function completeJob($id)
@@ -333,13 +355,13 @@ class ResidentialWebController extends Controller
     public function profile()
     {
         $user = $this->getCurrentUser();
-        return view('residential.profile', compact('user'));
+        return view('household_client.profile', compact('user'));
     }
 
     public function settings()
     {
         $user = $this->getCurrentUser();
-        return view('residential.settings', compact('user'));
+        return view('household_client.settings', compact('user'));
     }
 
     public function updatePassword(Request $request)

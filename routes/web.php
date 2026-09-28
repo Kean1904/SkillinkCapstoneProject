@@ -6,7 +6,7 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\PesoStaffController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\SkilledWorkerWebController;
-use App\Http\Controllers\ResidentialWebController;
+use App\Http\Controllers\HouseholdClientController;
 use App\Http\Controllers\DashboardStatsController;
 
 /*
@@ -85,45 +85,42 @@ Route::post('/skilled-worker/password/update', [SkilledWorkerWebController::clas
 
 /*
 |--------------------------------------------------------------------------
-| 2. RESIDENTIAL CLIENT ROUTES
+| 2. HOUSEHOLD CLIENT (FORMERLY RESIDENTIAL) ROUTES
 |--------------------------------------------------------------------------
 */
-Route::get('/dashboard/Residential', function (\Illuminate\Http\Request $request) {
-    $user = \App\Models\User::where('name', session('user_name'))->first();
-    $availableWorkers = \App\Models\User::where('role', 'skilled worker')->count();
-    $postedJobs = $user ? \App\Models\JobPost::where(function($q) use ($user) {
-        $q->where('client_id', $user->user_id)->orWhere('posted_by', $user->name);
-    })->whereNotIn('status', ['Completed', 'Cancelled'])->count() : 0;
+Route::get('/dashboard/HouseholdClient', [HouseholdClientController::class, 'index'])->name('dashboard.HouseholdClient');
+Route::get('/dashboard/Residential', [HouseholdClientController::class, 'index'])->name('dashboard.Residential');
 
-    $search = $request->query('search');
-    $workersQuery = \App\Models\User::where('role', 'skilled worker');
-    if (!empty($search)) {
-        $workersQuery->where(function($q) use ($search) {
-            $q->where('skills', 'like', "%{$search}%")
-              ->orWhere('first_name', 'like', "%{$search}%")
-              ->orWhere('last_name', 'like', "%{$search}%")
-              ->orWhere('barangay', 'like', "%{$search}%")
-              ->orWhere('name', 'like', "%{$search}%");
-        });
-    }
-    $workersList = $workersQuery->latest()->get();
-    return view('dashboard.Residential', compact('availableWorkers', 'postedJobs', 'workersList', 'search'));
-})->name('dashboard.Residential');
+Route::get('/household-client/hiring-history', [HouseholdClientController::class, 'hiringHistory'])->name('household_client.hiring_history');
+Route::post('/household-client/review/submit', [HouseholdClientController::class, 'submitReview'])->name('household_client.review.submit');
+Route::post('/household-client/complaint/submit', [HouseholdClientController::class, 'submitComplaint'])->name('household_client.complaint.submit');
+Route::get('/household-client/saved-workers', [HouseholdClientController::class, 'savedWorkers'])->name('household_client.saved_workers');
+Route::post('/household-client/worker/{id}/toggle-save', [HouseholdClientController::class, 'toggleSaveWorker'])->name('household_client.worker.toggle_save');
+Route::get('/household-client/worker-booked-dates/{username}', [HouseholdClientController::class, 'getWorkerBookedDates'])->name('household_client.worker_booked_dates');
+Route::post('/household-client/booking/create', [HouseholdClientController::class, 'createBooking'])->name('household_client.booking.create');
+Route::get('/household-client/job-posts', [HouseholdClientController::class, 'jobPosts'])->name('household_client.job_posts');
+Route::post('/household-client/job/create', [HouseholdClientController::class, 'createJob'])->name('household_client.job.create');
+Route::post('/household-client/job/{id}/complete', [HouseholdClientController::class, 'completeJob'])->name('household_client.job.complete');
+Route::get('/household-client/profile', [HouseholdClientController::class, 'profile'])->name('household_client.profile');
+Route::post('/household-client/profile/update', [HouseholdClientController::class, 'updateProfile'])->name('household_client.profile.update');
+Route::get('/household-client/settings', [HouseholdClientController::class, 'settings'])->name('household_client.settings');
+Route::post('/household-client/password/update', [HouseholdClientController::class, 'updatePassword'])->name('household_client.password.update');
 
-Route::get('/residential/hiring-history', [ResidentialWebController::class, 'hiringHistory'])->name('residential.hiring_history');
-Route::post('/residential/review/submit', [ResidentialWebController::class, 'submitReview'])->name('residential.review.submit');
-Route::post('/residential/complaint/submit', [ResidentialWebController::class, 'submitComplaint'])->name('residential.complaint.submit');
-Route::get('/residential/saved-workers', [ResidentialWebController::class, 'savedWorkers'])->name('residential.saved_workers');
-Route::post('/residential/worker/{id}/toggle-save', [ResidentialWebController::class, 'toggleSaveWorker'])->name('residential.worker.toggle_save');
-Route::get('/residential/worker-booked-dates/{username}', [ResidentialWebController::class, 'getWorkerBookedDates'])->name('residential.worker_booked_dates');
-Route::post('/residential/booking/create', [ResidentialWebController::class, 'createBooking'])->name('residential.booking.create');
-Route::get('/residential/job-posts', [ResidentialWebController::class, 'jobPosts'])->name('residential.job_posts');
-Route::post('/residential/job/create', [ResidentialWebController::class, 'createJob'])->name('residential.job.create');
-Route::post('/residential/job/{id}/complete', [ResidentialWebController::class, 'completeJob'])->name('residential.job.complete');
-Route::get('/residential/profile', [ResidentialWebController::class, 'profile'])->name('residential.profile');
-Route::post('/residential/profile/update', [ResidentialWebController::class, 'updateProfile'])->name('residential.profile.update');
-Route::get('/residential/settings', [ResidentialWebController::class, 'settings'])->name('residential.settings');
-Route::post('/residential/password/update', [ResidentialWebController::class, 'updatePassword'])->name('residential.password.update');
+// Backward compatibility aliases
+Route::get('/residential/hiring-history', [HouseholdClientController::class, 'hiringHistory'])->name('residential.hiring_history');
+Route::post('/residential/review/submit', [HouseholdClientController::class, 'submitReview'])->name('residential.review.submit');
+Route::post('/residential/complaint/submit', [HouseholdClientController::class, 'submitComplaint'])->name('residential.complaint.submit');
+Route::get('/residential/saved-workers', [HouseholdClientController::class, 'savedWorkers'])->name('residential.saved_workers');
+Route::post('/residential/worker/{id}/toggle-save', [HouseholdClientController::class, 'toggleSaveWorker'])->name('residential.worker.toggle_save');
+Route::get('/residential/worker-booked-dates/{username}', [HouseholdClientController::class, 'getWorkerBookedDates'])->name('residential.worker_booked_dates');
+Route::post('/residential/booking/create', [HouseholdClientController::class, 'createBooking'])->name('residential.booking.create');
+Route::get('/residential/job-posts', [HouseholdClientController::class, 'jobPosts'])->name('residential.job_posts');
+Route::post('/residential/job/create', [HouseholdClientController::class, 'createJob'])->name('residential.job.create');
+Route::post('/residential/job/{id}/complete', [HouseholdClientController::class, 'completeJob'])->name('residential.job.complete');
+Route::get('/residential/profile', [HouseholdClientController::class, 'profile'])->name('residential.profile');
+Route::post('/residential/profile/update', [HouseholdClientController::class, 'updateProfile'])->name('residential.profile.update');
+Route::get('/residential/settings', [HouseholdClientController::class, 'settings'])->name('residential.settings');
+Route::post('/residential/password/update', [HouseholdClientController::class, 'updatePassword'])->name('residential.password.update');
 
 /*
 |--------------------------------------------------------------------------
