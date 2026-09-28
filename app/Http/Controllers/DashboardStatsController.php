@@ -77,6 +77,7 @@ class DashboardStatsController extends Controller
                     'category'           => $job->category,
                     'description'        => $job->description,
                     'barangay'           => $job->barangay,
+                    'location_tag'       => $job->location_tag ?? ('Brgy. ' . $job->barangay),
                     'posted_by'          => $job->posted_by,
                     'date_posted'        => $job->date_posted,
                     'status'             => $job->status,

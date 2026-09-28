@@ -259,7 +259,7 @@
                                     <p style="font-size: 13px; opacity: 0.9; margin: 4px 0 8px 0;">{{ $job->description }}</p>
                                     <div style="font-size: 11px; opacity: 0.75; display: flex; gap: 15px;">
                                         <span><i class="fa-solid fa-tag"></i> {{ $job->category }}</span>
-                                        <span><i class="fa-solid fa-location-dot"></i> Brgy. {{ $job->barangay }}</span>
+                                        <span><i class="fa-solid fa-location-dot"></i> {{ $job->location_tag ?? ('Brgy. ' . $job->barangay) }}</span>
                                         <span><i class="fa-regular fa-calendar"></i> {{ $job->date_posted }}</span>
                                     </div>
                                 </div>
@@ -319,7 +319,7 @@
                                     <p style="font-size: 12.5px; opacity: 0.85; margin: 4px 0 6px 0;">{{ $compJob->description }}</p>
                                     <div style="font-size: 11px; opacity: 0.75; display: flex; gap: 14px;">
                                         <span><i class="fa-solid fa-tag"></i> {{ $compJob->category }}</span>
-                                        <span><i class="fa-solid fa-location-dot"></i> Brgy. {{ $compJob->barangay }}</span>
+                                        <span><i class="fa-solid fa-location-dot"></i> {{ $compJob->location_tag ?? ('Brgy. ' . $compJob->barangay) }}</span>
                                         @if(!empty($compJob->applicant_username))
                                             <span><i class="fa-solid fa-user-check"></i> Hired: @ {{ $compJob->applicant_username }}</span>
                                         @endif
@@ -363,8 +363,12 @@
                     <label style="display: block; font-size: 12px; font-weight: bold; margin-bottom: 4px;">Task Description</label>
                     <textarea name="description" rows="3" style="width: 100%; padding: 9px; border-radius: 6px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.4);" placeholder="Ipaliwanag ang kailangang ayusin..." required></textarea>
                 </div>
+                <div style="margin-bottom: 12px;">
+                    <label style="display: block; font-size: 12px; font-weight: bold; margin-bottom: 4px;">Lot / Number</label>
+                    <input type="text" name="lot_number" placeholder="hal. Lot 12 Blk 4, Phase 2, House #45" style="width: 100%; padding: 9px; border-radius: 6px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.4);">
+                </div>
                 <div style="margin-bottom: 16px;">
-                    <label style="display: block; font-size: 12px; font-weight: bold; margin-bottom: 4px;">Barangay in Magalang</label>
+                    <label style="display: block; font-size: 12px; font-weight: bold; margin-bottom: 4px;">Barangay</label>
                     <select name="barangay" style="width: 100%; padding: 9px; border-radius: 6px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.4);" required>
                         @php
                             $barangays = [

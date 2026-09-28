@@ -72,6 +72,7 @@ Route::get('/dashboard/SkilledWorker', function () {
 })->name('dashboard.SkilledWorker');
 
 Route::get('/skilled-worker/tracking-service', [SkilledWorkerWebController::class, 'trackingService'])->name('skilled_worker.tracking_service');
+Route::post('/skilled-worker/complaint/submit', [SkilledWorkerWebController::class, 'submitComplaint'])->name('skilled_worker.complaint.submit');
 Route::post('/skilled-worker/job/{id}/apply', [SkilledWorkerWebController::class, 'applyJob'])->name('skilled_worker.job.apply');
 Route::post('/skilled-worker/bookings/{id}/status', [SkilledWorkerWebController::class, 'updateBookingStatus'])->name('skilled_worker.booking.update_status');
 Route::get('/skilled-worker/my-services', [SkilledWorkerWebController::class, 'myServices'])->name('skilled_worker.my_services');

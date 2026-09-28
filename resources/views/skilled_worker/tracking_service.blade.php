@@ -251,6 +251,16 @@
                     <i class="fa-solid fa-circle-check"></i> {{ session('success') }}
                 </div>
             @endif
+            @if(session('warning'))
+                <div style="background: rgba(245, 158, 11, 0.25); border: 1px solid #fbbf24; color: #fef08a; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <i class="fa-solid fa-triangle-exclamation"></i> {{ session('warning') }}
+                </div>
+            @endif
+            @if(session('error'))
+                <div style="background: rgba(239, 68, 68, 0.25); border: 1px solid #f87171; color: #fecaca; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <i class="fa-solid fa-circle-xmark"></i> {{ session('error') }}
+                </div>
+            @endif
 
             <!-- 1. ACTIVE DIRECT BOOKINGS -->
             <div class="card">
@@ -372,8 +382,17 @@
                                         @endif
                                     </div>
                                 </div>
-                                <div>
+                                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                                     <span style="font-size: 12px; color: #4ade80; font-weight: bold;"><i class="fa-solid fa-check-double"></i> Closed & Settled</span>
+                                    @if(!empty($comp->has_complaint))
+                                        <button type="button" class="btn" style="background: rgba(148, 163, 184, 0.18); color: #cbd5e1; border: 1.5px solid rgba(148, 163, 184, 0.4); cursor: not-allowed; opacity: 0.85; font-weight: 600;" disabled title="Already Submitted">
+                                            <i class="fa-solid fa-circle-check" style="color: #4ade80;"></i> Already Submitted
+                                        </button>
+                                    @else
+                                        <button type="button" class="btn" style="background: #dc2626; color: white; border: 1px solid #ef4444; font-weight: 600;" onclick="openComplaintModal('{{ $comp->client_username }}', '{{ $comp->booking_id }}', '{{ $comp->booking_reference }}')">
+                                            <i class="fa-solid fa-triangle-exclamation"></i> Make a Complain
+                                        </button>
+                                    @endif
                                 </div>
                             </div>
                         @endforeach
@@ -415,10 +434,67 @@
         </div>
     </div>
 
+    <!-- COMPLAINT MODAL FOR SKILLED WORKER -->
+    <div id="complaintModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.65); z-index: 3000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+        <div style="background: #1e3a8a; border: 1px solid rgba(255,255,255,0.3); border-radius: 12px; padding: 25px; width: 90%; max-width: 480px; color: white; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin: 0; font-size: 18px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-triangle-exclamation" style="color: #ef4444;"></i> File Grievance to PESO Magalang
+                </h3>
+                <button type="button" onclick="closeComplaintModal()" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer;">&times;</button>
+            </div>
+            <form method="POST" action="{{ route('skilled_worker.complaint.submit') }}">
+                @csrf
+                <input type="hidden" name="bookingId" id="compBookingId">
+                <input type="hidden" name="respondentUsername" id="compClientUsername">
+                
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; font-size: 13px; margin-bottom: 6px; font-weight: 500;">Respondent (Household Client)</label>
+                    <input type="text" id="displayClientName" readonly style="width: 100%; padding: 10px; border-radius: 6px; background: rgba(255,255,255,0.15); color: #93c5fd; border: 1px solid rgba(255,255,255,0.3); font-weight: bold; cursor: not-allowed;">
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; font-size: 13px; margin-bottom: 6px; font-weight: 500;">Complaint Category</label>
+                    <select name="complaintType" style="width: 100%; padding: 10px; border-radius: 6px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.4);" required>
+                        <option value="Non-Payment / Delayed Payment" style="color: black;">Non-Payment / Delayed Payment</option>
+                        <option value="Underpayment / Disputed Amount" style="color: black;">Underpayment / Disputed Amount</option>
+                        <option value="Unsafe Working Conditions" style="color: black;">Unsafe Working Conditions</option>
+                        <option value="Verbal Abuse / Harassment" style="color: black;">Verbal Abuse / Harassment</option>
+                        <option value="Unreasonable Task Scope / Demands" style="color: black;">Unreasonable Task Scope / Demands</option>
+                        <option value="Other Grievances" style="color: black;">Other Grievances</option>
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 18px;">
+                    <label style="display: block; font-size: 13px; margin-bottom: 6px; font-weight: 500;">Detailed Incident Narrative</label>
+                    <textarea name="description" rows="4" style="width: 100%; padding: 10px; border-radius: 6px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.4); resize: vertical;" required placeholder="Ipaliwanag nang detalyado ang nangyari para sa imbestigasyon ng PESO..."></textarea>
+                </div>
+
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" class="btn" style="background: rgba(255,255,255,0.2); color: white;" onclick="closeComplaintModal()">Cancel</button>
+                    <button type="submit" class="btn btn-danger" style="background: #dc2626; border: 1px solid #ef4444;">
+                        <i class="fa-solid fa-paper-plane"></i> Submit Grievance
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('active');
             document.getElementById('sidebarOverlay').classList.toggle('active');
+        }
+
+        function openComplaintModal(client, bookingId, ref) {
+            document.getElementById('compClientUsername').value = client;
+            document.getElementById('displayClientName').value = client || 'Household Client';
+            document.getElementById('compBookingId').value = bookingId || ref;
+            document.getElementById('complaintModal').style.display = 'flex';
+        }
+
+        function closeComplaintModal() {
+            document.getElementById('complaintModal').style.display = 'none';
         }
     </script>
 </body>

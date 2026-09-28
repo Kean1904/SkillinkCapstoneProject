@@ -234,8 +234,8 @@
             padding: 20px 20px 30px 20px;
             color: white;
             min-height: 180px;
-            max-height: 280px;
-            overflow-y: auto;
+            max-height: none;
+            overflow: visible;
         }
 
         .panel h3 {

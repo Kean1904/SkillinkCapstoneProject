@@ -530,10 +530,13 @@ class HouseholdClientController extends Controller
             'title' => 'required|string|max:255',
             'category' => 'required|string',
             'description' => 'required|string',
+            'lot_number' => 'nullable|string|max:255',
             'barangay' => 'required|string',
         ]);
 
         $user = $this->getCurrentUser();
+        $lotNumber = !empty($validated['lot_number']) ? trim($validated['lot_number']) : null;
+        $locationTag = $lotNumber ? "{$lotNumber}, Brgy. {$validated['barangay']}" : "Brgy. {$validated['barangay']}";
 
         JobPost::create([
             'title' => $validated['title'],
@@ -541,7 +544,7 @@ class HouseholdClientController extends Controller
             'posted_by' => $user->name,
             'category' => $validated['category'],
             'description' => $validated['description'],
-            'location_tag' => $validated['barangay'],
+            'location_tag' => $locationTag,
             'barangay' => $validated['barangay'],
             'preferred_schedule' => 'Flexible',
             'date_posted' => now()->toDateString(),

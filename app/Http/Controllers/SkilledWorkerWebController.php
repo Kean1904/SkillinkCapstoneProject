@@ -6,9 +6,11 @@ use Illuminate\Http\Request;
 use App\Models\Booking;
 use App\Models\JobPost;
 use App\Models\User;
+use App\Models\Complaint;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class SkilledWorkerWebController extends Controller
 {
@@ -34,6 +36,29 @@ class SkilledWorkerWebController extends Controller
             ->latest('created_at')
             ->get();
 
+        // Check if complaints already exist for these completed bookings
+        $completedBookingIds = $completedBookings->pluck('booking_id')->filter()->toArray();
+        $complaintBookingIds = DB::table('complaints')
+            ->where(function ($q) use ($worker, $completedBookingIds) {
+                $q->where('submitted_by', $worker->user_id)
+                  ->orWhere('complainant_username', $worker->name);
+                if (!empty($completedBookingIds)) {
+                    $q->orWhereIn('booking_id', $completedBookingIds);
+                }
+            })
+            ->pluck('booking_id')
+            ->map(fn($id) => (int)$id)
+            ->toArray();
+
+        foreach ($completedBookings as $comp) {
+            $comp->has_complaint = in_array((int)$comp->booking_id, $complaintBookingIds)
+                || DB::table('complaints')->where('booking_id', $comp->booking_id)
+                    ->where(function($sq) use ($worker) {
+                        $sq->where('submitted_by', $worker->user_id)
+                           ->orWhere('complainant_username', $worker->name);
+                    })->exists();
+        }
+
         $activeAppliedJobs = JobPost::where('applicant_username', $worker->name)
             ->whereNotIn('status', ['Completed', 'Cancelled'])
             ->latest('created_at')
@@ -57,6 +82,60 @@ class SkilledWorkerWebController extends Controller
             'bookings', 
             'appliedJobs'
         ));
+    }
+
+    public function submitComplaint(Request $request)
+    {
+        $request->validate([
+            'complaintType' => 'required|string',
+            'description' => 'required|string|min:5',
+            'bookingId' => 'required',
+        ]);
+
+        $worker = $this->getCurrentWorker();
+
+        $booking = Booking::where('booking_id', $request->bookingId)
+            ->orWhere('booking_reference', $request->bookingId)
+            ->first();
+
+        $numericBookingId = $booking ? $booking->booking_id : (is_numeric($request->bookingId) ? (int)$request->bookingId : null);
+        $bookingRef = $booking ? $booking->booking_reference : ($request->bookingId ?? 'N/A');
+
+        // Prevent duplicate complaint for the same booking by this worker
+        if ($numericBookingId) {
+            $alreadyComplained = DB::table('complaints')
+                ->where('booking_id', $numericBookingId)
+                ->where(function($q) use ($worker) {
+                    $q->where('submitted_by', $worker->user_id)
+                      ->orWhere('complainant_username', $worker->name);
+                })
+                ->exists();
+
+            if ($alreadyComplained) {
+                return back()->with('warning', 'Already Submitted: You have already filed a grievance/complaint for this completed service.');
+            }
+        }
+
+        $complaint = Complaint::create([
+            'booking_id' => $numericBookingId,
+            'submitted_by' => $worker->user_id ?? 1,
+            'complainant_username' => $worker->name,
+            'respondent_username' => $request->respondentUsername ?? ($booking ? $booking->client_username : 'Household Client'),
+            'complaint_type' => $request->complaintType,
+            'description' => $request->description,
+            'status' => 'Pending',
+            'created_at' => now(),
+        ]);
+
+        \App\Models\AuditLog::log(
+            'COMPLAINT_FILED',
+            "Skilled Worker {$worker->name} filed formal complaint (#CMP-{$complaint->complaint_id}) regarding '{$complaint->complaint_type}' against client {$complaint->respondent_username} for booking #{$bookingRef}.",
+            $worker->name,
+            'Skilled Worker',
+            $worker->user_id
+        );
+
+        return back()->with('success', 'Your grievance has been successfully submitted to the PESO Mediation Officer!');
     }
 
     public function applyJob(Request $request, $id)
