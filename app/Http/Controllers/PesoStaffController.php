@@ -34,7 +34,9 @@ class PesoStaffController extends Controller
             ->count();
 
         $skilledWorkers = User::where('role', 'skilled worker')->count();
-        $residential = User::where('role', 'residential')->count();
+        $residential = User::where(function($q) {
+            $q->where('role', 'residential')->orWhere('role', 'like', '%household%')->orWhere('role', 'like', '%client%');
+        })->count();
         $complaintsCount = Complaint::where('status', '!=', 'Resolved')->count();
 
         $accreditationQueue = User::where('role', 'skilled worker')
@@ -240,8 +242,10 @@ class PesoStaffController extends Controller
         $query = User::whereNotNull('email')->where('email', '!=', '');
         if ($request->target_audience === 'skilled_worker') {
             $query->where('role', 'skilled worker');
-        } elseif ($request->target_audience === 'residential') {
-            $query->where('role', 'residential');
+        } elseif ($request->target_audience === 'residential' || $request->target_audience === 'household') {
+            $query->where(function($q) {
+                $q->where('role', 'residential')->orWhere('role', 'like', '%household%')->orWhere('role', 'like', '%client%');
+            });
         }
 
         $recipients = $query->get();

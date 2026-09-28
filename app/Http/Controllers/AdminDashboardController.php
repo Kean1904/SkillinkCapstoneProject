@@ -25,7 +25,9 @@ class AdminDashboardController extends Controller
         $numberOfJobs = JobPost::count();
         $doneJobs = Booking::where('status', 'COMPLETED')->count();
         $skilledWorkers = User::where('role', 'skilled worker')->count();
-        $residential = User::where('role', 'residential')->count();
+        $residential = User::where(function($q) {
+            $q->where('role', 'residential')->orWhere('role', 'like', '%household%')->orWhere('role', 'like', '%client%');
+        })->count();
         $staffCount = User::where('role', 'peso staff')->count();
         $adminCount = User::where('role', 'admin')->count();
         $complaints = Complaint::count();
@@ -39,8 +41,10 @@ class AdminDashboardController extends Controller
         if ($selectedRole !== 'all') {
             if ($selectedRole === 'skilled') {
                 $query->where('role', 'skilled worker');
-            } elseif ($selectedRole === 'residential') {
-                $query->where('role', 'residential');
+            } elseif ($selectedRole === 'residential' || $selectedRole === 'household') {
+                $query->where(function($q) {
+                    $q->where('role', 'residential')->orWhere('role', 'like', '%household%')->orWhere('role', 'like', '%client%');
+                });
             } elseif ($selectedRole === 'staff') {
                 $query->where('role', 'peso staff');
             } elseif ($selectedRole === 'admin') {
@@ -379,8 +383,10 @@ class AdminDashboardController extends Controller
         $query = User::whereNotNull('email')->where('email', '!=', '');
         if ($request->target_audience === 'skilled_worker') {
             $query->where('role', 'skilled worker');
-        } elseif ($request->target_audience === 'residential') {
-            $query->where('role', 'residential');
+        } elseif ($request->target_audience === 'residential' || $request->target_audience === 'household') {
+            $query->where(function($q) {
+                $q->where('role', 'residential')->orWhere('role', 'like', '%household%')->orWhere('role', 'like', '%client%');
+            });
         }
 
         $recipients = $query->get();
@@ -401,7 +407,9 @@ class AdminDashboardController extends Controller
         $totalWorkers = User::where('role', 'skilled worker')->count();
         $accreditedWorkers = User::where('role', 'skilled worker')->where('is_verified', true)->count();
         $pendingWorkers = User::where('role', 'skilled worker')->where('is_verified', false)->count();
-        $totalResidential = User::where('role', 'residential')->count();
+        $totalResidential = User::where(function($q) {
+            $q->where('role', 'residential')->orWhere('role', 'like', '%household%')->orWhere('role', 'like', '%client%');
+        })->count();
         $totalJobPosts = JobPost::count();
         $totalBookings = Booking::count();
         $completedBookings = Booking::where('status', 'COMPLETED')->count();
