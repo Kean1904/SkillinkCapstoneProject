@@ -70,7 +70,7 @@ class RegisterController extends Controller
             'skills'            => $request->input('skills', $isSkilledWorker ? 'General Handyman' : null),
             'certificate_proof' => ($request->input('certificate_proof') === 'Other' && $request->filled('other_certificate_proof'))
                                     ? $request->input('other_certificate_proof')
-                                    : $request->input('certificate_proof', null),
+                                    : (in_array($request->input('certificate_proof'), ['', 'Wala', null], true) ? null : $request->input('certificate_proof')),
             'is_verified'       => $isSkilledWorker ? false : true, // Skilled workers await PESO accreditation
             'rating'                      => 5.00,
             'status'                      => 'active',

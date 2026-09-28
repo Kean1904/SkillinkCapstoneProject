@@ -140,6 +140,7 @@ Route::post('/dashboard/PesoStaff/complaint/{id}/resolve', [PesoStaffController:
 Route::get('/peso-staff/reports', [PesoStaffController::class, 'reports'])->name('peso_staff.reports');
 Route::get('/peso-staff/announcements', [PesoStaffController::class, 'announcements'])->name('peso_staff.announcements');
 Route::post('/peso-staff/announcements/broadcast', [PesoStaffController::class, 'broadcastAnnouncement'])->name('peso_staff.announcements.broadcast');
+Route::post('/peso-staff/announcements/post-outside-job', [PesoStaffController::class, 'postOutsideJob'])->name('peso_staff.jobs.post_outside');
 Route::get('/peso-staff/profile', [PesoStaffController::class, 'profile'])->name('peso_staff.profile');
 Route::post('/peso-staff/profile/update', [PesoStaffController::class, 'updateProfile'])->name('peso_staff.profile.update');
 Route::get('/peso-staff/settings', [PesoStaffController::class, 'settings'])->name('peso_staff.settings');
@@ -160,6 +161,7 @@ Route::get('/admin/complaints', [AdminDashboardController::class, 'complaints'])
 Route::post('/admin/complaint/{id}/resolve', [AdminDashboardController::class, 'resolveComplaint'])->name('admin.resolve_complaint');
 Route::get('/admin/announcements', [AdminDashboardController::class, 'announcements'])->name('admin.announcements');
 Route::post('/admin/announcements/broadcast', [AdminDashboardController::class, 'broadcastAnnouncement'])->name('admin.announcements.broadcast');
+Route::post('/admin/announcements/post-outside-job', [AdminDashboardController::class, 'postOutsideJob'])->name('admin.jobs.post_outside');
 Route::get('/admin/tesda-reports', [AdminDashboardController::class, 'tesdaReports'])->name('admin.tesda_reports');
 Route::get('/admin/tesda-reports/live-data', [AdminDashboardController::class, 'tesdaReportsLiveData'])->name('admin.tesda_reports.live_data');
 Route::get('/admin/dole-reports', [AdminDashboardController::class, 'doleReports'])->name('admin.dole_reports');

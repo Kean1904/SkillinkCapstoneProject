@@ -209,9 +209,11 @@
         <div class="overlay"></div>
         <div class="page-inner">
 
-            <div class="page-title">
+            <div class="page-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
                 <span><i class="fa-solid fa-bullhorn" style="color: #60a5fa;"></i> MUNICIPAL ANNOUNCEMENTS & LIVE JOB POSTINGS</span>
-                <a href="{{ route('dashboard.Admin') }}" class="back-link">&larr; Back to Admin Dashboard</a>
+                <button type="button" class="btn" onclick="openOutsideJobModal()" style="background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 10px 18px; border-radius: 8px; font-weight: bold; font-size: 13.5px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4); transition: transform 0.15s ease;">
+                    <i class="fa-solid fa-map-location-dot"></i> Mag-post ng Trabaho (Outside Magalang)
+                </button>
             </div>
 
             @if(session('success'))
@@ -295,17 +297,22 @@
                         @foreach($jobs as $job)
                             <div style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.18); border-radius: 8px; padding: 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                                 <div style="flex: 1; min-width: 250px;">
-                                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap;">
                                         <strong style="font-size: 15px; color: white;">{{ $job->title }}</strong>
                                         <span style="background: rgba(37,99,235,0.35); color: #93c5fd; padding: 2px 8px; border-radius: 8px; font-size: 11px; font-weight: bold;">
                                             {{ $job->category }}
                                         </span>
+                                        @if(stripos($job->location_tag, 'Outside') !== false || stripos($job->barangay, 'Outside') !== false || stripos($job->posted_by, 'Regional') !== false)
+                                            <span style="background: rgba(16, 185, 129, 0.25); color: #6ee7b7; border: 1px solid #10b981; padding: 2px 8px; border-radius: 6px; font-size: 10.5px; font-weight: bold;">
+                                                <i class="fa-solid fa-map-location-dot"></i> OUTSIDE MAGALANG
+                                            </span>
+                                        @endif
                                     </div>
-                                    <p style="font-size: 12px; color: rgba(255,255,255,0.8); margin-bottom: 4px;">
+                                    <p style="font-size: 12px; color: rgba(255,255,255,0.8); margin-bottom: 4px; white-space: pre-line;">
                                         {{ $job->description }}
                                     </p>
                                     <div style="font-size: 11px; color: #94a3b8; display: flex; gap: 14px; flex-wrap: wrap;">
-                                        <span><i class="fa-solid fa-location-dot" style="color: #f87171;"></i> Brgy. {{ $job->barangay }}</span>
+                                        <span><i class="fa-solid fa-location-dot" style="color: #f87171;"></i> {{ $job->barangay }}</span>
                                         <span><i class="fa-solid fa-user"></i> Posted by: <strong>{{ $job->posted_by }}</strong></span>
                                         <span><i class="fa-regular fa-clock"></i> {{ $job->date_posted }}</span>
                                     </div>
@@ -333,10 +340,136 @@
         </div>
     </div>
 
+    <!-- MODAL: POST JOB OUTSIDE MAGALANG -->
+    <div id="outsideJobModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center; padding: 16px;">
+        <div style="background: #0f172a; border: 1px solid #334155; border-radius: 12px; width: 100%; max-width: 640px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.5); padding: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <i class="fa-solid fa-map-location-dot" style="font-size: 22px; color: #10b981;"></i>
+                    <div>
+                        <h3 style="margin: 0; font-size: 17px; color: white;">Mag-post ng Trabaho (Outside Magalang)</h3>
+                        <p style="margin: 2px 0 0 0; font-size: 12px; color: #94a3b8;">Buksan ang oportunidad sa karatig-bayan at industriya para sa Magalang Skilled Workers.</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeOutsideJobModal()" style="background: transparent; border: none; color: #94a3b8; font-size: 20px; cursor: pointer;">&times;</button>
+            </div>
+
+            <form action="{{ route('admin.jobs.post_outside') }}" method="POST">
+                @csrf
+                <div style="margin-bottom: 14px;">
+                    <label style="display: block; font-size: 12.5px; font-weight: bold; margin-bottom: 5px; color: #bfdbfe;">
+                        <i class="fa-solid fa-briefcase"></i> Job Title / Posisyon
+                    </label>
+                    <input type="text" name="title" required placeholder="hal. Industrial Electrician / Heavy Equipment Operator / Structural Welder" style="width: 100%; padding: 10px 12px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: white; font-size: 13.5px; outline: none;">
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                    <div>
+                        <label style="display: block; font-size: 12.5px; font-weight: bold; margin-bottom: 5px; color: #bfdbfe;">
+                            <i class="fa-solid fa-wrench"></i> Trade / Kategorya
+                        </label>
+                        <select name="category" required style="width: 100%; padding: 10px 12px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: white; font-size: 13.5px; outline: none;">
+                            <option value="Electrical Installation & Maintenance">Electrical Installation & Maintenance</option>
+                            <option value="Plumbing & Pipefitting">Plumbing & Pipefitting</option>
+                            <option value="Carpentry & Civil Works">Carpentry & Civil Works</option>
+                            <option value="Shielded Metal Arc Welding (SMAW)">Shielded Metal Arc Welding (SMAW)</option>
+                            <option value="Aircon & Refrigeration (RAC)">Aircon & Refrigeration (RAC)</option>
+                            <option value="Automotive & Heavy Mechanic">Automotive & Heavy Mechanic</option>
+                            <option value="Masonry & Tile Setting">Masonry & Tile Setting</option>
+                            <option value="General Construction & Handyman">General Construction & Handyman</option>
+                            <option value="Electronics & Appliance Repair">Electronics & Appliance Repair</option>
+                            <option value="Driving & Heavy Equipment Operation">Driving & Heavy Equipment Operation</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 12.5px; font-weight: bold; margin-bottom: 5px; color: #bfdbfe;">
+                            <i class="fa-solid fa-city"></i> Lungsod / Munisipyo (Outside Magalang)
+                        </label>
+                        <select name="city_province" required style="width: 100%; padding: 10px 12px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: white; font-size: 13.5px; outline: none;">
+                            <option value="Clark Freeport Zone, Pampanga">Clark Freeport Zone (Special Economic Zone)</option>
+                            <option value="Angeles City, Pampanga">Angeles City, Pampanga</option>
+                            <option value="City of San Fernando, Pampanga">City of San Fernando, Pampanga</option>
+                            <option value="Mabalacat City, Pampanga">Mabalacat City, Pampanga</option>
+                            <option value="Mexico, Pampanga">Mexico, Pampanga</option>
+                            <option value="Porac, Pampanga">Porac, Pampanga</option>
+                            <option value="Guagua, Pampanga">Guagua, Pampanga</option>
+                            <option value="Subic Bay Freeport Zone, Zambales">Subic Bay Freeport Zone</option>
+                            <option value="Metro Manila / NCR">Metro Manila / NCR</option>
+                            <option value="Other Regional Location">Other Regional Location</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                    <div>
+                        <label style="display: block; font-size: 12.5px; font-weight: bold; margin-bottom: 5px; color: #bfdbfe;">
+                            <i class="fa-solid fa-location-pin"></i> Tiyak na Worksite / Barangay
+                        </label>
+                        <input type="text" name="worksite_location" required placeholder="hal. Clark Global City / Balibago / Telabastagan" style="width: 100%; padding: 10px 12px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: white; font-size: 13.5px; outline: none;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 12.5px; font-weight: bold; margin-bottom: 5px; color: #bfdbfe;">
+                            <i class="fa-solid fa-building"></i> Employer / Partner Contractor
+                        </label>
+                        <input type="text" name="employer" required placeholder="hal. Clark Infrastructure Corp / Regional Partner" style="width: 100%; padding: 10px 12px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: white; font-size: 13.5px; outline: none;">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                    <div>
+                        <label style="display: block; font-size: 12.5px; font-weight: bold; margin-bottom: 5px; color: #bfdbfe;">
+                            <i class="fa-solid fa-peso-sign"></i> Sahod / Compensation Rate
+                        </label>
+                        <input type="text" name="salary" required placeholder="hal. ₱750 - ₱950 / araw + Shuttle" style="width: 100%; padding: 10px 12px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: white; font-size: 13.5px; outline: none;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 12.5px; font-weight: bold; margin-bottom: 5px; color: #bfdbfe;">
+                            <i class="fa-solid fa-users"></i> Bilang ng Kailangan (Vacancies)
+                        </label>
+                        <input type="number" name="vacancies" min="1" max="500" value="5" required style="width: 100%; padding: 10px 12px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: white; font-size: 13.5px; outline: none;">
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 14px;">
+                    <label style="display: block; font-size: 12.5px; font-weight: bold; margin-bottom: 5px; color: #bfdbfe;">
+                        <i class="fa-regular fa-clock"></i> Schedule / Oras ng Trabaho
+                    </label>
+                    <input type="text" name="schedule" required value="Immediate Deployment / Project-Based (Mon-Sat)" placeholder="hal. Immediate Deployment (Full-time)" style="width: 100%; padding: 10px 12px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: white; font-size: 13.5px; outline: none;">
+                </div>
+
+                <div style="margin-bottom: 18px;">
+                    <label style="display: block; font-size: 12.5px; font-weight: bold; margin-bottom: 5px; color: #bfdbfe;">
+                        <i class="fa-solid fa-align-left"></i> Job Scope, Qualifications & Requirements
+                    </label>
+                    <textarea name="description" rows="3" required placeholder="Ilarawan ang sakop ng trabaho, mga kailangang dalhin o gamit, at contact details para sa mga mag-aaply..." style="width: 100%; padding: 10px 12px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: white; font-size: 13.5px; outline: none; resize: vertical; font-family: inherit;"></textarea>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" onclick="closeOutsideJobModal()" class="btn" style="background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 10px 18px; border-radius: 6px; cursor: pointer;">
+                        Kanselahin
+                    </button>
+                    <button type="submit" class="btn" style="background: linear-gradient(135deg, #059669, #10b981); color: white; padding: 10px 22px; border-radius: 6px; font-weight: bold; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-paper-plane"></i> I-publish ang Trabaho Ngayon
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('active');
             document.getElementById('sidebarOverlay').classList.toggle('active');
+        }
+
+        function openOutsideJobModal() {
+            const modal = document.getElementById('outsideJobModal');
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function closeOutsideJobModal() {
+            const modal = document.getElementById('outsideJobModal');
+            if (modal) modal.style.display = 'none';
         }
     </script>
 </body>

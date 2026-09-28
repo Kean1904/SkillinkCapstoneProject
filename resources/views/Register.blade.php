@@ -538,23 +538,27 @@ $tesdaCertificates = [
 
                     <!-- Dynamic Skilled Worker Accreditation Fields -->
                     <div id="skilledWorkerFields" style="display: none; background: rgba(0, 51, 160, 0.25); border: 1px dashed rgba(255, 255, 255, 0.4); border-radius: 8px; padding: 14px; margin-bottom: 15px; text-align: left;">
-                        <p style="font-size: 12px; margin-bottom: 10px; color: #93c5fd; font-weight: bold;">
-                            <i class="fa-solid fa-certificate"></i> PESO Skilled Worker Accreditation
+                        <p style="font-size: 12px; margin-bottom: 6px; color: #93c5fd; font-weight: bold;">
+                            <i class="fa-solid fa-certificate"></i> PESO Skilled Worker Accreditation <span style="font-size: 11px; font-weight: normal; color: #cbd5e1; background: rgba(255,255,255,0.15); padding: 2px 8px; border-radius: 4px; margin-left: 6px;">(Optional / Opsyonal)</span>
+                        </p>
+                        <p style="font-size: 11px; color: #cbd5e1; margin-bottom: 10px; line-height: 1.3;">
+                            Maaaring magparehistro kahit wala pang TESDA NC. Kung mayroon kang certificate, piliin ito sa ibaba.
                         </p>
                         <div class="input-group" style="margin-bottom: 10px;">
                             <input type="text" name="skills" placeholder="Skills / Trabaho (hal. Plumbing, Electrical, Carpentry)">
                         </div>
                         <div class="input-group select-wrapper" style="margin-bottom: 10px;">
                             <select name="certificate_proof" id="certificateSelect" onchange="onCertificateChange()">
-                                <option value="" disabled selected hidden>Pumili ng TESDA Certificate / Qualification</option>
+                                <option value="" selected>Walang TESDA Certificate (Optional / Wala Pa)</option>
+                                <option value="" disabled hidden>Pumili ng TESDA Certificate / Qualification (Opsyonal)</option>
                                 @foreach($tesdaCertificates as $cert)
                                     <option value="{{ $cert }}" {{ old('certificate_proof') === $cert ? 'selected' : '' }}>{{ $cert }}</option>
                                 @endforeach
-                                <option value="Other" {{ old('certificate_proof') === 'Other' ? 'selected' : '' }}>Other</option>
+                                <option value="Other" {{ old('certificate_proof') === 'Other' ? 'selected' : '' }}>Other (Iba Pang Kwalipikasyon)</option>
                             </select>
                         </div>
                         <div class="input-group" id="otherCertificateGroup" style="display: none; margin-bottom: 0;">
-                            <input type="text" name="other_certificate_proof" id="otherCertificateInput" placeholder="Pakilagay ang ibang TESDA Certificate / Qualification" value="{{ old('other_certificate_proof') }}">
+                            <input type="text" name="other_certificate_proof" id="otherCertificateInput" placeholder="Pakilagay ang ibang TESDA Certificate / Qualification (Opsyonal)" value="{{ old('other_certificate_proof') }}">
                         </div>
                     </div>
 
@@ -608,7 +612,7 @@ $tesdaCertificates = [
             const certSelect = document.getElementById('certificateSelect');
             if (role === 'Skilled Worker') {
                 skilledFields.style.display = 'block';
-                if (certSelect) certSelect.required = true;
+                if (certSelect) certSelect.required = false;
                 onCertificateChange();
             } else {
                 skilledFields.style.display = 'none';
@@ -653,7 +657,7 @@ $tesdaCertificates = [
 
             if (certSelect && certSelect.value === 'Other') {
                 if (otherGroup) otherGroup.style.display = 'block';
-                if (otherInput) otherInput.required = true;
+                if (otherInput) otherInput.required = false;
             } else {
                 if (otherGroup) otherGroup.style.display = 'none';
                 if (otherInput) {

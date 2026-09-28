@@ -402,6 +402,53 @@ class AdminDashboardController extends Controller
         return back()->with('success', "Municipal announcement broadcasted successfully to {$recipients->count()} registered users!");
     }
 
+    public function postOutsideJob(Request $request)
+    {
+        $request->validate([
+            'title'             => 'required|string|max:255',
+            'category'          => 'required|string|max:100',
+            'city_province'     => 'required|string|max:150',
+            'worksite_location' => 'required|string|max:255',
+            'employer'          => 'required|string|max:200',
+            'salary'            => 'required|string|max:150',
+            'vacancies'         => 'required|integer|min:1|max:500',
+            'schedule'          => 'required|string|max:100',
+            'description'       => 'required|string',
+        ]);
+
+        $descriptionText = "【REGIONAL EMPLOYMENT - OUTSIDE MAGALANG】\n"
+            . "• Employer / Partner: " . trim($request->employer) . "\n"
+            . "• Worksite / City: " . trim($request->worksite_location) . ", " . trim($request->city_province) . "\n"
+            . "• Compensation: " . trim($request->salary) . "\n"
+            . "• Open Vacancies: " . intval($request->vacancies) . " Skilled Worker(s)\n"
+            . "• Schedule: " . trim($request->schedule) . "\n\n"
+            . "• Job Scope & Requirements:\n" . trim($request->description);
+
+        $job = JobPost::create([
+            'title'              => trim($request->title),
+            'client_id'          => Session::get('user_id', 1),
+            'posted_by'          => 'PESO Magalang (Regional Employment Desk)',
+            'category'           => trim($request->category),
+            'description'        => $descriptionText,
+            'location_tag'       => trim($request->city_province) . ' (Outside Magalang)',
+            'barangay'           => trim($request->worksite_location) . ', ' . trim($request->city_province),
+            'preferred_schedule' => trim($request->schedule),
+            'date_posted'        => now()->toDateString(),
+            'status'             => 'Pending',
+            'applicant_username' => null,
+        ]);
+
+        \App\Models\AuditLog::log(
+            'REGIONAL_JOB_POSTED',
+            "Administrator posted job opportunity outside Magalang: '{$job->title}' in {$request->city_province} ({$request->vacancies} worker slots).",
+            Session::get('user_name', 'Administrator'),
+            Session::get('role', 'Administrator'),
+            Session::get('user_id')
+        );
+
+        return back()->with('success', "Matagumpay na nai-post ang trabaho sa labas ng Magalang: '{$job->title}' sa {$request->city_province}! Makikita na ito ng mga Skilled Workers.");
+    }
+
     public function getTesdaReportData()
     {
         $allWorkers = User::where('role', 'skilled worker')->get();
