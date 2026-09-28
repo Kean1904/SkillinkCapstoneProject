@@ -518,7 +518,7 @@
                                 <h3>AVAILABLE SKILLED WORKER</h3>
                                 <p style="font-size: 11.5px; opacity: 0.8; margin-top: 2px;">Maghanap ng skilled worker sa pamamagitan ng trabaho (Job / Specialized Skill).</p>
                             </div>
-                            <a href="{{ route('household_client.saved_workers') }}" style="color: #93c5fd; font-size: 12px; text-decoration: none;"><i class="fa-solid fa-bookmark"></i> View Saved</a>
+                            <a href="{{ route('household_client.saved_workers') }}" style="color: #93c5fd; font-size: 12px; text-decoration: none;"><i class="fa-solid fa-bookmark"></i> View Saved ({{ count($savedWorkerIds ?? []) }})</a>
                         </div>
 
                         <!-- Dedicated In-Panel Search & Quick Filters -->
@@ -581,8 +581,9 @@
                                         </button>
                                         <form method="POST" action="{{ route('household_client.worker.toggle_save', $worker->user_id) }}" style="display: inline;">
                                             @csrf
-                                            <button type="submit" title="Save / Bookmark Worker" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.4); color: white; border-radius: 6px; padding: 6px 10px; cursor: pointer; font-size: 12px;">
-                                                <i class="fa-regular fa-bookmark"></i>
+                                            @php $isSaved = isset($savedWorkerIds) && in_array($worker->user_id, $savedWorkerIds); @endphp
+                                            <button type="submit" title="{{ $isSaved ? 'Remove from Saved Bookmarks' : 'Save / Bookmark Worker' }}" style="background: {{ $isSaved ? 'rgba(234, 179, 8, 0.25)' : 'rgba(255,255,255,0.15)' }}; border: 1px solid {{ $isSaved ? '#eab308' : 'rgba(255,255,255,0.4)' }}; color: {{ $isSaved ? '#facc15' : 'white' }}; border-radius: 6px; padding: 6px 10px; cursor: pointer; font-size: 12px;">
+                                                <i class="{{ $isSaved ? 'fa-solid fa-bookmark' : 'fa-regular fa-bookmark' }}"></i>
                                             </button>
                                         </form>
                                         <div style="text-align: right;">

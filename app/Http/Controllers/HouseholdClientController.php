@@ -40,7 +40,13 @@ class HouseholdClientController extends Controller
             });
         }
         $workersList = $workersQuery->latest()->get();
-        return view('dashboard.HouseholdClient', compact('availableWorkers', 'postedJobs', 'workersList', 'search'));
+        $user = $this->getCurrentUser();
+        $savedWorkerIds = DB::table('saved_workers')
+            ->where('user_id', $user->user_id)
+            ->pluck('worker_id')
+            ->toArray();
+
+        return view('dashboard.HouseholdClient', compact('user', 'availableWorkers', 'postedJobs', 'workersList', 'search', 'savedWorkerIds'));
     }
 
     public function hiringHistory()
@@ -251,13 +257,78 @@ class HouseholdClientController extends Controller
     public function savedWorkers()
     {
         $user = $this->getCurrentUser();
-        $workers = User::where('role', 'skilled worker')->latest()->get();
+        
+        // 🌟 Only fetch workers that this specific user has bookmarked
+        $savedWorkerIds = DB::table('saved_workers')
+            ->where('user_id', $user->user_id)
+            ->pluck('worker_id')
+            ->toArray();
+
+        if (empty($savedWorkerIds)) {
+            $workers = collect();
+        } else {
+            $workers = User::whereIn('user_id', $savedWorkerIds)
+                ->where('role', 'skilled worker')
+                ->latest()
+                ->get();
+        }
+
         return view('household_client.saved_workers', compact('user', 'workers'));
     }
 
     public function toggleSaveWorker($id)
     {
-        return back()->with('success', 'Worker preference bookmarked successfully!');
+        $user = $this->getCurrentUser();
+        
+        $targetWorker = User::where('user_id', $id)
+            ->orWhere('name', $id)
+            ->first();
+
+        if (!$targetWorker) {
+            return back()->with('error', 'Skilled worker record not found.');
+        }
+
+        $workerId = $targetWorker->user_id;
+        $workerName = $targetWorker->full_name ?: $targetWorker->name;
+
+        $existing = DB::table('saved_workers')
+            ->where('user_id', $user->user_id)
+            ->where('worker_id', $workerId)
+            ->first();
+
+        if ($existing) {
+            DB::table('saved_workers')
+                ->where('user_id', $user->user_id)
+                ->where('worker_id', $workerId)
+                ->delete();
+
+            \App\Models\AuditLog::log(
+                'WORKER_UNBOOKMARKED',
+                "Household Client {$user->name} removed skilled worker {$workerName} (@{$targetWorker->name}) from saved bookmarks.",
+                $user->name,
+                'Household Client',
+                $user->user_id
+            );
+
+            return back()->with('success', "Matagumpay na natanggal si {$workerName} mula sa iyong saved workers list!");
+        } else {
+            DB::table('saved_workers')->insert([
+                'user_id' => $user->user_id,
+                'worker_id' => $workerId,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            \App\Models\AuditLog::log(
+                'WORKER_BOOKMARKED',
+                "Household Client {$user->name} saved skilled worker {$workerName} (@{$targetWorker->name}) to bookmarks.",
+                $user->name,
+                'Household Client',
+                $user->user_id
+            );
+
+            return back()->with('success', "Matagumpay na naidagdag si {$workerName} sa iyong saved workers list!");
+        }
     }
 
     public function getWorkerBookedDates($username)

@@ -235,9 +235,14 @@
                     <i class="fa-solid fa-circle-check"></i> {{ session('success') }}
                 </div>
             @endif
+            @if(session('error'))
+                <div style="background: rgba(239, 68, 68, 0.25); border: 1px solid #f87171; color: #fecaca; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <i class="fa-solid fa-circle-xmark"></i> {{ session('error') }}
+                </div>
+            @endif
 
             <div class="card">
-                <h3><i class="fa-solid fa-star" style="color: #eab308;"></i> Bookmarked Skilled Workers in Magalang</h3>
+                <h3><i class="fa-solid fa-star" style="color: #eab308;"></i> Bookmarked Skilled Workers in Magalang ({{ count($workers ?? []) }})</h3>
                 <p style="font-size: 13px; opacity: 0.85;">Ang iyong listahan ng mga pinagkakatiwalaang manggagawa para sa mabilisang direct booking.</p>
                 <hr>
 
