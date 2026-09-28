@@ -237,6 +237,16 @@
                     <i class="fa-solid fa-circle-check"></i> {{ session('success') }}
                 </div>
             @endif
+            @if(session('warning'))
+                <div style="background: rgba(234, 179, 8, 0.25); border: 1px solid #facc15; color: #fef08a; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <i class="fa-solid fa-triangle-exclamation"></i> {{ session('warning') }}
+                </div>
+            @endif
+            @if(session('error'))
+                <div style="background: rgba(239, 68, 68, 0.25); border: 1px solid #f87171; color: #fecaca; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <i class="fa-solid fa-circle-xmark"></i> {{ session('error') }}
+                </div>
+            @endif
 
             <!-- ACTIVE SERVICE BOOKINGS -->
             <div class="card">
@@ -277,9 +287,15 @@
 
                             <!-- Incident Report button for active bookings -->
                             <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
-                                <button class="btn btn-danger" onclick="openComplaintModal('{{ $booking->worker_username }}', '{{ $booking->booking_reference }}')">
-                                    <i class="fa-solid fa-triangle-exclamation"></i> File Complaint to PESO
-                                </button>
+                                @if(!empty($booking->has_complaint))
+                                    <button type="button" class="btn" style="background: rgba(148, 163, 184, 0.18); color: #cbd5e1; border: 1.5px solid rgba(148, 163, 184, 0.4); cursor: not-allowed; opacity: 0.85; font-weight: 600;" disabled title="Already Submitted">
+                                        <i class="fa-solid fa-circle-check" style="color: #4ade80;"></i> Already Submitted
+                                    </button>
+                                @else
+                                    <button class="btn btn-danger" onclick="openComplaintModal('{{ $booking->worker_username }}', '{{ $booking->booking_id }}', '{{ $booking->booking_reference }}')">
+                                        <i class="fa-solid fa-triangle-exclamation"></i> File Complaint to PESO
+                                    </button>
+                                @endif
                             </div>
                         </div>
                     @endforeach
@@ -323,13 +339,26 @@
                                     <div><strong>Location:</strong> Brgy. {{ $comp->barangay }}</div>
                                 </div>
 
-                                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
-                                    <button class="btn btn-warning" onclick="openReviewModal('{{ $comp->worker_username }}', '{{ $comp->booking_reference }}')">
-                                        <i class="fa-solid fa-star"></i> Leave Rating & Review
-                                    </button>
-                                    <button class="btn btn-danger" onclick="openComplaintModal('{{ $comp->worker_username }}', '{{ $comp->booking_reference }}')">
-                                        <i class="fa-solid fa-triangle-exclamation"></i> File Complaint
-                                    </button>
+                                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+                                    @if(!empty($comp->has_review))
+                                        <button type="button" class="btn" style="background: rgba(148, 163, 184, 0.18); color: #cbd5e1; border: 1.5px solid rgba(148, 163, 184, 0.4); cursor: not-allowed; opacity: 0.85; font-weight: 600;" disabled title="Already Submitted">
+                                            <i class="fa-solid fa-circle-check" style="color: #4ade80;"></i> Already Submitted
+                                        </button>
+                                    @else
+                                        <button class="btn btn-warning" onclick="openReviewModal('{{ $comp->worker_username }}', '{{ $comp->booking_id }}', '{{ $comp->booking_reference }}')">
+                                            <i class="fa-solid fa-star"></i> Leave Rating & Review
+                                        </button>
+                                    @endif
+
+                                    @if(!empty($comp->has_complaint))
+                                        <button type="button" class="btn" style="background: rgba(148, 163, 184, 0.18); color: #cbd5e1; border: 1.5px solid rgba(148, 163, 184, 0.4); cursor: not-allowed; opacity: 0.85; font-weight: 600;" disabled title="Already Submitted">
+                                            <i class="fa-solid fa-circle-check" style="color: #4ade80;"></i> Already Submitted
+                                        </button>
+                                    @else
+                                        <button class="btn btn-danger" onclick="openComplaintModal('{{ $comp->worker_username }}', '{{ $comp->booking_id }}', '{{ $comp->booking_reference }}')">
+                                            <i class="fa-solid fa-triangle-exclamation"></i> File Complaint
+                                        </button>
+                                    @endif
                                 </div>
                             </div>
                         @endforeach
@@ -405,14 +434,14 @@
             document.getElementById('sidebar').classList.toggle('active');
             document.getElementById('sidebarOverlay').classList.toggle('active');
         }
-        function openReviewModal(worker, ref) {
+        function openReviewModal(worker, bookingId, ref) {
             document.getElementById('revWorkerUsername').value = worker;
-            document.getElementById('revBookingId').value = ref;
+            document.getElementById('revBookingId').value = bookingId || ref;
             document.getElementById('reviewModal').style.display = 'flex';
         }
-        function openComplaintModal(worker, ref) {
+        function openComplaintModal(worker, bookingId, ref) {
             document.getElementById('compWorkerUsername').value = worker;
-            document.getElementById('compBookingId').value = ref;
+            document.getElementById('compBookingId').value = bookingId || ref;
             document.getElementById('complaintModal').style.display = 'flex';
         }
         function closeModals() {

@@ -117,13 +117,32 @@ class CitizenApiController extends Controller
             $booking = Booking::where('booking_reference', $request->input('bookingId'))
                 ->orWhere('booking_id', $request->input('bookingId'))
                 ->first();
-            $bookingId = $booking ? $booking->booking_id : null;
+            $bookingId = $booking ? $booking->booking_id : (is_numeric($request->input('bookingId')) ? (int)$request->input('bookingId') : null);
+        }
+
+        // Prevent duplicate review for the same booking
+        if ($bookingId) {
+            $alreadyReviewed = Review::where('booking_id', $bookingId)
+                ->where(function($q) use ($clientUsername, $client) {
+                    $q->where('client_username', $clientUsername);
+                    if ($client) {
+                        $q->orWhere('client_id', $client->user_id);
+                    }
+                })
+                ->exists();
+
+            if ($alreadyReviewed) {
+                return response()->json([
+                    'message' => 'Already Submitted: You have already submitted a review and rating for this service booking.',
+                    'already_submitted' => true,
+                ], 200);
+            }
         }
 
         $review = Review::create([
             'booking_id' => $bookingId,
             'client_id' => $client ? $client->user_id : 1,
-            'worker_id' => $workerProfile ? $workerProfile->worker_id : 1,
+            'worker_id' => $workerProfile ? $workerProfile->worker_id : ($worker ? $worker->user_id : 1),
             'client_username' => $clientUsername,
             'worker_username' => $workerUsername,
             'rating_score' => $ratingStars,
@@ -162,7 +181,26 @@ class CitizenApiController extends Controller
             $booking = Booking::where('booking_reference', $request->input('bookingId'))
                 ->orWhere('booking_id', $request->input('bookingId'))
                 ->first();
-            $bookingId = $booking ? $booking->booking_id : null;
+            $bookingId = $booking ? $booking->booking_id : (is_numeric($request->input('bookingId')) ? (int)$request->input('bookingId') : null);
+        }
+
+        // Prevent duplicate complaint for the same booking
+        if ($bookingId) {
+            $alreadyComplained = Complaint::where('booking_id', $bookingId)
+                ->where(function($q) use ($complainantUsername, $complainant) {
+                    $q->where('complainant_username', $complainantUsername);
+                    if ($complainant) {
+                        $q->orWhere('submitted_by', $complainant->user_id);
+                    }
+                })
+                ->exists();
+
+            if ($alreadyComplained) {
+                return response()->json([
+                    'message' => 'Already Submitted: You have already filed a grievance/complaint for this service booking.',
+                    'already_submitted' => true,
+                ], 200);
+            }
         }
 
         $complaint = Complaint::create([

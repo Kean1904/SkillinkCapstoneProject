@@ -57,6 +57,69 @@ class HouseholdClientController extends Controller
             ->latest('created_at')
             ->get();
 
+        // Check if reviews or complaints already exist for these bookings
+        $completedBookingIds = $completedBookings->pluck('booking_id')->filter()->toArray();
+        $activeBookingIds = $activeBookings->pluck('booking_id')->filter()->toArray();
+        $allTargetBookingIds = array_unique(array_filter(array_merge($completedBookingIds, $activeBookingIds)));
+
+        $reviewedBookingIds = DB::table('rating_reviews')
+            ->where(function ($q) use ($user, $allTargetBookingIds) {
+                $q->where('client_id', $user->user_id)
+                  ->orWhere('client_username', $user->name);
+                if (!empty($allTargetBookingIds)) {
+                    $q->orWhereIn('booking_id', $allTargetBookingIds);
+                }
+            })
+            ->pluck('booking_id')
+            ->map(fn($id) => (int)$id)
+            ->toArray();
+
+        $complaintBookingIds = DB::table('complaints')
+            ->where(function ($q) use ($user, $allTargetBookingIds) {
+                $q->where('submitted_by', $user->user_id)
+                  ->orWhere('complainant_username', $user->name);
+                if (!empty($allTargetBookingIds)) {
+                    $q->orWhereIn('booking_id', $allTargetBookingIds);
+                }
+            })
+            ->pluck('booking_id')
+            ->map(fn($id) => (int)$id)
+            ->toArray();
+
+        foreach ($completedBookings as $comp) {
+            $comp->has_review = in_array((int)$comp->booking_id, $reviewedBookingIds)
+                || DB::table('rating_reviews')->where(function($q) use ($comp, $user) {
+                    $q->where('booking_id', $comp->booking_id)
+                      ->where(function($sq) use ($user, $comp) {
+                          $sq->where('client_id', $user->user_id)
+                             ->orWhere('client_username', $user->name)
+                             ->orWhere('worker_username', $comp->worker_username);
+                      });
+                })->exists();
+
+            $comp->has_complaint = in_array((int)$comp->booking_id, $complaintBookingIds)
+                || DB::table('complaints')->where(function($q) use ($comp, $user) {
+                    $q->where('booking_id', $comp->booking_id)
+                      ->where(function($sq) use ($user, $comp) {
+                          $sq->where('submitted_by', $user->user_id)
+                             ->orWhere('complainant_username', $user->name)
+                             ->orWhere('respondent_username', $comp->worker_username);
+                      });
+                })->exists();
+        }
+
+        foreach ($activeBookings as $act) {
+            $act->has_complaint = in_array((int)$act->booking_id, $complaintBookingIds)
+                || DB::table('complaints')->where(function($q) use ($act, $user) {
+                    $q->where('booking_id', $act->booking_id)
+                      ->where(function($sq) use ($user, $act) {
+                          $sq->where('submitted_by', $user->user_id)
+                             ->orWhere('complainant_username', $user->name)
+                             ->orWhere('respondent_username', $act->worker_username);
+                      });
+                })->exists();
+        }
+
         $bookings = $activeBookings;
 
         return view('household_client.hiring_history', compact('user', 'activeBookings', 'completedBookings', 'bookings'));
@@ -72,22 +135,60 @@ class HouseholdClientController extends Controller
         $user = $this->getCurrentUser();
         $worker = User::where('name', $request->workerUsername)->first();
 
+        // Find booking record
+        $booking = null;
+        if ($request->filled('bookingId')) {
+            $booking = Booking::where('booking_id', $request->bookingId)
+                ->orWhere('booking_reference', $request->bookingId)
+                ->first();
+        }
+
+        $numericBookingId = $booking ? $booking->booking_id : (is_numeric($request->bookingId) ? (int)$request->bookingId : null);
+        $bookingRef = $booking ? $booking->booking_reference : ($request->bookingId ?? 'N/A');
+
+        // Prevent duplicate review for the same booking
+        if ($numericBookingId) {
+            $alreadyReviewed = DB::table('rating_reviews')
+                ->where('booking_id', $numericBookingId)
+                ->where(function($q) use ($user) {
+                    $q->where('client_id', $user->user_id)
+                      ->orWhere('client_username', $user->name);
+                })
+                ->exists();
+
+            if ($alreadyReviewed) {
+                return back()->with('warning', 'Already Submitted: You have already submitted a review and rating for this service booking.');
+            }
+        }
+
         Review::create([
-            'booking_id' => $request->bookingId ?? 1,
+            'booking_id' => $numericBookingId,
             'client_id' => $user->user_id ?? 1,
-            'worker_id' => $worker ? $worker->user_id : 1,
-            'rating' => $request->ratingStars,
-            'comment' => $request->reviewText ?? '',
+            'client_username' => $user->name,
+            'worker_id' => $worker ? $worker->user_id : ($booking ? $booking->worker_id : 1),
+            'worker_username' => $request->workerUsername,
+            'rating_score' => $request->ratingStars,
+            'review_text' => $request->reviewText ?? '',
             'created_at' => now(),
         ]);
 
         if ($worker) {
-            $avg = Review::where('worker_id', $worker->user_id)->avg('rating');
-            $worker->rating = round($avg, 1);
-            $worker->save();
+            $avg = DB::table('rating_reviews')->where('worker_username', $worker->name)->avg('rating_score');
+            if ($avg) {
+                $worker->rating = round($avg, 1);
+                $worker->save();
+            }
         }
 
-        return back()->with('success', 'Your review has been submitted to the community!');
+        \App\Models\AuditLog::log(
+            'REVIEW_SUBMITTED',
+            "Household Client {$user->name} gave {$request->ratingStars}-star review to {$request->workerUsername} for booking #{$bookingRef}.",
+            $user->name,
+            'Household Client',
+            $user->user_id
+        );
+
+        return back()->with('success', 'Your rating & review have been submitted successfully!');
     }
 
     public function submitComplaint(Request $request)
@@ -99,9 +200,37 @@ class HouseholdClientController extends Controller
 
         $user = $this->getCurrentUser();
 
+        // Find booking record
+        $booking = null;
+        if ($request->filled('bookingId')) {
+            $booking = Booking::where('booking_id', $request->bookingId)
+                ->orWhere('booking_reference', $request->bookingId)
+                ->first();
+        }
+
+        $numericBookingId = $booking ? $booking->booking_id : (is_numeric($request->bookingId) ? (int)$request->bookingId : null);
+        $bookingRef = $booking ? $booking->booking_reference : ($request->bookingId ?? 'N/A');
+
+        // Prevent duplicate complaint for the same booking
+        if ($numericBookingId) {
+            $alreadyComplained = DB::table('complaints')
+                ->where('booking_id', $numericBookingId)
+                ->where(function($q) use ($user) {
+                    $q->where('submitted_by', $user->user_id)
+                      ->orWhere('complainant_username', $user->name);
+                })
+                ->exists();
+
+            if ($alreadyComplained) {
+                return back()->with('warning', 'Already Submitted: You have already filed a grievance/complaint for this service booking.');
+            }
+        }
+
         $complaint = Complaint::create([
-            'booking_id' => $request->bookingId ?? 1,
-            'complainant_id' => $user->user_id ?? 1,
+            'booking_id' => $numericBookingId,
+            'submitted_by' => $user->user_id ?? 1,
+            'complainant_username' => $user->name,
+            'respondent_username' => $request->respondentUsername ?? ($booking ? $booking->worker_username : 'Unknown Worker'),
             'complaint_type' => $request->complaintType,
             'description' => $request->description,
             'status' => 'Pending',
@@ -110,7 +239,7 @@ class HouseholdClientController extends Controller
 
         \App\Models\AuditLog::log(
             'COMPLAINT_FILED',
-            "Household Client {$user->name} filed formal complaint (#CMP-{$complaint->complaint_id}) regarding '{$complaint->complaint_type}' against {$request->respondentUsername}.",
+            "Household Client {$user->name} filed formal complaint (#CMP-{$complaint->complaint_id}) regarding '{$complaint->complaint_type}' against {$complaint->respondent_username} for booking #{$bookingRef}.",
             $user->name,
             'Household Client',
             $user->user_id
