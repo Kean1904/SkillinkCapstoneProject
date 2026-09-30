@@ -567,18 +567,24 @@
                                             </p>
                                         </div>
                                         <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                                            <form action="{{ route('peso.accredit', $worker->user_id) }}" method="POST" style="margin: 0;">
-                                                @csrf
-                                                <button type="submit" style="background: #10b981; color: white; border: none; padding: 7px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 12px; transition: all 0.2s;" title="Approve & Accredit Worker">
-                                                    <i class="fa-solid fa-check"></i> Approved
-                                                </button>
-                                            </form>
-                                            <form action="{{ route('peso.unaccredit', $worker->user_id) }}" method="POST" style="margin: 0;">
-                                                @csrf
-                                                <button type="submit" style="background: #ef4444; color: white; border: none; padding: 7px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 12px; transition: all 0.2s;" title="Deny / Unaccredit Worker">
-                                                    <i class="fa-solid fa-xmark"></i> Denied
-                                                </button>
-                                            </form>
+                                            @if(!empty($worker->is_verified))
+                                                <span style="color: #10b981; font-weight: bold; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; background: rgba(16, 185, 129, 0.15); padding: 6px 14px; border-radius: 6px; border: 1px solid #10b981;">
+                                                    <i class="fa-solid fa-circle-check"></i> Verified Worker
+                                                </span>
+                                            @else
+                                                <form action="{{ route('peso.accredit', $worker->user_id) }}" method="POST" style="margin: 0;">
+                                                    @csrf
+                                                    <button type="submit" style="background: #10b981; color: white; border: none; padding: 7px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 12px; transition: all 0.2s;" title="Approve & Accredit Worker">
+                                                        <i class="fa-solid fa-check"></i> Approved
+                                                    </button>
+                                                </form>
+                                                <form action="{{ route('peso.unaccredit', $worker->user_id) }}" method="POST" style="margin: 0;">
+                                                    @csrf
+                                                    <button type="submit" style="background: #ef4444; color: white; border: none; padding: 7px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 12px; transition: all 0.2s;" title="Deny / Unaccredit Worker">
+                                                        <i class="fa-solid fa-xmark"></i> Denied
+                                                    </button>
+                                                </form>
+                                            @endif
                                         </div>
                                     </div>
                                 @endforeach
