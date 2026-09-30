@@ -272,9 +272,15 @@ class AuthApiController extends Controller
             'email' => $targetEmail,
         ]);
 
+        $recipientName = trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')) ?: $user->name;
+        $mailResult = \App\Services\BrevoOtpService::sendPasswordResetOtp($targetEmail, $recipientName, $otp, $resetUrl);
+
         return response()->json([
             'success' => true,
-            'message' => "Password reset OTP generated for {$targetEmail}.",
+            'email_sent' => $mailResult['success'],
+            'message' => $mailResult['success']
+                ? "Password reset OTP sent to registered email ({$targetEmail})."
+                : "Password reset OTP generated for {$targetEmail}.",
             'targetEmail' => $targetEmail,
             'otp' => $otp,
             'token' => $token,

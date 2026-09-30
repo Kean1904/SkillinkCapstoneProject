@@ -161,10 +161,17 @@ class LoginController extends Controller
             'email' => $targetEmail,
         ]);
 
-        // 3. Ibalik agad ang nabuong OTP at resetUrl para sa maaasahang password reset
+        // 3. Ipadala ang totoong OTP Authentication Email gamit si Brevo sa rehistradong email mula sa Database
+        $recipientName = trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')) ?: $user->name;
+        $mailResult = \App\Services\BrevoOtpService::sendPasswordResetOtp($targetEmail, $recipientName, $otp, $resetUrl);
+
+        // 4. Ibalik ang response para sa modal
         return response()->json([
             'success' => true,
-            'message' => "Matagumpay na na-verify ang account!",
+            'email_sent' => $mailResult['success'],
+            'message' => $mailResult['success']
+                ? "Matagumpay na naipadala ang 6-digit OTP code sa iyong rehistradong email ({$targetEmail})."
+                : "Na-verify ang account para sa {$targetEmail}.",
             'targetEmail' => $targetEmail,
             'otp' => $otp,
             'resetUrl' => $resetUrl,

@@ -371,18 +371,38 @@
                 Enter your registered Email Address or Username. We will dispatch a secure password reset link to verify your identity.
             </p>
 
-            <div id="forgotSuccessBox" style="display: none; background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; color: #ecfdf5; padding: 18px; border-radius: 12px; margin-bottom: 18px; text-align: center;">
-                <div style="font-size: 15px; font-weight: bold; margin-bottom: 6px; color: #34d399; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                    <i class="fa-solid fa-circle-check"></i> Account Verified!
+            <div id="forgotSuccessBox" style="display: none; background: rgba(15, 34, 64, 0.95); border: 1px solid #3b82f6; color: #ecfdf5; padding: 22px 18px; border-radius: 14px; margin-bottom: 18px; text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.4);">
+                <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(16, 185, 129, 0.2); border: 2px solid #10b981; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto; color: #34d399; font-size: 24px;">
+                    <i class="fa-solid fa-envelope-circle-check"></i>
                 </div>
-                <p style="font-size: 13px; opacity: 0.9; margin-bottom: 12px;" id="forgotSuccessMsg"></p>
-                <div style="background: rgba(0,0,0,0.3); border: 1px dashed #34d399; border-radius: 8px; padding: 10px; margin-bottom: 15px;">
-                    <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #a7f3d0; display: block; margin-bottom: 4px;">Verification OTP Code</span>
-                    <span id="forgotOtpDisplay" style="font-size: 24px; font-weight: 800; letter-spacing: 4px; color: #ffffff; font-family: monospace;"></span>
+                <h4 style="font-size: 16px; font-weight: bold; margin: 0 0 6px 0; color: #ffffff;">
+                    OTP Code Dispatched via Brevo!
+                </h4>
+                <p style="font-size: 13px; color: #cbd5e1; margin: 0 0 10px 0; line-height: 1.5;">
+                    Ipinadala ng SKILLINK Security ang iyong 6-digit OTP authentication code sa iyong rehistradong email address sa database:
+                </p>
+                <div style="background: rgba(0, 51, 160, 0.45); border: 1px solid #60a5fa; border-radius: 8px; padding: 8px 14px; margin-bottom: 12px; display: inline-block;">
+                    <i class="fa-solid fa-envelope" style="color: #93c5fd; margin-right: 6px;"></i>
+                    <strong id="forgotSuccessEmail" style="color: #fde047; font-size: 13.5px; word-break: break-all;"></strong>
                 </div>
-                <a id="forgotResetBtn" href="#" style="display: block; width: 100%; padding: 11px; background: #2563eb; color: white; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 13.5px; transition: background 0.2s;">
-                    <i class="fa-solid fa-arrow-right"></i> Proceed to Reset Password
+                <p style="font-size: 12px; color: #94a3b8; margin: 0 0 16px 0;">
+                    Pakitingnan ang iyong <strong>Inbox</strong> o <strong>Spam/Junk folder</strong> upang makuha ang OTP code.
+                </p>
+
+                <a id="forgotResetBtn" href="#" style="display: block; width: 100%; padding: 12px; background: #0033a0; color: white; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; transition: background 0.2s; box-shadow: 0 4px 12px rgba(0, 51, 160, 0.4);">
+                    <i class="fa-solid fa-arrow-right"></i> Pumunta sa Password Reset Form &rarr;
                 </a>
+
+                <!-- Discreet Defense Fail-safe -->
+                <div style="margin-top: 14px; font-size: 11px;">
+                    <a href="javascript:void(0)" onclick="document.getElementById('defenseOtpWrap').style.display='block'; this.style.display='none';" style="color: #93c5fd; text-decoration: underline; opacity: 0.85;">
+                        Hindi natanggap ang email o mabagal ang network? I-preview ang code
+                    </a>
+                </div>
+                <div id="defenseOtpWrap" style="display: none; margin-top: 10px; background: rgba(0,0,0,0.35); border: 1px dashed #f59e0b; border-radius: 8px; padding: 8px 12px;">
+                    <span style="font-size: 10.5px; color: #fbbf24; display: block; text-transform: uppercase;">Direct Verification OTP:</span>
+                    <span id="forgotOtpDisplay" style="font-size: 20px; font-weight: bold; letter-spacing: 4px; color: #ffffff; font-family: monospace;"></span>
+                </div>
             </div>
 
             <form id="forgotForm" onsubmit="handleForgotSubmit(event)">
@@ -462,7 +482,8 @@
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Send Reset Link';
                 if (data.success) {
-                    document.getElementById('forgotSuccessMsg').textContent = 'Account: ' + (data.targetEmail || val);
+                    const emailElem = document.getElementById('forgotSuccessEmail');
+                    if (emailElem) emailElem.textContent = data.targetEmail || val;
                     if (data.otp) {
                         document.getElementById('forgotOtpDisplay').textContent = data.otp;
                     }
