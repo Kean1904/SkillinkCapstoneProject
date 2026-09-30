@@ -368,13 +368,30 @@ class HouseholdClientController extends Controller
     public function getWorkerBookedDates($username)
     {
         try {
-            $bookedDates = Booking::where('worker_username', $username)
+            $worker = User::where('name', $username)
+                ->orWhere('user_id', $username)
+                ->orWhereRaw('LOWER(name) = ?', [strtolower($username)])
+                ->orWhereRaw('CONCAT(first_name, " ", last_name) = ?', [$username])
+                ->first();
+
+            $bookedDates = Booking::where(function($q) use ($username, $worker) {
+                    $q->where('worker_username', $username);
+                    if ($worker) {
+                        $q->orWhere('worker_username', $worker->name)
+                          ->orWhere('worker_id', $worker->user_id);
+                    }
+                })
                 ->whereIn('status', ['PENDING', 'ACCEPTED', 'CONFIRMED', 'ASSIGNED', 'IN_PROGRESS', 'IN PROGRESS'])
                 ->whereNotNull('scheduled_date')
                 ->where('scheduled_date', '!=', '')
                 ->pluck('scheduled_date')
                 ->map(function ($date) {
-                    return trim(explode(' ', $date)[0]);
+                    $raw = trim(explode('(', (string)$date)[0]);
+                    $ts = strtotime($raw);
+                    if ($ts !== false) {
+                        return date('Y-m-d', $ts);
+                    }
+                    return trim(explode(' ', (string)$date)[0]);
                 })
                 ->filter(function ($date) {
                     return !empty($date) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $date);
@@ -412,6 +429,7 @@ class HouseholdClientController extends Controller
         $worker = User::where('name', $validated['workerUsername'])
             ->orWhere('user_id', $validated['workerUsername'])
             ->orWhereRaw('LOWER(name) = ?', [strtolower($validated['workerUsername'])])
+            ->orWhereRaw('CONCAT(first_name, " ", last_name) = ?', [$validated['workerUsername']])
             ->first();
 
         // 🌟 RULE 1: STRICT AVAILABILITY CHECK
@@ -445,22 +463,10 @@ class HouseholdClientController extends Controller
         }
 
         // 🌟 RULE 2: FIXED ESTIMATED COST
-        $workerProfile = DB::table('skilled_workers')
-            ->where('username', $validated['workerUsername'])
-            ->first();
-
         $fixedBudget = '₱500.00';
-        if ($workerProfile && !empty($workerProfile->service_rates)) {
-            $rates = json_decode($workerProfile->service_rates, true);
-            if (is_array($rates) && isset($rates[$validated['serviceCategory']]) && !empty($rates[$validated['serviceCategory']])) {
-                $rawVal = preg_replace('/[^\d.]/', '', (string)$rates[$validated['serviceCategory']]);
-                if (is_numeric($rawVal) && floatval($rawVal) > 0) {
-                    $fixedBudget = '₱' . number_format(floatval($rawVal), 2);
-                }
-            }
-        }
-
-        if ($fixedBudget === '₱500.00' && $worker && !empty($worker->skills)) {
+        if ($worker && !empty($worker->service_rate)) {
+            $fixedBudget = $worker->service_rate_display;
+        } elseif ($worker && !empty($worker->skills)) {
             $lowerCat = strtolower($validated['serviceCategory']);
             if (str_contains($lowerCat, 'plumb')) $fixedBudget = '₱450.00';
             elseif (str_contains($lowerCat, 'electr')) $fixedBudget = '₱600.00';
@@ -478,10 +484,11 @@ class HouseholdClientController extends Controller
         $booking = Booking::create([
             'booking_reference' => $refNumber,
             'request_id' => 1,
-            'worker_id' => $worker ? $worker->user_id : ($workerProfile ? $workerProfile->worker_id : 1),
+            'worker_id' => $worker ? $worker->user_id : 1,
             'client_username' => $user->name,
             'worker_username' => $worker ? $worker->name : $validated['workerUsername'],
             'client_name' => $user->full_name,
+            'worker_name' => $worker ? $worker->full_name : $validated['workerUsername'],
             'worker_name' => $worker ? $worker->full_name : $validated['workerUsername'],
             'service_category' => $validated['serviceCategory'],
             'task_description' => $validated['taskDescription'],
