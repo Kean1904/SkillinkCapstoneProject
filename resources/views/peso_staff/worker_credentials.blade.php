@@ -464,21 +464,27 @@
                 <hr>
 
                 <div style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap;">
-                    <!-- CONFIRM & ACCREDIT -->
-                    <form method="POST" action="{{ route('peso.accredit', $worker->user_id) }}" style="margin: 0;">
-                        @csrf
-                        <button type="submit" class="btn-action btn-confirm" title="Confirm validity and approve accreditation for this skilled worker">
-                            <i class="fa-solid fa-circle-check"></i> APPROVED (ACCREDIT WORKER)
-                        </button>
-                    </form>
+                    @if($worker->is_verified)
+                        <span style="color: #10b981; font-weight: bold; font-size: 15px; display: inline-flex; align-items: center; gap: 8px; background: rgba(16, 185, 129, 0.15); padding: 10px 20px; border-radius: 8px; border: 1px solid #10b981;">
+                            <i class="fa-solid fa-circle-check" style="font-size: 18px;"></i> Verified Worker
+                        </span>
+                    @else
+                        <!-- CONFIRM & ACCREDIT -->
+                        <form method="POST" action="{{ route('peso.accredit', $worker->user_id) }}" style="margin: 0;">
+                            @csrf
+                            <button type="submit" class="btn-action btn-confirm" title="Confirm validity and approve accreditation for this skilled worker">
+                                <i class="fa-solid fa-circle-check"></i> APPROVED (ACCREDIT WORKER)
+                            </button>
+                        </form>
 
-                    <!-- UNACCREDIT / REVOKE -->
-                    <form method="POST" action="{{ route('peso.unaccredit', $worker->user_id) }}" style="margin: 0;">
-                        @csrf
-                        <button type="submit" class="btn-action btn-unaccredit" title="Deny accreditation or mark as unaccredited">
-                            <i class="fa-solid fa-circle-xmark"></i> DENIED (REVOKE ACCREDITATION)
-                        </button>
-                    </form>
+                        <!-- UNACCREDIT / REVOKE -->
+                        <form method="POST" action="{{ route('peso.unaccredit', $worker->user_id) }}" style="margin: 0;">
+                            @csrf
+                            <button type="submit" class="btn-action btn-unaccredit" title="Deny accreditation or mark as unaccredited">
+                                <i class="fa-solid fa-circle-xmark"></i> DENIED (REVOKE ACCREDITATION)
+                            </button>
+                        </form>
+                    @endif
 
                     <!-- BACK -->
                     <a href="{{ route('peso_staff.accreditation') }}" class="btn-action" style="background: rgba(255,255,255,0.2); color: white;">

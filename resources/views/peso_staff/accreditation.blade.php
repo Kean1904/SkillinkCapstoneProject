@@ -283,20 +283,26 @@
                                             @endif
                                         </td>
                                         <td>
-                                            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                                                <form method="POST" action="{{ route('peso.accredit', $w->user_id) }}" style="display:inline; margin: 0;">
-                                                    @csrf
-                                                    <button type="submit" class="btn btn-success" style="background: #10b981; color: white; border: none; padding: 7px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; transition: all 0.2s; {{ $w->is_verified ? 'box-shadow: 0 0 8px rgba(16,185,129,0.6);' : 'opacity: 0.85;' }}" title="Approve and accredit this skilled worker based on certificate and license">
-                                                        <i class="fa-solid fa-check"></i> Approved
-                                                    </button>
-                                                </form>
-                                                <form method="POST" action="{{ route('peso.unaccredit', $w->user_id) }}" style="display:inline; margin: 0;">
-                                                    @csrf
-                                                    <button type="submit" class="btn btn-danger" style="background: #ef4444; color: white; border: none; padding: 7px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; transition: all 0.2s; {{ !$w->is_verified ? 'box-shadow: 0 0 8px rgba(239,68,68,0.6);' : 'opacity: 0.85;' }}" title="Deny or revoke accreditation">
-                                                        <i class="fa-solid fa-xmark"></i> Denied
-                                                    </button>
-                                                </form>
-                                            </div>
+                                            @if($w->is_verified)
+                                                <span style="color: #10b981; font-weight: bold; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; background: rgba(16, 185, 129, 0.15); padding: 6px 14px; border-radius: 6px; border: 1px solid #10b981;">
+                                                    <i class="fa-solid fa-circle-check"></i> Verified Worker
+                                                </span>
+                                            @else
+                                                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                                                    <form method="POST" action="{{ route('peso.accredit', $w->user_id) }}" style="display:inline; margin: 0;">
+                                                        @csrf
+                                                        <button type="submit" class="btn btn-success" style="background: #10b981; color: white; border: none; padding: 7px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; transition: all 0.2s;" title="Approve and accredit this skilled worker based on certificate and license">
+                                                            <i class="fa-solid fa-check"></i> Approved
+                                                        </button>
+                                                    </form>
+                                                    <form method="POST" action="{{ route('peso.unaccredit', $w->user_id) }}" style="display:inline; margin: 0;">
+                                                        @csrf
+                                                        <button type="submit" class="btn btn-danger" style="background: #ef4444; color: white; border: none; padding: 7px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; transition: all 0.2s;" title="Deny or revoke accreditation">
+                                                            <i class="fa-solid fa-xmark"></i> Denied
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            @endif
                                         </td>
                                     </tr>
                                 @endforeach
