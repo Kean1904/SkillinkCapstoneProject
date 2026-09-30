@@ -480,6 +480,27 @@
                 </div>
             </div>
 
+            @if(session('success'))
+                <div style="background: rgba(34, 197, 94, 0.25); border: 1px solid #4ade80; color: #bbf7d0; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <i class="fa-solid fa-circle-check"></i> {{ session('success') }}
+                </div>
+            @endif
+            @if(session('error'))
+                <div style="background: rgba(239, 68, 68, 0.25); border: 1px solid #f87171; color: #fecaca; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <i class="fa-solid fa-circle-xmark"></i> {{ session('error') }}
+                </div>
+            @endif
+            @if($errors->any())
+                <div style="background: rgba(239, 68, 68, 0.25); border: 1px solid #f87171; color: #fecaca; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <strong><i class="fa-solid fa-triangle-exclamation"></i> May problema sa pag-submit:</strong>
+                    <ul style="margin: 5px 0 0 20px;">
+                        @foreach($errors->all() as $err)
+                            <li>{{ $err }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             <div class="dashboard-grid">
 
                 <!-- MAIN COLUMN -->

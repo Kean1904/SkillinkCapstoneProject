@@ -404,7 +404,7 @@ class HouseholdClientController extends Controller
             'workerUsername' => 'required|string',
             'serviceCategory' => 'required|string',
             'taskDescription' => 'required|string',
-            'scheduledDate' => 'required|date',
+            'scheduledDate' => 'required|string',
             'serviceAddress' => 'required|string',
             'barangay' => 'required|string',
         ]);
@@ -415,19 +415,33 @@ class HouseholdClientController extends Controller
             ->first();
 
         // 🌟 RULE 1: STRICT AVAILABILITY CHECK
-        $existingBooking = Booking::where(function($q) use ($validated, $worker) {
-                $q->where('worker_username', $validated['workerUsername']);
-                if ($worker) {
-                    $q->orWhere('worker_username', $worker->name)
-                      ->orWhere('worker_id', $worker->user_id);
-                }
-            })
-            ->whereDate('scheduled_date', $validated['scheduledDate'])
-            ->whereIn('status', ['PENDING', 'ACCEPTED', 'CONFIRMED', 'ASSIGNED', 'IN_PROGRESS', 'IN PROGRESS'])
-            ->exists();
+        $parsedDate = null;
+        if (!empty($validated['scheduledDate'])) {
+            $rawDate = trim(explode('(', $validated['scheduledDate'])[0]);
+            $ts = strtotime($rawDate);
+            if ($ts !== false) {
+                $parsedDate = date('Y-m-d', $ts);
+            }
+        }
 
-        if ($existingBooking) {
-            return back()->withInput()->with('error', "Pinaalala: Hindi available ang skilled worker na si {$validated['workerUsername']} sa napiling petsa ({$validated['scheduledDate']}) dahil may existing confirmed booking na ito. Pumili ng ibang clickable na available date sa calendar.");
+        if ($parsedDate) {
+            $existingBooking = Booking::where(function($q) use ($validated, $worker) {
+                    $q->where('worker_username', $validated['workerUsername']);
+                    if ($worker) {
+                        $q->orWhere('worker_username', $worker->name)
+                          ->orWhere('worker_id', $worker->user_id);
+                    }
+                })
+                ->where(function($q) use ($parsedDate, $validated) {
+                    $q->whereDate('scheduled_date', $parsedDate)
+                      ->orWhere('scheduled_date', 'like', "%{$parsedDate}%");
+                })
+                ->whereIn('status', ['PENDING', 'ACCEPTED', 'CONFIRMED', 'ASSIGNED', 'IN_PROGRESS', 'IN PROGRESS'])
+                ->exists();
+
+            if ($existingBooking) {
+                return back()->withInput()->with('error', "Pinaalala: Hindi available ang skilled worker na si {$validated['workerUsername']} sa napiling petsa ({$validated['scheduledDate']}) dahil may existing confirmed booking na ito. Pumili ng ibang clickable na available date sa calendar.");
+            }
         }
 
         // 🌟 RULE 2: FIXED ESTIMATED COST
