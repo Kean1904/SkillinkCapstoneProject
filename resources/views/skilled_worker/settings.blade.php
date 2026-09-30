@@ -301,16 +301,6 @@
                         <span class="slider"></span>
                     </label>
                 </div>
-                <div class="settings-row" style="cursor: default;">
-                    <div>
-                        <p class="row-title">SMS Notifications</p>
-                        <p class="row-sub">Receive direct client booking requests via SMS</p>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox">
-                        <span class="slider"></span>
-                    </label>
-                </div>
             </div>
 
             <!-- 3. LEGAL & COMPLIANCE -->

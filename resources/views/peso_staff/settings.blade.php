@@ -298,16 +298,6 @@
                         <span class="slider"></span>
                     </label>
                 </div>
-                <div class="settings-row" style="cursor: default;">
-                    <div>
-                        <p class="row-title">Municipal SMS Broadcasts</p>
-                        <p class="row-sub">Send critical urgent alerts to duty officer mobile phone</p>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox">
-                        <span class="slider"></span>
-                    </label>
-                </div>
             </div>
 
             <!-- 3. LEGAL & COMPLIANCE -->
