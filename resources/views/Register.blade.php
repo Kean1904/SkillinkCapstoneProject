@@ -474,7 +474,7 @@ $tesdaCertificates = [
                     <!-- Age / Sex-Gender -->
                     <div class="form-row">
                         <div class="input-group">
-                            <input type="number" name="age" id="ageInput" placeholder="Age (18+)" min="18" max="100" value="{{ old('age') }}" oninput="checkAgeRequirement()" required>
+                            <input type="number" name="age" id="ageInput" placeholder="Age" min="18" max="100" value="{{ old('age') }}" oninput="checkAgeRequirement()" required>
                         </div>
                         <div class="input-group select-wrapper">
                             <select name="gender" required>
