@@ -94,8 +94,8 @@ class BrevoOtpService
 
         try {
             Mail::html($htmlContent, function ($message) use ($recipientEmail, $recipientName, $otp) {
-                $fromAddress = config('mail.from.address', 'peso.skillink.magalang@gmail.com');
-                $fromName    = config('mail.from.name', 'PESO Magalang - SKILLINK');
+                $fromAddress = env('MAIL_FROM_ADDRESS') ?: config('mail.from.address', 'keanashleym@gmail.com');
+                $fromName    = env('MAIL_FROM_NAME') ?: config('mail.from.name', 'PESO Magalang - SKILLINK');
 
                 $message->from($fromAddress, $fromName)
                         ->to($recipientEmail, $recipientName)
