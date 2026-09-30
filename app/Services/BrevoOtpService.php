@@ -98,10 +98,13 @@ class BrevoOtpService
         ';
 
         // 1. FIRST ATTEMPT: Brevo REST API via HTTPS (Port 443 - Never blocked by Railway/Firewalls)
+        $apiError = null;
+        $activeApiKey = env('BREVO_API_KEY') ?: $smtpKey;
+
         try {
             $apiResponse = Http::timeout(6)
                 ->withHeaders([
-                    'api-key'      => $smtpKey,
+                    'api-key'      => $activeApiKey,
                     'Content-Type' => 'application/json',
                     'Accept'       => 'application/json',
                 ])
@@ -128,16 +131,26 @@ class BrevoOtpService
                     'error'   => null,
                 ];
             } else {
-                Log::warning("Brevo REST API response: " . $apiResponse->status() . " - " . $apiResponse->body());
+                $body = $apiResponse->json();
+                $apiError = $body['message'] ?? $apiResponse->body();
+                Log::warning("Brevo REST API response (" . $apiResponse->status() . "): " . $apiError);
             }
         } catch (\Throwable $apiEx) {
-            Log::warning("Brevo REST API call failed: " . $apiEx->getMessage());
+            $apiError = $apiEx->getMessage();
+            Log::warning("Brevo REST API call failed: " . $apiError);
         }
 
-        // 2. SECOND ATTEMPT: Brevo SMTP Relay (Explicit configuration bypasses missing Railway env vars)
+        // 2. SECOND ATTEMPT: Brevo SMTP Relay
         $smtpErrors = [];
-        $portsToTry = [587, 2525]; // Port 2525 is Brevo's official bypass for blocked port 587
+        if ($apiError) {
+            if (str_starts_with($activeApiKey, 'xsmtpsib-')) {
+                $smtpErrors[] = "Brevo API requires an API key (xkeysib-), while an SMTP key (xsmtpsib-) is currently configured.";
+            } else {
+                $smtpErrors[] = "Brevo API: " . $apiError;
+            }
+        }
 
+        $portsToTry = [587, 2525];
         foreach ($portsToTry as $port) {
             try {
                 config([
@@ -148,12 +161,11 @@ class BrevoOtpService
                     'mail.mailers.smtp.encryption' => 'tls',
                     'mail.mailers.smtp.username'   => env('MAIL_USERNAME') ?: 'ba9897001@smtp-brevo.com',
                     'mail.mailers.smtp.password'   => $smtpKey,
-                    'mail.mailers.smtp.timeout'    => 8,
+                    'mail.mailers.smtp.timeout'    => 6,
                     'mail.from.address'            => $senderEmail,
                     'mail.from.name'               => $senderName,
                 ]);
 
-                // Force reset Symfony Mailer transport instance in Laravel
                 app()->forgetInstance('mailer');
 
                 Mail::html($htmlContent, function ($message) use ($recipientEmail, $recipientName, $otp, $senderEmail, $senderName) {
@@ -172,7 +184,7 @@ class BrevoOtpService
             } catch (\Throwable $smtpEx) {
                 $msg = $smtpEx->getMessage();
                 Log::error("Brevo SMTP Port {$port} Failed for {$recipientEmail}: " . $msg);
-                $smtpErrors[] = "Port {$port}: {$msg}";
+                $smtpErrors[] = "Railway SMTP Port {$port} blocked (Connection timed out)";
             }
         }
 
