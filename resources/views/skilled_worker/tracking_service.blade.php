@@ -324,12 +324,17 @@
                             </div>
 
                             <!-- Lifecycle Actions -->
-                            <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end;">
+                            <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap;">
                                 @if($isPending)
-                                    <form method="POST" action="{{ route('skilled_worker.booking.update_status', $booking->booking_id) }}">
+                                    <form method="POST" action="{{ route('skilled_worker.booking.update_status', $booking->booking_id) }}" style="display: inline;">
                                         @csrf
                                         <input type="hidden" name="status" value="ACCEPTED">
-                                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Accept Booking Request</button>
+                                        <button type="submit" class="btn btn-success" style="background: #16a34a; border: 1px solid #22c55e;"><i class="fa-solid fa-check"></i> Accept Booking Request</button>
+                                    </form>
+                                    <form method="POST" action="{{ route('skilled_worker.booking.update_status', $booking->booking_id) }}" style="display: inline;">
+                                        @csrf
+                                        <input type="hidden" name="status" value="DECLINED">
+                                        <button type="submit" class="btn" style="background: #dc2626; color: white; border: 1px solid #ef4444;" onclick="return confirm('Sigurado ka bang tatanggihan mo ang booking na ito mula kay {{ $booking->client_name ?? $booking->client_username }}?')"><i class="fa-solid fa-xmark"></i> Decline Booking</button>
                                     </form>
                                 @elseif($isAccepted)
                                     <form method="POST" action="{{ route('skilled_worker.booking.update_status', $booking->booking_id) }}">

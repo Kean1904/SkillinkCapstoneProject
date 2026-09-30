@@ -54,7 +54,9 @@ Route::post('/user/consent/accept', [LoginController::class, 'acceptConsent'])->
 |--------------------------------------------------------------------------
 */
 Route::get('/dashboard/SkilledWorker', function () {
-    $worker = \App\Models\User::where('name', session('user_name'))->first()
+    $worker = (\Illuminate\Support\Facades\Auth::check() ? \Illuminate\Support\Facades\Auth::user() : null)
+        ?? \App\Models\User::where('name', session('user_name'))->first()
+        ?? \App\Models\User::where('user_id', session('user_id'))->first()
         ?? \App\Models\User::where('role', 'skilled worker')->first()
         ?? new \App\Models\User(['name' => 'juan_plumber', 'first_name' => 'Juan', 'last_name' => 'Dela Cruz']);
 
@@ -63,13 +65,29 @@ Route::get('/dashboard/SkilledWorker', function () {
           ->orWhere('applicant_username', '');
     })->whereNotIn('status', ['Completed', 'Cancelled'])->count();
 
-    $pendingJobs = \App\Models\JobPost::whereNotNull('applicant_username')
-        ->where('applicant_username', '!=', '')
-        ->whereNotIn('status', ['Completed', 'Cancelled'])
+    // Pending bookings & jobs for this specific worker
+    $pendingJobs = \App\Models\Booking::where(function($q) use ($worker) {
+            $q->where('worker_username', $worker->name)
+              ->orWhere('worker_id', $worker->user_id)
+              ->orWhereRaw('LOWER(worker_username) = ?', [strtolower($worker->name)]);
+        })
+        ->whereNotIn('status', ['COMPLETED', 'CANCELLED', 'REJECTED'])
         ->count();
 
     $jobsList = \App\Models\JobPost::whereNotIn('status', ['Completed', 'Cancelled'])->latest('created_at')->take(10)->get();
-    return view('dashboard.SkilledWorker', compact('availableJobs', 'pendingJobs', 'jobsList', 'worker'));
+
+    // Fetch incoming service requests (direct bookings from household clients)
+    $serviceRequests = \App\Models\Booking::where(function($q) use ($worker) {
+            $q->where('worker_username', $worker->name)
+              ->orWhere('worker_id', $worker->user_id)
+              ->orWhereRaw('LOWER(worker_username) = ?', [strtolower($worker->name)]);
+        })
+        ->whereNotIn('status', ['COMPLETED', 'CANCELLED', 'REJECTED'])
+        ->latest('created_at')
+        ->take(5)
+        ->get();
+
+    return view('dashboard.SkilledWorker', compact('availableJobs', 'pendingJobs', 'jobsList', 'worker', 'serviceRequests'));
 })->name('dashboard.SkilledWorker');
 
 Route::get('/skilled-worker/tracking-service', [SkilledWorkerWebController::class, 'trackingService'])->name('skilled_worker.tracking_service');
@@ -103,6 +121,7 @@ Route::post('/household-client/booking/create', [HouseholdClientController::clas
 Route::get('/household-client/job-posts', [HouseholdClientController::class, 'jobPosts'])->name('household_client.job_posts');
 Route::post('/household-client/job/create', [HouseholdClientController::class, 'createJob'])->name('household_client.job.create');
 Route::post('/household-client/job/{id}/complete', [HouseholdClientController::class, 'completeJob'])->name('household_client.job.complete');
+Route::post('/household-client/application/{id}/respond', [HouseholdClientController::class, 'respondApplication'])->name('household_client.application.respond');
 Route::get('/household-client/profile', [HouseholdClientController::class, 'profile'])->name('household_client.profile');
 Route::post('/household-client/profile/update', [HouseholdClientController::class, 'updateProfile'])->name('household_client.profile.update');
 Route::get('/household-client/settings', [HouseholdClientController::class, 'settings'])->name('household_client.settings');
@@ -110,6 +129,7 @@ Route::post('/household-client/password/update', [HouseholdClientController::cla
 
 // Backward compatibility aliases
 Route::get('/residential/hiring-history', [HouseholdClientController::class, 'hiringHistory'])->name('residential.hiring_history');
+Route::post('/residential/application/{id}/respond', [HouseholdClientController::class, 'respondApplication'])->name('residential.application.respond');
 Route::post('/residential/review/submit', [HouseholdClientController::class, 'submitReview'])->name('residential.review.submit');
 Route::post('/residential/complaint/submit', [HouseholdClientController::class, 'submitComplaint'])->name('residential.complaint.submit');
 Route::get('/residential/saved-workers', [HouseholdClientController::class, 'savedWorkers'])->name('residential.saved_workers');

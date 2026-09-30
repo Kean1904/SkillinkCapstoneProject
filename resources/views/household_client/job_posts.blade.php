@@ -282,13 +282,30 @@
                                     </div>
                                 @endif
 
-                                <div>
-                                    <form method="POST" action="{{ route('household_client.job.complete', $job->request_id) }}" style="display: inline;">
-                                        @csrf
-                                        <button type="submit" class="btn btn-success" style="padding: 7px 14px; font-size: 12px;" onclick="return confirm('Sigurado ka bang tapos na ang trabaho para sa \'{{ $job->title }}\'? Awtomatiko itong mawawala sa active list.')">
-                                            <i class="fa-solid fa-circle-check"></i> Mark as Completed
-                                        </button>
-                                    </form>
+                                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                                    @if(!empty($job->applicant_username) && strtolower($job->status) === 'applied')
+                                        <form method="POST" action="{{ route('household_client.application.respond', $job->request_id) }}" style="display: inline;">
+                                            @csrf
+                                            <input type="hidden" name="action" value="accept">
+                                            <button type="submit" class="btn" style="background: #16a34a; color: white; padding: 7px 12px; font-size: 12px; font-weight: bold; border: 1px solid #22c55e;">
+                                                <i class="fa-solid fa-check"></i> Accept Application
+                                            </button>
+                                        </form>
+                                        <form method="POST" action="{{ route('household_client.application.respond', $job->request_id) }}" style="display: inline;">
+                                            @csrf
+                                            <input type="hidden" name="action" value="decline">
+                                            <button type="submit" class="btn" style="background: #dc2626; color: white; padding: 7px 12px; font-size: 12px; font-weight: bold; border: 1px solid #ef4444;" onclick="return confirm('Sigurado ka bang tatanggihan mo ang aplikasyong ito?')">
+                                                <i class="fa-solid fa-xmark"></i> Decline
+                                            </button>
+                                        </form>
+                                    @else
+                                        <form method="POST" action="{{ route('household_client.job.complete', $job->request_id) }}" style="display: inline;">
+                                            @csrf
+                                            <button type="submit" class="btn btn-success" style="padding: 7px 14px; font-size: 12px;" onclick="return confirm('Sigurado ka bang tapos na ang trabaho para sa \'{{ $job->title }}\'? Awtomatiko itong mawawala sa active list.')">
+                                                <i class="fa-solid fa-circle-check"></i> Mark as Completed
+                                            </button>
+                                        </form>
+                                    @endif
                                 </div>
                             </div>
                         </div>

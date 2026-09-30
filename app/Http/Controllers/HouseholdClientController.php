@@ -17,8 +17,14 @@ class HouseholdClientController extends Controller
 {
     private function getCurrentUser()
     {
+        if (\Illuminate\Support\Facades\Auth::check()) {
+            return \Illuminate\Support\Facades\Auth::user();
+        }
         $username = Session::get('user_name');
-        return User::where('name', $username)->first()
+        $userId = Session::get('user_id');
+        return User::where('name', $username)
+            ->orWhere('user_id', $userId)
+            ->first()
             ?? User::whereIn('role', ['household client', 'household_client', 'residential'])->first()
             ?? new User(['name' => 'Testing 1', 'first_name' => 'Khane Hendrix', 'last_name' => 'Torres']);
     }
@@ -52,12 +58,40 @@ class HouseholdClientController extends Controller
     public function hiringHistory()
     {
         $user = $this->getCurrentUser();
-        $activeBookings = Booking::where('client_username', $user->name)
+
+        // 1. Pending Job Applications from Skilled Workers awaiting Client Confirmation
+        $pendingApplications = JobPost::where(function ($q) use ($user) {
+                $q->where('client_id', $user->user_id)
+                  ->orWhere('posted_by', $user->name)
+                  ->orWhereRaw('LOWER(posted_by) = ?', [strtolower($user->name)]);
+            })
+            ->whereNotNull('applicant_username')
+            ->where('applicant_username', '!=', '')
+            ->whereIn('status', ['Applied', 'Pending Confirmation', 'APPLIED'])
+            ->latest('updated_at')
+            ->get();
+
+        foreach ($pendingApplications as $app) {
+            $app->applicant_worker = User::where('name', $app->applicant_username)
+                ->orWhere('user_id', $app->applicant_username)
+                ->orWhereRaw('LOWER(name) = ?', [strtolower($app->applicant_username)])
+                ->first();
+        }
+
+        // 2. Active & Ongoing Service Bookings
+        $activeBookings = Booking::where(function($q) use ($user) {
+                $q->where('client_username', $user->name)
+                  ->orWhereRaw('LOWER(client_username) = ?', [strtolower($user->name)]);
+            })
             ->whereNotIn('status', ['COMPLETED', 'CANCELLED'])
             ->latest('created_at')
             ->get();
 
-        $completedBookings = Booking::where('client_username', $user->name)
+        // 3. Completed Bookings
+        $completedBookings = Booking::where(function($q) use ($user) {
+                $q->where('client_username', $user->name)
+                  ->orWhereRaw('LOWER(client_username) = ?', [strtolower($user->name)]);
+            })
             ->where('status', 'COMPLETED')
             ->latest('completion_date')
             ->latest('created_at')
@@ -128,7 +162,7 @@ class HouseholdClientController extends Controller
 
         $bookings = $activeBookings;
 
-        return view('household_client.hiring_history', compact('user', 'activeBookings', 'completedBookings', 'bookings'));
+        return view('household_client.hiring_history', compact('user', 'pendingApplications', 'activeBookings', 'completedBookings', 'bookings'));
     }
 
     public function submitReview(Request $request)
@@ -375,10 +409,19 @@ class HouseholdClientController extends Controller
             'barangay' => 'required|string',
         ]);
 
-        $worker = User::where('name', $validated['workerUsername'])->first();
+        $worker = User::where('name', $validated['workerUsername'])
+            ->orWhere('user_id', $validated['workerUsername'])
+            ->orWhereRaw('LOWER(name) = ?', [strtolower($validated['workerUsername'])])
+            ->first();
 
         // 🌟 RULE 1: STRICT AVAILABILITY CHECK
-        $existingBooking = Booking::where('worker_username', $validated['workerUsername'])
+        $existingBooking = Booking::where(function($q) use ($validated, $worker) {
+                $q->where('worker_username', $validated['workerUsername']);
+                if ($worker) {
+                    $q->orWhere('worker_username', $worker->name)
+                      ->orWhere('worker_id', $worker->user_id);
+                }
+            })
             ->whereDate('scheduled_date', $validated['scheduledDate'])
             ->whereIn('status', ['PENDING', 'ACCEPTED', 'CONFIRMED', 'ASSIGNED', 'IN_PROGRESS', 'IN PROGRESS'])
             ->exists();
@@ -421,9 +464,9 @@ class HouseholdClientController extends Controller
         $booking = Booking::create([
             'booking_reference' => $refNumber,
             'request_id' => 1,
-            'worker_id' => $workerProfile ? $workerProfile->worker_id : 1,
+            'worker_id' => $worker ? $worker->user_id : ($workerProfile ? $workerProfile->worker_id : 1),
             'client_username' => $user->name,
-            'worker_username' => $validated['workerUsername'],
+            'worker_username' => $worker ? $worker->name : $validated['workerUsername'],
             'client_name' => $user->full_name,
             'worker_name' => $worker ? $worker->full_name : $validated['workerUsername'],
             'service_category' => $validated['serviceCategory'],
@@ -578,5 +621,68 @@ class HouseholdClientController extends Controller
         $user->save();
 
         return back()->with('success', 'Your password has been changed successfully!');
+    }
+
+    public function respondApplication(Request $request, $id)
+    {
+        $job = JobPost::findOrFail($id);
+        $action = strtolower($request->input('action', 'accept'));
+        $user = $this->getCurrentUser();
+
+        $worker = User::where('name', $job->applicant_username)
+            ->orWhere('user_id', $job->applicant_username)
+            ->orWhereRaw('LOWER(name) = ?', [strtolower($job->applicant_username)])
+            ->first();
+
+        $workerName = $worker ? $worker->full_name : $job->applicant_username;
+
+        if ($action === 'accept') {
+            $job->status = 'Accepted';
+            $job->save();
+
+            // Create or sync into service_bookings so it appears in both client's and worker's tracking!
+            $refNumber = 'SRV-' . strtoupper(substr(uniqid(), -6));
+            $booking = Booking::create([
+                'booking_reference' => $refNumber,
+                'request_id' => $job->request_id,
+                'worker_id' => $worker ? $worker->user_id : 1,
+                'client_username' => $user->name,
+                'worker_username' => $worker ? $worker->name : $job->applicant_username,
+                'client_name' => $user->full_name,
+                'worker_name' => $workerName,
+                'service_category' => $job->category,
+                'task_description' => $job->title . ': ' . $job->description,
+                'service_address' => $job->location_tag ?? ('Brgy. ' . $job->barangay),
+                'barangay' => $job->barangay,
+                'estimated_budget' => '₱500.00',
+                'scheduled_date' => $job->preferred_schedule ?: now()->toDateString(),
+                'status' => 'ACCEPTED',
+            ]);
+
+            \App\Models\AuditLog::log(
+                'APPLICATION_ACCEPTED',
+                "Household Client {$user->name} accepted application of worker {$job->applicant_username} for job '{$job->title}'. Booking {$refNumber} created.",
+                $user->name,
+                'Household Client',
+                $user->user_id
+            );
+
+            return back()->with('success', "Matagumpay mong tinanggap ang aplikasyon ni {$workerName} (@{$job->applicant_username})! Nagsimula na ang inyong aktibong booking ({$refNumber}).");
+        } else {
+            $rejectedApplicant = $job->applicant_username;
+            $job->applicant_username = null;
+            $job->status = 'Pending';
+            $job->save();
+
+            \App\Models\AuditLog::log(
+                'APPLICATION_DECLINED',
+                "Household Client {$user->name} declined application of worker {$rejectedApplicant} for job '{$job->title}'.",
+                $user->name,
+                'Household Client',
+                $user->user_id
+            );
+
+            return back()->with('warning', "Tinanggihan ang aplikasyon ni {$rejectedApplicant}. Bukas muli ang job posting para sa ibang manggagawa mula sa Magalang.");
+        }
     }
 }

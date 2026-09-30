@@ -684,9 +684,31 @@
                     </div>
 
                     <div class="panel">
-                        <h3>Service Request</h3>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h3 style="margin: 0;"><i class="fa-solid fa-calendar-check" style="color: #60a5fa;"></i> Service Request</h3>
+                            <a href="{{ route('skilled_worker.tracking_service') }}" style="color: #93c5fd; font-size: 11px; text-decoration: none;">View All &rarr;</a>
+                        </div>
                         <hr>
-                        <div class="no-data">No Data</div>
+                        @if(isset($serviceRequests) && count($serviceRequests) > 0)
+                            <div style="display: flex; flex-direction: column; gap: 10px;">
+                                @foreach($serviceRequests as $req)
+                                    <div style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 10px;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                                            <strong style="color: #93c5fd; font-size: 12px;">{{ $req->booking_reference }}</strong>
+                                            <span style="font-size: 10px; background: rgba(234, 179, 8, 0.3); color: #fef08a; padding: 2px 6px; border-radius: 4px; font-weight: bold;">{{ $req->status }}</span>
+                                        </div>
+                                        <div style="font-size: 12.5px; font-weight: bold; margin: 4px 0 2px 0;">{{ $req->service_category }}</div>
+                                        <div style="font-size: 11px; opacity: 0.85;">Client: {{ $req->client_name ?? $req->client_username }}</div>
+                                        <div style="font-size: 11px; opacity: 0.85; color: #86efac; font-weight: bold;">Budget: {{ $req->estimated_budget }}</div>
+                                        <div style="margin-top: 6px; text-align: right;">
+                                            <a href="{{ route('skilled_worker.tracking_service') }}" style="background: #2563eb; color: white; padding: 3px 8px; border-radius: 4px; font-size: 10.5px; text-decoration: none; font-weight: bold;">Open in Tracking</a>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <div class="no-data">No Data</div>
+                        @endif
                     </div>
                 </div>
 

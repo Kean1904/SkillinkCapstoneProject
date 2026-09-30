@@ -248,6 +248,83 @@
                 </div>
             @endif
 
+            <!-- 0. INCOMING JOB APPLICATIONS FROM SKILLED WORKERS (AWAITING CONFIRMATION) -->
+            @if(isset($pendingApplications) && count($pendingApplications) > 0)
+                <div class="card" style="background: rgba(30, 64, 175, 0.7); border: 2px solid #60a5fa; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                        <h3>
+                            <i class="fa-solid fa-bell" style="color: #facc15;"></i>
+                            Incoming Applications from Skilled Workers ({{ count($pendingApplications) }})
+                        </h3>
+                        <span style="font-size: 11.5px; background: rgba(234, 179, 8, 0.3); border: 1px solid #facc15; color: #fef08a; padding: 4px 10px; border-radius: 20px; font-weight: bold;">
+                            <i class="fa-solid fa-hourglass-start"></i> Confirmation Required
+                        </span>
+                    </div>
+                    <p style="font-size: 13px; opacity: 0.9; margin-top: 4px;">
+                        May mga manggagawang nag-apply sa iyong ipinosteng trabaho sa Magalang. Piliin kung <strong>Accept</strong> o <strong>Decline</strong> ang kanilang aplikasyon.
+                    </p>
+                    <hr>
+
+                    @foreach($pendingApplications as $app)
+                        <div style="background: rgba(15, 23, 42, 0.55); border: 1px solid rgba(255,255,255,0.25); border-radius: 10px; padding: 18px; margin-bottom: 14px;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px;">
+                                <div>
+                                    <span style="font-size: 11.5px; background: #2563eb; color: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; text-transform: uppercase;">Job Need Post #{{ $app->request_id }}</span>
+                                    <h4 style="font-size: 18px; color: #ffffff; margin-top: 5px;">{{ $app->title }}</h4>
+                                    <p style="font-size: 13px; opacity: 0.9; margin: 4px 0 8px 0;">{{ $app->description }}</p>
+                                    <div style="font-size: 11.5px; opacity: 0.85; display: flex; gap: 15px; flex-wrap: wrap;">
+                                        <span><i class="fa-solid fa-tag" style="color: #60a5fa;"></i> {{ $app->category }}</span>
+                                        <span><i class="fa-solid fa-location-dot" style="color: #f87171;"></i> {{ $app->location_tag ?? ('Brgy. ' . $app->barangay) }}</span>
+                                        <span><i class="fa-regular fa-calendar"></i> Posted: {{ $app->date_posted }}</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <span class="badge" style="background: rgba(234, 179, 8, 0.3); color: #fef08a; border: 1px solid #eab308;">APPLIED • PENDING CONFIRMATION</span>
+                                </div>
+                            </div>
+
+                            <div style="margin-top: 14px; background: rgba(255,255,255,0.08); border-radius: 8px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div style="width: 40px; height: 40px; border-radius: 50%; background: #0033a0; border: 2px solid #60a5fa; display: flex; align-items: center; justify-content: center; font-size: 18px; color: white;">
+                                        <i class="fa-solid fa-user-gear"></i>
+                                    </div>
+                                    <div>
+                                        <div style="font-size: 14px; font-weight: bold; color: #ffffff;">
+                                            {{ $app->applicant_worker ? $app->applicant_worker->full_name : $app->applicant_username }}
+                                            <span style="font-size: 12px; color: #93c5fd; font-weight: normal;">(@ {{ $app->applicant_username }})</span>
+                                        </div>
+                                        <div style="font-size: 11.5px; color: #cbd5e1;">
+                                            @if($app->applicant_worker && !empty($app->applicant_worker->skills))
+                                                <span>Skills: {{ $app->applicant_worker->skills }}</span> &bull;
+                                            @endif
+                                            <span>Brgy. {{ $app->applicant_worker ? $app->applicant_worker->barangay : $app->barangay }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Confirmation Actions: Accept / Decline -->
+                                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                                    <form method="POST" action="{{ route('household_client.application.respond', $app->request_id) }}" style="display: inline;">
+                                        @csrf
+                                        <input type="hidden" name="action" value="accept">
+                                        <button type="submit" class="btn" style="background: #16a34a; color: white; border: 1px solid #22c55e; font-weight: bold;">
+                                            <i class="fa-solid fa-check"></i> Accept Application
+                                        </button>
+                                    </form>
+                                    <form method="POST" action="{{ route('household_client.application.respond', $app->request_id) }}" style="display: inline;">
+                                        @csrf
+                                        <input type="hidden" name="action" value="decline">
+                                        <button type="submit" class="btn" style="background: #dc2626; color: white; border: 1px solid #ef4444; font-weight: bold;" onclick="return confirm('Sigurado ka bang tatanggihan mo ang aplikasyon ni {{ $app->applicant_username }}?')">
+                                            <i class="fa-solid fa-xmark"></i> Decline
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+
             <!-- ACTIVE SERVICE BOOKINGS -->
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">

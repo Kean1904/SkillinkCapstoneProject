@@ -16,8 +16,14 @@ class SkilledWorkerWebController extends Controller
 {
     private function getCurrentWorker()
     {
+        if (\Illuminate\Support\Facades\Auth::check()) {
+            return \Illuminate\Support\Facades\Auth::user();
+        }
         $username = Session::get('user_name');
-        return User::where('name', $username)->first() 
+        $userId = Session::get('user_id');
+        return User::where('name', $username)
+            ->orWhere('user_id', $userId)
+            ->first() 
             ?? User::where('role', 'skilled worker')->first()
             ?? new User(['name' => 'juan_plumber', 'first_name' => 'Juan', 'last_name' => 'Dela Cruz']);
     }
@@ -25,12 +31,22 @@ class SkilledWorkerWebController extends Controller
     public function trackingService()
     {
         $worker = $this->getCurrentWorker();
-        $activeBookings = Booking::where('worker_username', $worker->name)
+        $activeBookings = Booking::where(function($q) use ($worker) {
+                $q->where('worker_username', $worker->name)
+                  ->orWhere('worker_id', $worker->user_id)
+                  ->orWhereRaw('LOWER(worker_username) = ?', [strtolower($worker->name)])
+                  ->orWhere('worker_name', $worker->full_name);
+            })
             ->whereNotIn('status', ['COMPLETED', 'CANCELLED', 'REJECTED'])
             ->latest('created_at')
             ->get();
 
-        $completedBookings = Booking::where('worker_username', $worker->name)
+        $completedBookings = Booking::where(function($q) use ($worker) {
+                $q->where('worker_username', $worker->name)
+                  ->orWhere('worker_id', $worker->user_id)
+                  ->orWhereRaw('LOWER(worker_username) = ?', [strtolower($worker->name)])
+                  ->orWhere('worker_name', $worker->full_name);
+            })
             ->where('status', 'COMPLETED')
             ->latest('completion_date')
             ->latest('created_at')
@@ -59,7 +75,10 @@ class SkilledWorkerWebController extends Controller
                     })->exists();
         }
 
-        $activeAppliedJobs = JobPost::where('applicant_username', $worker->name)
+        $activeAppliedJobs = JobPost::where(function($q) use ($worker) {
+                $q->where('applicant_username', $worker->name)
+                  ->orWhereRaw('LOWER(applicant_username) = ?', [strtolower($worker->name)]);
+            })
             ->whereNotIn('status', ['Completed', 'Cancelled'])
             ->latest('created_at')
             ->get();
