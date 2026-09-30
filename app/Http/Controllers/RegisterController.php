@@ -9,21 +9,54 @@ use Illuminate\Support\Facades\DB;
 
 class RegisterController extends Controller
 {
+    public function checkUsername(Request $request)
+    {
+        $username = trim($request->query('username', ''));
+        if ($username === '') {
+            return response()->json([
+                'exists'    => false,
+                'available' => false,
+                'message'   => 'Pakilagay ang username'
+            ]);
+        }
+
+        $exists = User::whereRaw('LOWER(name) = ?', [strtolower($username)])->exists();
+
+        if ($exists) {
+            return response()->json([
+                'exists'    => true,
+                'available' => false,
+                'message'   => 'Username has already exist'
+            ]);
+        }
+
+        return response()->json([
+            'exists'    => false,
+            'available' => true,
+            'message'   => 'Username is available'
+        ]);
+    }
+
     public function store(Request $request)
     {
         // 1. Validate the data
         $validated = $request->validate([
             'first_name'  => 'required|string|max:255',
             'last_name'   => 'required|string|max:255',
-            'age'         => 'required|integer|min:15|max:100',
+            'age'         => 'required|integer|min:18|max:100',
             'gender'      => 'required|string',
             'address'     => 'required|string|max:255',
             'barangay'    => 'required|string|max:255',
             'email'       => 'required|email|unique:users,email',
             'cellphone'   => 'required|string|max:11',
             'role'        => 'required|string',
-            'username'    => 'required|string|max:255|unique:users,name',
+            'username'    => 'required|string|min:4|max:16|unique:users,name',
             'password'    => 'required|string|min:6',
+        ], [
+            'username.unique' => 'Username has already exist',
+            'username.max'    => 'Ang username ay may maximum na 16 characters lamang.',
+            'username.min'    => 'Ang username ay dapat may 4 hanggang 16 characters.',
+            'age.min'         => 'Ang minimum na edad ay 18 pataas (bawal ang 17 pababa alinsunod sa batas laban sa child labor).',
         ]);
 
         $role = strtolower(trim($validated['role']));

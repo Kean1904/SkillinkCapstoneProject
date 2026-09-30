@@ -343,6 +343,15 @@ $tesdaCertificates = [
             background: #fff;
         }
 
+        /* USERNAME FIELD WITH STATUS ICON */
+        .username-wrapper {
+            position: relative;
+        }
+
+        .username-wrapper input {
+            padding-right: 40px;
+        }
+
         /* PASSWORD FIELD WITH EYE ICON */
         .password-wrapper {
             position: relative;
@@ -465,16 +474,17 @@ $tesdaCertificates = [
                     <!-- Age / Sex-Gender -->
                     <div class="form-row">
                         <div class="input-group">
-                            <input type="number" name="age" placeholder="Age" min="15" max="100" required>
+                            <input type="number" name="age" id="ageInput" placeholder="Age (18+)" min="18" max="100" value="{{ old('age') }}" oninput="checkAgeRequirement()" required>
                         </div>
                         <div class="input-group select-wrapper">
                             <select name="gender" required>
                                 <option value="" disabled selected hidden>Sex</option>
-                                <option value="Male">Male</option>
-                                <option value="Female">Female</option>
+                                <option value="Male" {{ old('gender') === 'Male' ? 'selected' : '' }}>Male</option>
+                                <option value="Female" {{ old('gender') === 'Female' ? 'selected' : '' }}>Female</option>
                             </select>
                         </div>
                     </div>
+                    <p id="ageHint" style="display: none; font-size: 11px; margin-top: -10px; margin-bottom: 15px; text-align: left; line-height: 1.4;"></p>
 
                     <!-- Address -->
                     <div class="input-group">
@@ -563,8 +573,9 @@ $tesdaCertificates = [
                     </div>
 
                     <!-- Username -->
-                    <div class="input-group">
-                        <input type="text" name="username" id="usernameInput" placeholder="Username" value="{{ old('username') }}" oninput="checkUsernameExtension()" required>
+                    <div class="input-group username-wrapper">
+                        <input type="text" name="username" id="usernameInput" placeholder="Username (12-16 characters)" maxlength="16" value="{{ old('username') }}" oninput="checkUsernameExtension()" required>
+                        <span id="usernameStatusIcon" style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 15px; display: none; pointer-events: none;"></span>
                     </div>
                     <p id="usernameHint" style="display: none; font-size: 11px; margin-top: -10px; margin-bottom: 15px; text-align: left; line-height: 1.4;"></p>
 
@@ -666,54 +677,148 @@ $tesdaCertificates = [
             }
         }
 
+        function checkAgeRequirement() {
+            const ageInput = document.getElementById('ageInput');
+            const ageHint = document.getElementById('ageHint');
+            if (!ageInput || !ageHint) return;
+
+            const valStr = ageInput.value.trim();
+            if (!valStr) {
+                ageHint.style.display = 'none';
+                ageInput.style.borderColor = '';
+                ageInput.setCustomValidity('');
+                return;
+            }
+
+            const val = parseInt(valStr, 10);
+            if (isNaN(val) || val < 18) {
+                ageHint.style.display = 'block';
+                ageHint.style.color = '#fca5a5';
+                ageHint.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> <strong>Bawal ang 17 pababa:</strong> Ang minimum na edad ay 18 pataas alinsunod sa batas laban sa child labor (RA 9231).';
+                ageInput.style.borderColor = '#ef4444';
+                ageInput.setCustomValidity('Ang edad ay dapat 18 pataas. Bawal ang 17 pababa alinsunod sa batas laban sa child labor.');
+            } else {
+                ageHint.style.display = 'block';
+                ageHint.style.color = '#86efac';
+                ageHint.innerHTML = '<i class="fa-solid fa-circle-check"></i> Legal working age (18 pataas).';
+                ageInput.style.borderColor = '#10b981';
+                ageInput.setCustomValidity('');
+            }
+        }
+
+        let usernameCheckTimeout = null;
+
         function checkUsernameExtension() {
             const roleSelect = document.getElementById('roleSelect');
             const usernameInput = document.getElementById('usernameInput');
             const usernameHint = document.getElementById('usernameHint');
-            const role = roleSelect.value;
-            const val = usernameInput.value.trim().toLowerCase();
+            const statusIcon = document.getElementById('usernameStatusIcon');
+            const role = roleSelect ? roleSelect.value : '';
+            const rawVal = usernameInput.value.trim();
+            const val = rawVal.toLowerCase();
 
-            if (!val) {
+            clearTimeout(usernameCheckTimeout);
+
+            if (!rawVal) {
+                if (statusIcon) statusIcon.style.display = 'none';
+                usernameInput.style.borderColor = '';
                 if (role === 'Admin' || role === 'Peso Staff') {
                     return;
                 }
                 usernameHint.style.display = 'none';
+                usernameInput.setCustomValidity('');
                 return;
             }
 
+            // Check role suffix requirements first
             if (role === 'Admin') {
-                usernameHint.style.display = 'block';
-                if (val.endsWith('@admin')) {
-                    usernameHint.style.color = '#86efac';
-                    usernameHint.innerHTML = '<i class="fa-solid fa-circle-check"></i> <strong>Tamang format:</strong> May <code>@Admin</code> / <code>@admin</code> extension.';
-                    usernameInput.setCustomValidity('');
-                } else {
+                if (!val.endsWith('@admin')) {
+                    if (statusIcon) {
+                        statusIcon.style.display = 'block';
+                        statusIcon.style.color = '#f87171';
+                        statusIcon.innerHTML = '<i class="fa-solid fa-circle-xmark"></i>';
+                    }
+                    usernameInput.style.borderColor = '#ef4444';
+                    usernameHint.style.display = 'block';
                     usernameHint.style.color = '#fca5a5';
                     usernameHint.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> <strong>Kulang ng extension:</strong> Ang Admin username ay dapat magtapos sa <strong>@admin</strong> o <strong>@Admin</strong> (hal. <code>' + (val.includes('@') ? val.split('@')[0] : val) + '@Admin</code>).';
                     usernameInput.setCustomValidity('Ang Admin username ay dapat magtapos sa @admin o @Admin');
+                    return;
                 }
             } else if (role === 'Peso Staff') {
-                usernameHint.style.display = 'block';
-                if (val.endsWith('@staff')) {
-                    usernameHint.style.color = '#86efac';
-                    usernameHint.innerHTML = '<i class="fa-solid fa-circle-check"></i> <strong>Tamang format:</strong> May <code>@Staff</code> / <code>@staff</code> extension.';
-                    usernameInput.setCustomValidity('');
-                } else {
+                if (!val.endsWith('@staff')) {
+                    if (statusIcon) {
+                        statusIcon.style.display = 'block';
+                        statusIcon.style.color = '#f87171';
+                        statusIcon.innerHTML = '<i class="fa-solid fa-circle-xmark"></i>';
+                    }
+                    usernameInput.style.borderColor = '#ef4444';
+                    usernameHint.style.display = 'block';
                     usernameHint.style.color = '#fca5a5';
                     usernameHint.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> <strong>Kulang ng extension:</strong> Ang PESO Staff username ay dapat magtapos sa <strong>@staff</strong> o <strong>@Staff</strong> (hal. <code>' + (val.includes('@') ? val.split('@')[0] : val) + '@Staff</code>).';
                     usernameInput.setCustomValidity('Ang PESO Staff username ay dapat magtapos sa @staff o @Staff');
+                    return;
                 }
             } else {
                 if (val.endsWith('@admin') || val.endsWith('@staff')) {
+                    if (statusIcon) {
+                        statusIcon.style.display = 'block';
+                        statusIcon.style.color = '#f87171';
+                        statusIcon.innerHTML = '<i class="fa-solid fa-circle-xmark"></i>';
+                    }
+                    usernameInput.style.borderColor = '#ef4444';
                     usernameHint.style.display = 'block';
                     usernameHint.style.color = '#fca5a5';
                     usernameHint.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Bawal gamitin ang extension na <strong>@admin</strong> o <strong>@staff</strong> para sa mga HouseHold Client o Skilled Worker.';
                     usernameInput.setCustomValidity('Ang @admin at @staff ay para lamang sa mga opisyal.');
-                } else {
-                    usernameHint.style.display = 'none';
-                    usernameInput.setCustomValidity('');
+                    return;
                 }
             }
+
+            // Real-time protocol check if username already exists in database
+            if (statusIcon) {
+                statusIcon.style.display = 'block';
+                statusIcon.style.color = '#93c5fd';
+                statusIcon.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            }
+            usernameHint.style.display = 'block';
+            usernameHint.style.color = 'rgba(255, 255, 255, 0.7)';
+            usernameHint.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sinusuri kung available ang username...';
+
+            usernameCheckTimeout = setTimeout(() => {
+                fetch(`{{ route('username.check') }}?username=${encodeURIComponent(rawVal)}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.exists) {
+                            if (statusIcon) {
+                                statusIcon.style.display = 'block';
+                                statusIcon.style.color = '#f87171';
+                                statusIcon.innerHTML = '<i class="fa-solid fa-circle-xmark"></i>';
+                            }
+                            usernameInput.style.borderColor = '#ef4444';
+                            usernameHint.style.display = 'block';
+                            usernameHint.style.color = '#fca5a5';
+                            usernameHint.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> <strong>Username has already exist</strong>';
+                            usernameInput.setCustomValidity('Username has already exist');
+                        } else if (data.available) {
+                            if (statusIcon) {
+                                statusIcon.style.display = 'block';
+                                statusIcon.style.color = '#4ade80';
+                                statusIcon.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+                            }
+                            usernameInput.style.borderColor = '#10b981';
+                            usernameHint.style.display = 'block';
+                            usernameHint.style.color = '#86efac';
+                            usernameHint.innerHTML = '<i class="fa-solid fa-circle-check"></i> <strong>Username is available</strong> (Wala pang user exist)';
+                            usernameInput.setCustomValidity('');
+                        }
+                    })
+                    .catch(err => {
+                        console.debug('Username check error:', err);
+                        if (statusIcon) statusIcon.style.display = 'none';
+                        usernameInput.setCustomValidity('');
+                    });
+            }, 300);
         }
 
         function checkPasswordStrength() {
@@ -775,6 +880,7 @@ $tesdaCertificates = [
 
         document.addEventListener('DOMContentLoaded', function() {
             onRoleChange();
+            checkAgeRequirement();
         });
     </script>
 

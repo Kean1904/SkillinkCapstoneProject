@@ -39,6 +39,7 @@ Route::get('/Register', function () {
 })->name('Register');
 
 Route::post('/Register', [RegisterController::class, 'store'])->name('Register.submit');
+Route::get('/check-username', [RegisterController::class, 'checkUsername'])->name('username.check');
 
 Route::post('/password/forgot', [LoginController::class, 'forgotPassword'])->name('password.forgot');
 Route::get('/password/reset/{token}', [LoginController::class, 'showResetPasswordForm'])->name('password.reset.form');
