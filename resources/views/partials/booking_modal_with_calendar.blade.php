@@ -70,7 +70,23 @@
                 </div>
                 <div>
                     <label style="display: block; font-size: 11.5px; font-weight: bold; margin-bottom: 4px; color: #e2e8f0;">Barangay (Magalang)</label>
-                    <input type="text" name="barangay" id="bookBarangay" value="San Nicolas 1st" style="width: 100%; padding: 8px 12px; border-radius: 6px; background: rgba(255,255,255,0.12); color: white; border: 1px solid rgba(255,255,255,0.35); font-size: 13px;" required>
+                    <select name="barangay" id="bookBarangay" style="width: 100%; padding: 8px 12px; border-radius: 6px; background: rgba(255,255,255,0.12); color: white; border: 1px solid rgba(255,255,255,0.35); font-size: 13px; cursor: pointer;" required>
+                        @php
+                            $magalangBarangays = [
+                                "Ayala", "Bucanan", "Camias", "Dolores", "Escaler", "La Paz", "Navaling",
+                                "San Agustin", "San Antonio", "San Francisco", "San Ildefonso", "San Isidro",
+                                "San Jose", "San Miguel", "San Nicolas 1st", "San Nicolas 2nd", "San Pablo",
+                                "San Pedro 1st", "San Pedro 2nd", "San Roque", "San Vicente", "Santa Cruz",
+                                "Santa Lucia", "Santa Maria", "Santo Niño", "Santo Rosario", "Turu"
+                            ];
+                            $selectedBarangay = $user->barangay ?? 'San Nicolas 1st';
+                        @endphp
+                        @foreach($magalangBarangays as $bgy)
+                            <option value="{{ $bgy }}" style="color: #1e293b; background: #ffffff;" {{ $selectedBarangay == $bgy ? 'selected' : '' }}>
+                                {{ $bgy }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
             </div>
 
