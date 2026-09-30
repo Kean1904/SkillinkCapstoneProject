@@ -137,6 +137,9 @@ class JobApiController extends Controller
         }
 
         $job->status = $validated['status'];
+        if ($request->has('applicantUsername')) {
+            $job->applicant_username = $request->input('applicantUsername') ?: null;
+        }
         $job->save();
 
         return response()->json([

@@ -59,18 +59,23 @@ class BookingApiController extends Controller
             'scheduledDate' => 'required|string',
         ]);
 
-        $client = User::where('name', $validated['clientUsername'])->first();
-        $worker = User::where('name', $validated['workerUsername'])->first();
-        $workerProfile = $worker ? DB::table('worker_profiles')->where('user_id', $worker->user_id)->first() : null;
+        $client = User::where('name', $validated['clientUsername'])
+            ->orWhere('user_id', $validated['clientUsername'])
+            ->orWhereRaw('LOWER(name) = ?', [strtolower($validated['clientUsername'])])
+            ->first();
+        $worker = User::where('name', $validated['workerUsername'])
+            ->orWhere('user_id', $validated['workerUsername'])
+            ->orWhereRaw('LOWER(name) = ?', [strtolower($validated['workerUsername'])])
+            ->first();
 
-        $refNumber = 'BK-' . rand(100000, 999999);
+        $refNumber = $request->input('id') ?: ('BK-' . rand(100000, 999999));
 
         $booking = Booking::create([
             'booking_reference' => $refNumber,
             'request_id' => 1,
-            'worker_id' => $workerProfile ? $workerProfile->worker_id : 1,
+            'worker_id' => $worker ? $worker->user_id : 1,
             'client_username' => $validated['clientUsername'],
-            'worker_username' => $validated['workerUsername'],
+            'worker_username' => $worker ? $worker->name : $validated['workerUsername'],
             'client_name' => $client ? $client->full_name : $validated['clientUsername'],
             'worker_name' => $worker ? $worker->full_name : $validated['workerUsername'],
             'service_category' => $validated['serviceCategory'],
