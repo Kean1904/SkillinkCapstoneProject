@@ -4,11 +4,12 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
 
 class BrevoOtpService
 {
     /**
-     * Send OTP Authentication email via Brevo SMTP
+     * Send OTP Authentication email via Brevo REST API (HTTPS port 443) or Brevo SMTP Relay.
      *
      * @param string $recipientEmail Email address fetched from the database
      * @param string $recipientName Name of the user
@@ -18,6 +19,10 @@ class BrevoOtpService
      */
     public static function sendPasswordResetOtp(string $recipientEmail, string $recipientName, string $otp, string $resetUrl): array
     {
+        $senderEmail = env('MAIL_FROM_ADDRESS') ?: config('mail.from.address', 'keanashleym@gmail.com');
+        $senderName  = env('MAIL_FROM_NAME') ?: config('mail.from.name', 'PESO Magalang - SKILLINK');
+        $smtpKey     = env('MAIL_PASSWORD') ?: config('mail.mailers.smtp.password', 'xsmtpsib-03926c431c6f9e1f62df9fbbe0cee52cd8ffd4aadc3277c43328da004e9c53b5-EGzNRtotcQ06vb0N');
+
         $htmlContent = '
         <!DOCTYPE html>
         <html>
@@ -92,31 +97,90 @@ class BrevoOtpService
         </html>
         ';
 
+        // 1. FIRST ATTEMPT: Brevo REST API via HTTPS (Port 443 - Never blocked by Railway/Firewalls)
         try {
-            Mail::html($htmlContent, function ($message) use ($recipientEmail, $recipientName, $otp) {
-                $fromAddress = env('MAIL_FROM_ADDRESS') ?: config('mail.from.address', 'keanashleym@gmail.com');
-                $fromName    = env('MAIL_FROM_NAME') ?: config('mail.from.name', 'PESO Magalang - SKILLINK');
+            $apiResponse = Http::timeout(6)
+                ->withHeaders([
+                    'api-key'      => $smtpKey,
+                    'Content-Type' => 'application/json',
+                    'Accept'       => 'application/json',
+                ])
+                ->post('https://api.brevo.com/v3/smtp/email', [
+                    'sender' => [
+                        'name'  => $senderName,
+                        'email' => $senderEmail,
+                    ],
+                    'to' => [
+                        [
+                            'email' => $recipientEmail,
+                            'name'  => $recipientName,
+                        ],
+                    ],
+                    'subject'     => "SKILLINK OTP Authentication Code: [{$otp}]",
+                    'htmlContent' => $htmlContent,
+                ]);
 
-                $message->from($fromAddress, $fromName)
-                        ->to($recipientEmail, $recipientName)
-                        ->subject("SKILLINK OTP Authentication Code: [{$otp}]");
-            });
-
-            Log::info("Brevo OTP email successfully dispatched to {$recipientEmail}.");
-
-            return [
-                'success' => true,
-                'message' => "Matagumpay na naipadala ang OTP sa iyong rehistradong email ({$recipientEmail}).",
-                'error'   => null,
-            ];
-        } catch (\Throwable $e) {
-            Log::error("Brevo OTP Email Dispatch Failed for {$recipientEmail}: " . $e->getMessage());
-
-            return [
-                'success' => false,
-                'message' => "Hindi maipadala ang email sa pamamagitan ng Brevo: " . $e->getMessage(),
-                'error'   => $e->getMessage(),
-            ];
+            if ($apiResponse->successful()) {
+                Log::info("Brevo REST API successfully delivered OTP to {$recipientEmail}.");
+                return [
+                    'success' => true,
+                    'message' => "Matagumpay na naipadala ang OTP sa iyong rehistradong email ({$recipientEmail}).",
+                    'error'   => null,
+                ];
+            } else {
+                Log::warning("Brevo REST API response: " . $apiResponse->status() . " - " . $apiResponse->body());
+            }
+        } catch (\Throwable $apiEx) {
+            Log::warning("Brevo REST API call failed: " . $apiEx->getMessage());
         }
+
+        // 2. SECOND ATTEMPT: Brevo SMTP Relay (Explicit configuration bypasses missing Railway env vars)
+        $smtpErrors = [];
+        $portsToTry = [587, 2525]; // Port 2525 is Brevo's official bypass for blocked port 587
+
+        foreach ($portsToTry as $port) {
+            try {
+                config([
+                    'mail.default'                 => 'smtp',
+                    'mail.mailers.smtp.transport'  => 'smtp',
+                    'mail.mailers.smtp.host'       => env('MAIL_HOST') ?: 'smtp-relay.brevo.com',
+                    'mail.mailers.smtp.port'       => $port,
+                    'mail.mailers.smtp.encryption' => 'tls',
+                    'mail.mailers.smtp.username'   => env('MAIL_USERNAME') ?: 'ba9897001@smtp-brevo.com',
+                    'mail.mailers.smtp.password'   => $smtpKey,
+                    'mail.mailers.smtp.timeout'    => 8,
+                    'mail.from.address'            => $senderEmail,
+                    'mail.from.name'               => $senderName,
+                ]);
+
+                // Force reset Symfony Mailer transport instance in Laravel
+                app()->forgetInstance('mailer');
+
+                Mail::html($htmlContent, function ($message) use ($recipientEmail, $recipientName, $otp, $senderEmail, $senderName) {
+                    $message->from($senderEmail, $senderName)
+                            ->to($recipientEmail, $recipientName)
+                            ->subject("SKILLINK OTP Authentication Code: [{$otp}]");
+                });
+
+                Log::info("Brevo SMTP successfully dispatched OTP to {$recipientEmail} via port {$port}.");
+
+                return [
+                    'success' => true,
+                    'message' => "Matagumpay na naipadala ang OTP sa iyong rehistradong email ({$recipientEmail}).",
+                    'error'   => null,
+                ];
+            } catch (\Throwable $smtpEx) {
+                $msg = $smtpEx->getMessage();
+                Log::error("Brevo SMTP Port {$port} Failed for {$recipientEmail}: " . $msg);
+                $smtpErrors[] = "Port {$port}: {$msg}";
+            }
+        }
+
+        // If all attempts failed
+        return [
+            'success' => false,
+            'message' => "Hindi maipadala ang email sa pamamagitan ng Brevo.",
+            'error'   => implode(' | ', $smtpErrors),
+        ];
     }
 }
