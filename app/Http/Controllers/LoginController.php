@@ -169,9 +169,10 @@ class LoginController extends Controller
         return response()->json([
             'success' => true,
             'email_sent' => $mailResult['success'],
+            'mail_error' => $mailResult['error'] ?? null,
             'message' => $mailResult['success']
                 ? "Matagumpay na naipadala ang 6-digit OTP code sa iyong rehistradong email ({$targetEmail})."
-                : "Na-verify ang account para sa {$targetEmail}.",
+                : "Hindi ma-dispatch ni Brevo ang email sa ngayon: " . ($mailResult['error'] ?? 'SMTP Error'),
             'targetEmail' => $targetEmail,
             'otp' => $otp,
             'resetUrl' => $resetUrl,

@@ -372,36 +372,45 @@
             </p>
 
             <div id="forgotSuccessBox" style="display: none; background: rgba(15, 34, 64, 0.95); border: 1px solid #3b82f6; color: #ecfdf5; padding: 22px 18px; border-radius: 14px; margin-bottom: 18px; text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.4);">
-                <div style="width: 52px; height: 52px; border-radius: 50%; background: rgba(16, 185, 129, 0.2); border: 2px solid #10b981; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto; color: #34d399; font-size: 24px;">
-                    <i class="fa-solid fa-envelope-circle-check"></i>
+                <div id="forgotIconWrap" style="width: 52px; height: 52px; border-radius: 50%; background: rgba(16, 185, 129, 0.2); border: 2px solid #10b981; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px auto; color: #34d399; font-size: 24px;">
+                    <i id="forgotStatusIcon" class="fa-solid fa-envelope-circle-check"></i>
                 </div>
-                <h4 style="font-size: 16px; font-weight: bold; margin: 0 0 6px 0; color: #ffffff;">
+                <h4 id="forgotStatusTitle" style="font-size: 16px; font-weight: bold; margin: 0 0 6px 0; color: #ffffff;">
                     OTP Code Dispatched via Brevo!
                 </h4>
-                <p style="font-size: 13px; color: #cbd5e1; margin: 0 0 10px 0; line-height: 1.5;">
+                <p id="forgotStatusDesc" style="font-size: 13px; color: #cbd5e1; margin: 0 0 10px 0; line-height: 1.5;">
                     Ipinadala ng SKILLINK Security ang iyong 6-digit OTP authentication code sa iyong rehistradong email address sa database:
                 </p>
                 <div style="background: rgba(0, 51, 160, 0.45); border: 1px solid #60a5fa; border-radius: 8px; padding: 8px 14px; margin-bottom: 12px; display: inline-block;">
                     <i class="fa-solid fa-envelope" style="color: #93c5fd; margin-right: 6px;"></i>
                     <strong id="forgotSuccessEmail" style="color: #fde047; font-size: 13.5px; word-break: break-all;"></strong>
                 </div>
-                <p style="font-size: 12px; color: #94a3b8; margin: 0 0 16px 0;">
+
+                <!-- Error Notice if Brevo SMTP failed -->
+                <div id="forgotMailErrorBox" style="display: none; background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #fca5a5; padding: 10px; border-radius: 8px; font-size: 12px; margin-bottom: 14px; text-align: left;">
+                    <i class="fa-solid fa-triangle-exclamation" style="color: #f87171;"></i> 
+                    <strong>Brevo Notice:</strong> <span id="forgotMailErrorText"></span>
+                </div>
+
+                <p id="forgotInboxHint" style="font-size: 12px; color: #94a3b8; margin: 0 0 16px 0;">
                     Pakitingnan ang iyong <strong>Inbox</strong> o <strong>Spam/Junk folder</strong> upang makuha ang OTP code.
                 </p>
+
+                <!-- OTP Code Display Card -->
+                <div id="defenseOtpWrap" style="display: none; margin-bottom: 16px; background: rgba(0,0,0,0.35); border: 2px dashed #f59e0b; border-radius: 10px; padding: 12px 14px;">
+                    <span style="font-size: 11px; color: #fbbf24; display: block; text-transform: uppercase; font-weight: bold; margin-bottom: 4px;">6-Digit Verification OTP Code:</span>
+                    <span id="forgotOtpDisplay" style="font-size: 26px; font-weight: 800; letter-spacing: 6px; color: #ffffff; font-family: monospace;"></span>
+                </div>
 
                 <a id="forgotResetBtn" href="#" style="display: block; width: 100%; padding: 12px; background: #0033a0; color: white; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; transition: background 0.2s; box-shadow: 0 4px 12px rgba(0, 51, 160, 0.4);">
                     <i class="fa-solid fa-arrow-right"></i> Pumunta sa Password Reset Form &rarr;
                 </a>
 
-                <!-- Discreet Defense Fail-safe -->
-                <div style="margin-top: 14px; font-size: 11px;">
+                <!-- Discreet Defense Fail-safe Link -->
+                <div id="defenseToggleLink" style="margin-top: 14px; font-size: 11px;">
                     <a href="javascript:void(0)" onclick="document.getElementById('defenseOtpWrap').style.display='block'; this.style.display='none';" style="color: #93c5fd; text-decoration: underline; opacity: 0.85;">
                         Hindi natanggap ang email o mabagal ang network? I-preview ang code
                     </a>
-                </div>
-                <div id="defenseOtpWrap" style="display: none; margin-top: 10px; background: rgba(0,0,0,0.35); border: 1px dashed #f59e0b; border-radius: 8px; padding: 8px 12px;">
-                    <span style="font-size: 10.5px; color: #fbbf24; display: block; text-transform: uppercase;">Direct Verification OTP:</span>
-                    <span id="forgotOtpDisplay" style="font-size: 20px; font-weight: bold; letter-spacing: 4px; color: #ffffff; font-family: monospace;"></span>
                 </div>
             </div>
 
@@ -490,6 +499,35 @@
                     if (data.resetUrl) {
                         document.getElementById('forgotResetBtn').href = data.resetUrl;
                     }
+
+                    if (data.email_sent === false) {
+                        // Brevo delivery failed (e.g. unverified sender, blocked port)
+                        document.getElementById('forgotStatusIcon').className = 'fa-solid fa-triangle-exclamation';
+                        document.getElementById('forgotIconWrap').style.background = 'rgba(245, 158, 11, 0.2)';
+                        document.getElementById('forgotIconWrap').style.borderColor = '#f59e0b';
+                        document.getElementById('forgotIconWrap').style.color = '#fbbf24';
+                        document.getElementById('forgotStatusTitle').textContent = 'Account Verified & OTP Ready';
+                        document.getElementById('forgotStatusDesc').textContent = 'Na-verify ang account sa database. Dahil sa network o Brevo sender verification restriction, narito ang iyong direktang OTP code upang makapag-reset:';
+                        
+                        document.getElementById('forgotMailErrorBox').style.display = 'block';
+                        document.getElementById('forgotMailErrorText').textContent = data.mail_error || 'SMTP delivery rejected by mail server.';
+                        document.getElementById('forgotInboxHint').style.display = 'none';
+                        document.getElementById('defenseOtpWrap').style.display = 'block';
+                        document.getElementById('defenseToggleLink').style.display = 'none';
+                    } else {
+                        // Brevo delivered successfully
+                        document.getElementById('forgotStatusIcon').className = 'fa-solid fa-envelope-circle-check';
+                        document.getElementById('forgotIconWrap').style.background = 'rgba(16, 185, 129, 0.2)';
+                        document.getElementById('forgotIconWrap').style.borderColor = '#10b981';
+                        document.getElementById('forgotIconWrap').style.color = '#34d399';
+                        document.getElementById('forgotStatusTitle').textContent = 'OTP Code Dispatched via Brevo!';
+                        document.getElementById('forgotStatusDesc').textContent = 'Ipinadala ng SKILLINK Security ang iyong 6-digit OTP authentication code sa iyong rehistradong email address sa database:';
+                        document.getElementById('forgotMailErrorBox').style.display = 'none';
+                        document.getElementById('forgotInboxHint').style.display = 'block';
+                        document.getElementById('defenseOtpWrap').style.display = 'none';
+                        document.getElementById('defenseToggleLink').style.display = 'block';
+                    }
+
                     document.getElementById('forgotSuccessBox').style.display = 'block';
                     document.getElementById('forgotForm').style.display = 'none';
                 } else {
