@@ -334,4 +334,33 @@ class AuthApiController extends Controller
             'message' => 'Password reset successfully! You can now log in with your new credentials.',
         ], 200);
     }
+
+    // CHECK USERNAME UNIQUENESS
+    public function checkUsername(Request $request)
+    {
+        $username = trim($request->query('username', ''));
+        if ($username === '') {
+            return response()->json([
+                'exists'    => false,
+                'available' => false,
+                'message'   => 'Pakilagay ang username'
+            ]);
+        }
+
+        $exists = User::whereRaw('LOWER(name) = ?', [strtolower($username)])->exists();
+
+        if ($exists) {
+            return response()->json([
+                'exists'    => true,
+                'available' => false,
+                'message'   => 'Username has already exist'
+            ]);
+        }
+
+        return response()->json([
+            'exists'    => false,
+            'available' => true,
+            'message'   => 'Username is available'
+        ]);
+    }
 }

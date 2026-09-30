@@ -16,6 +16,7 @@ use App\Http\Controllers\DashboardStatsController;
 
 // Auth
 Route::post('/register', [AuthApiController::class, 'register']);
+Route::get('/check-username', [AuthApiController::class, 'checkUsername']);
 Route::post('/login', [AuthApiController::class, 'login']);
 Route::post('/password/forgot', [AuthApiController::class, 'forgotPassword']);
 Route::post('/password/reset', [AuthApiController::class, 'resetPassword']);
