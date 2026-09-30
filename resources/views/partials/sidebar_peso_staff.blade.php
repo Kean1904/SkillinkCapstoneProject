@@ -1,7 +1,38 @@
 <!-- PESO STAFF SIDEBAR PARTIAL (COMPACT ADMIN STYLE) -->
+<style>
+    #sidebar.sidebar {
+        width: 260px !important;
+        max-width: 260px !important;
+        overflow-x: hidden !important;
+    }
+    #sidebar .sidebar-profile img.sidebar-avatar,
+    #sidebar .sidebar-avatar {
+        width: 54px !important;
+        height: 54px !important;
+        max-width: 54px !important;
+        max-height: 54px !important;
+        min-width: 54px !important;
+        min-height: 54px !important;
+        border-radius: 50% !important;
+        object-fit: cover !important;
+        display: block !important;
+        margin: 0 auto 6px auto !important;
+    }
+    #sidebar .sidebar-avatar-fallback {
+        width: 54px !important;
+        height: 54px !important;
+        max-width: 54px !important;
+        max-height: 54px !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin: 0 auto 6px auto !important;
+    }
+</style>
 <div class="sidebar" id="sidebar">
     <div class="sidebar-profile">
-        <img src="{{ session('profile_image_uri') ? asset(session('profile_image_uri')) : asset('image/MP_Profile.png') }}" alt="Profile" class="sidebar-avatar" onerror="this.outerHTML='<div class=\'sidebar-avatar-fallback\'><i class=\'fa-solid fa-user\'></i></div>'">
+        <img src="{{ session('profile_image_uri') ? asset(session('profile_image_uri')) : asset('image/MP_Profile.png') }}" alt="Profile" class="sidebar-avatar" style="width: 54px; height: 54px; max-width: 54px; max-height: 54px; border-radius: 50%; object-fit: cover;" onerror="this.outerHTML='<div class=\'sidebar-avatar-fallback\' style=\'width:54px;height:54px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;margin:0 auto 6px auto;color:white;\'><i class=\'fa-solid fa-user\'></i></div>'">
         <p class="name">{{ session('full_name') ?? 'PESO Officer' }}</p>
         <p class="role"><span class="role-badge" style="background: #10b981;">VERIFIED PESO OFFICIAL</span></p>
     </div>
