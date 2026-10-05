@@ -261,11 +261,28 @@ class AdminDashboardController extends Controller
         return view('admin.job_categories', compact('categoriesMap'));
     }
 
-    public function auditLogs()
+    public function auditLogs(Request $request)
     {
         \App\Models\AuditLog::enforceBounds();
-        $logs = \App\Models\AuditLog::latest('log_id')->take(\App\Models\AuditLog::MAX_LOGS)->get();
-        return view('admin.audit_logs', compact('logs'));
+
+        $search = $request->input('search');
+        $query = \App\Models\AuditLog::latest('log_id');
+
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('actor_name', 'like', "%{$search}%")
+                  ->orWhere('actor_role', 'like', "%{$search}%")
+                  ->orWhere('action', 'like', "%{$search}%")
+                  ->orWhere('details', 'like', "%{$search}%")
+                  ->orWhere('ip_address', 'like', "%{$search}%")
+                  ->orWhere('status', 'like', "%{$search}%");
+            });
+        }
+
+        // Paginate by 10 items per page with query string preserved
+        $logs = $query->paginate(10)->withQueryString();
+
+        return view('admin.audit_logs', compact('logs', 'search'));
     }
 
     public function resetAuditLogs()

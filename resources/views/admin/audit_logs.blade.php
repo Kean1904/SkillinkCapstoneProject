@@ -35,8 +35,13 @@
 
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th, td { padding: 12px 14px; text-align: left; font-size: 13px; border-bottom: 1px solid rgba(255, 255, 255, 0.15); }
-        th { background: rgba(0, 51, 160, 0.6); color: #93c5fd; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; }
         tr:hover { background: rgba(255, 255, 255, 0.05); }
+
+        .audit-nav-btn:hover {
+            opacity: 1 !important;
+            color: #60a5fa !important;
+            transform: scale(1.18);
+        }
 
         /* STANDARDIZED COMPACT SIDEBAR (ADMIN-STYLE PROPORTIONS) */
         .sidebar {
@@ -235,10 +240,24 @@
                         <h3><i class="fa-solid fa-clock-rotate-left"></i> Immutable Event History & Audit Trail</h3>
                         <p style="font-size: 13px; opacity: 0.85; margin-top: 4px;">Live tracking of all municipal user activities, authentication events, bookings, and accreditation decisions.</p>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <input type="text" id="auditSearch" placeholder="Search actor, action, or details..." 
-                               onkeyup="filterAuditRows()" 
-                               style="padding: 8px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.15); color: white; font-size: 13px; width: 280px; outline: none;">
+                    <div>
+                        <form method="GET" action="{{ route('admin.audit_logs') }}" style="display: flex; align-items: center; gap: 8px;">
+                            <div style="position: relative;">
+                                <input type="text" name="search" id="auditSearch" value="{{ $search ?? '' }}" 
+                                       placeholder="Search actor, action, or details..." 
+                                       onkeyup="filterAuditRows()" 
+                                       style="padding: 8px 14px 8px 34px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.15); color: white; font-size: 13px; width: 280px; outline: none;">
+                                <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 12px; color: rgba(255,255,255,0.6);"></i>
+                            </div>
+                            <button type="submit" style="background: #2563eb; color: white; border: none; padding: 8px 14px; border-radius: 8px; font-size: 12.5px; font-weight: bold; cursor: pointer;">
+                                Search
+                            </button>
+                            @if(!empty($search))
+                                <a href="{{ route('admin.audit_logs') }}" style="background: rgba(239, 68, 68, 0.25); border: 1px solid #ef4444; color: #fca5a5; padding: 7px 12px; border-radius: 8px; text-decoration: none; font-size: 12px; font-weight: bold;">
+                                    Clear
+                                </a>
+                            @endif
+                        </form>
                     </div>
                 </div>
 
@@ -250,24 +269,21 @@
 
                 <div style="display: flex; gap: 12px; margin-top: 15px; flex-wrap: wrap; align-items: center;">
                     <div style="background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 8px; font-size: 12.5px;">
-                        Total Logged Events: <strong style="color: #93c5fd;">{{ count($logs ?? []) }}</strong>
-                        <span style="font-size: 11px; opacity: 0.8; margin-left: 6px;">(Min: 20 &bull; Max: 30 &bull; Auto-resets after 30)</span>
+                        Total Logged Events: <strong style="color: #93c5fd;">{{ $logs->total() }}</strong>
+                        <span style="font-size: 11px; opacity: 0.8; margin-left: 6px;">(Unlimited History &bull; Paginated Records)</span>
                     </div>
                     <div style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; padding: 8px 16px; border-radius: 8px; font-size: 12.5px; color: #86efac;">
                         System Integrity: <strong>Active & Tamper-Proof</strong>
                     </div>
-                    <form action="{{ route('admin.audit_logs.reset') }}" method="POST" style="margin-left: auto;" onsubmit="return confirm('Nais mo bang i-reset ang Audit Logs sa baseline (20 events)?')">
-                        @csrf
-                        <button type="submit" style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #fca5a5; padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-                            <i class="fa-solid fa-arrows-rotate"></i> Reset Audit Logs (Min 20)
-                        </button>
-                    </form>
+                    <div style="margin-left: auto; font-size: 12px; color: #cbd5e1; opacity: 0.85; display: flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-arrows-left-right-to-line"></i> Scrollable Table &bull; 10 logs per page
+                    </div>
                 </div>
 
                 <hr>
 
                 <div style="overflow-x: auto;">
-                    <table>
+                    <table style="min-width: 950px;">
                         <thead>
                             <tr>
                                 <th>Timestamp</th>
@@ -320,6 +336,40 @@
                             @endforelse
                         </tbody>
                     </table>
+                </div>
+
+                {{-- EXACT PAGINATION COMPONENT MATCHING USER SCREENSHOT --}}
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 18px; padding: 14px 20px; background: rgba(10, 25, 70, 0.7); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.15); flex-wrap: wrap; gap: 14px;">
+                    <div style="font-size: 13px; color: #94a3b8;">
+                        Showing <strong style="color: #ffffff;">{{ $logs->firstItem() ?? 0 }}</strong> to <strong style="color: #ffffff;">{{ $logs->lastItem() ?? 0 }}</strong> of <strong style="color: #60a5fa;">{{ $logs->total() }}</strong> records
+                    </div>
+
+                    <div style="display: inline-flex; align-items: center; gap: 18px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                        {{-- First & Previous buttons (hidden on Page 1 as in screenshot) --}}
+                        @if ($logs->currentPage() > 1)
+                            <a href="{{ $logs->url(1) }}" title="First Page" class="audit-nav-btn" style="color: #ffffff; text-decoration: none; font-size: 15px; font-weight: bold; opacity: 0.85; transition: all 0.2s; display: inline-flex; align-items: center;">
+                                <i class="fa-solid fa-angles-left"></i>
+                            </a>
+                            <a href="{{ $logs->previousPageUrl() }}" title="Previous Page" class="audit-nav-btn" style="color: #ffffff; text-decoration: none; font-size: 15px; font-weight: bold; opacity: 0.85; transition: all 0.2s; display: inline-flex; align-items: center;">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </a>
+                        @endif
+
+                        {{-- Current Page Text (Page 1 of 4) --}}
+                        <span style="color: #ffffff; font-weight: bold; font-size: 15px; letter-spacing: 0.4px;">
+                            Page {{ $logs->currentPage() }} of {{ max(1, $logs->lastPage()) }}
+                        </span>
+
+                        {{-- Next & Last buttons --}}
+                        @if ($logs->hasMorePages())
+                            <a href="{{ $logs->nextPageUrl() }}" title="Next Page" class="audit-nav-btn" style="color: #ffffff; text-decoration: none; font-size: 15px; font-weight: bold; opacity: 0.85; transition: all 0.2s; display: inline-flex; align-items: center;">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </a>
+                            <a href="{{ $logs->url($logs->lastPage()) }}" title="Last Page" class="audit-nav-btn" style="color: #ffffff; text-decoration: none; font-size: 15px; font-weight: bold; opacity: 0.85; transition: all 0.2s; display: inline-flex; align-items: center;">
+                                <i class="fa-solid fa-angles-right"></i>
+                            </a>
+                        @endif
+                    </div>
                 </div>
             </div>
 

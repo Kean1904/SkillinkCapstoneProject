@@ -27,26 +27,15 @@ class AuditLog extends Model
     ];
 
     /**
-     * Enforce bounds:
-     * - Minimum: 20 logs
-     * - Maximum: 30 logs
-     * - When total logged events exceeds 30, it automatically resets to the 20 most recent logs.
-     * - If total logs is below 20, seed baseline audit entries to maintain minimum 20 logs.
+     * Maintain audit trail integrity:
+     * - Minimum baseline of 20 logs seeded on fresh setup
+     * - No upper bound limit: logs accumulate permanently to maintain a full history.
      */
     public static function enforceBounds()
     {
         $count = self::count();
 
-        // 1. If exceeds maximum (30 logs), reset to the latest 20 logs
-        if ($count > self::MAX_LOGS) {
-            $keepIds = self::latest('log_id')->take(self::MIN_LOGS)->pluck('log_id')->toArray();
-            if (!empty($keepIds)) {
-                self::whereNotIn('log_id', $keepIds)->delete();
-            }
-            $count = self::count();
-        }
-
-        // 2. If below minimum (20 logs), seed baseline records
+        // If below minimum baseline on fresh setup, seed baseline records
         if ($count < self::MIN_LOGS) {
             $needed = self::MIN_LOGS - $count;
             self::seedBaselineLogs($needed);
@@ -116,14 +105,6 @@ class AuditLog extends Model
             'ip_address' => $ip,
             'status' => $status,
         ]);
-
-        // When exceeding maximum of 30 logs, automatically reset to the latest 20 logs
-        if (self::count() > self::MAX_LOGS) {
-            $keepIds = self::latest('log_id')->take(self::MIN_LOGS)->pluck('log_id')->toArray();
-            if (!empty($keepIds)) {
-                self::whereNotIn('log_id', $keepIds)->delete();
-            }
-        }
 
         return $entry;
     }
