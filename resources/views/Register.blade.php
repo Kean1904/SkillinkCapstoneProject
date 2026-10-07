@@ -319,6 +319,20 @@ $tesdaCertificates = [
             -moz-appearance: none;
         }
 
+        /* AUTOFILL FIX: Prevent browser from turning box white */
+        .input-group input:-webkit-autofill,
+        .input-group input:-webkit-autofill:hover, 
+        .input-group input:-webkit-autofill:focus, 
+        .input-group input:-webkit-autofill:active {
+            -webkit-box-shadow: 0 0 0 1000px #192e56 inset !important;
+            box-shadow: 0 0 0 1000px #192e56 inset !important;
+            -webkit-text-fill-color: #ffffff !important;
+            color: #ffffff !important;
+            caret-color: #ffffff !important;
+            border: 1px solid rgba(255, 255, 255, 0.6) !important;
+            transition: background-color 500000s ease-in-out 0s !important;
+        }
+
         .input-group.select-wrapper {
             position: relative;
         }

@@ -141,15 +141,38 @@
             border-radius: 6px;
             border: 1px solid rgba(255, 255, 255, 0.6);
             background: rgba(255, 255, 255, 0.1);
-            color: white;
+            color: #ffffff;
             font-size: 14px;
             outline: none;
-            -webkit-box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.1) inset !important;
-            -webkit-text-fill-color: white !important;
+            transition: border-color 0.2s, background-color 0.2s;
+        }
+
+        .input-group input:focus {
+            border-color: #60a5fa;
+            background: rgba(255, 255, 255, 0.18);
         }
 
         .input-group input::placeholder {
             color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* AUTOFILL FIX: Pantayin sa dateng madilim na kulay ng box at panatilihing white ang font */
+        .input-group input:-webkit-autofill,
+        .input-group input:-webkit-autofill:hover, 
+        .input-group input:-webkit-autofill:focus, 
+        .input-group input:-webkit-autofill:active,
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus,
+        input:-webkit-autofill:active {
+            -webkit-box-shadow: 0 0 0 1000px #192e56 inset !important;
+            box-shadow: 0 0 0 1000px #192e56 inset !important;
+            -webkit-text-fill-color: #ffffff !important;
+            color: #ffffff !important;
+            caret-color: #ffffff !important;
+            border: 1px solid rgba(255, 255, 255, 0.6) !important;
+            font-size: 14px !important;
+            transition: background-color 500000s ease-in-out 0s !important;
         }
 
         /* PASSWORD FIELD WITH EYE ICON */
@@ -323,7 +346,7 @@
             </style>
         @endif
 
-        <form class="login-card" method="POST" action="{{ route('Login.submit') }}">
+        <form class="login-card" method="POST" action="{{ route('Login.submit') }}" autocomplete="off">
             @csrf
             <img src="{{ asset('image/MP_Logo.png') }}" alt="Seal" class="seal">
             <h2>LOGIN</h2>
@@ -336,11 +359,11 @@
             @endif
 
             <div class="input-group">
-                <input type="text" name="username" placeholder="Username" required>
+                <input type="text" name="username" id="username" placeholder="Username" autocomplete="off" spellcheck="false" required>
             </div>
 
             <div class="input-group password-wrapper">
-                <input type="password" name="password" id="password" placeholder="Password" required>
+                <input type="password" name="password" id="password" placeholder="Password" autocomplete="current-password" required>
                 <span class="toggle-password" onclick="togglePassword()">
                     <i class="fa-solid fa-eye-slash" id="eyeIcon"></i>
                 </span>
