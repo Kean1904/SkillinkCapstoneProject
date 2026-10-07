@@ -588,7 +588,12 @@
                                      style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; margin-bottom: 10px; border-left: 4px solid #10b981; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
                                     <div>
                                         <strong style="font-size: 14px; color: white;">{{ $worker->full_name }}</strong>
-                                        <span style="font-size: 11.5px; color: #86efac; font-weight: bold; margin-left: 8px; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; padding: 2px 7px; border-radius: 4px;">
+                                        @if(!empty($worker->badge_label))
+                                            <span style="font-size: 11px; color: #93c5fd; font-weight: bold; margin-left: 8px; background: rgba(37, 99, 235, 0.25); border: 1px solid #60a5fa; padding: 2px 7px; border-radius: 4px;">
+                                                <i class="fa-solid fa-chart-line"></i> {{ $worker->badge_label }}
+                                            </span>
+                                        @endif
+                                        <span style="font-size: 11.5px; color: #86efac; font-weight: bold; margin-left: 6px; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; padding: 2px 7px; border-radius: 4px;">
                                             <i class="fa-solid fa-money-bill-wave"></i> {{ $worker->service_rate_display }} Fixed
                                         </span>
                                         <p style="font-size: 12px; color: #fde047; font-weight: bold; margin: 3px 0;">

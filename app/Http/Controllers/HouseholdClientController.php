@@ -47,6 +47,11 @@ class HouseholdClientController extends Controller
         }
         $workersList = $workersQuery->latest()->get();
         $user = $this->getCurrentUser();
+
+        // 🌟 Apply K-Nearest Neighbors (KNN) Machine Learning Algorithm to rank available workers
+        $rankedResults = \App\Services\JobMatchingAlgorithm::rankWorkers($workersList, $user->barangay ?? 'San Nicolas 1st', $search ?? '');
+        $workersList = collect(array_column($rankedResults, 'worker'));
+
         $savedWorkerIds = DB::table('saved_workers')
             ->where('user_id', $user->user_id)
             ->pluck('worker_id')

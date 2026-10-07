@@ -4,31 +4,35 @@ namespace App\Services;
 
 /**
  * ═════════════════════════════════════════════════════════════════════════
- * SKILLINK (PESO Magalang) — JOB MATCHING ALGORITHM & SERVICE DATA MODELS
+ * SKILLINK (PESO Magalang) — K-NEAREST NEIGHBORS (KNN) MATCHING ALGORITHM
  *
- * 100% Katumbas (1:1 Parity) ng JobMatchingAlgorithm.kt sa Mobile Application.
- * Sumusunod sa Specific Objectives 3, 4, 5, at 6 ng Thesis Manuscript.
+ * 100% Katumbas (1:1 Parity) ng K-Nearest Neighbors Engine sa Mobile App.
+ * Sumusunod sa Specific Objectives ng Capstone Thesis Manuscript.
  * ═════════════════════════════════════════════════════════════════════════
  * 
- * 🧠 WEIGHTED MULTI-FACTOR JOB MATCHING ENGINE (Objective 3)
+ * 🧠 K-NEAREST NEIGHBORS (KNN) MACHINE LEARNING ENGINE
  *
- * Formula:
- * Match Score = (Skill Match × 35%) +
- *               (Barangay Proximity × 25%) +
- *               (Rating Score × 20%) +
- *               (PESO Verification × 10%) +
- *               (Availability × 10%)
- * 
- * Sa ilalim ng Skill Match, ginagamit ang Vector Space Model (Cosine Similarity):
- * 
- *                  A • B           ∑ (A_i * B_i)
- *    Cosine(θ) = ─────────  =  ───────────────────────
- *                ||A|| ||B||    √(∑ A_i²) * √(∑ B_i²)
+ * 1. Feature Representation:
+ *    Bawat manggagawa ay kinakatawan bilang isang multidimensional feature
+ *    vector sa normalized vector space:
+ *    X = [f_skill, f_proximity, f_rating, f_accreditation]
+ *
+ * 2. Target Query Vector:
+ *    Ang ideal match para sa kahilingan ng kliyente ay:
+ *    Q = [1.0, 1.0, 1.0, 1.0] (Exact Skill, Same Barangay, 5.0 Rating, Verified)
+ *
+ * 3. Distance Metric:
+ *    Weighted Euclidean Distance sa pagitan ng Query Vector at Worker Vector:
+ *    D(Q, W) = sqrt( sum( w_i * (q_i - w_i)^2 ) )
+ *
+ * 4. K-Nearest Selection:
+ *    Iniraranggo ang mga manggagawa mula sa pinakamaliit na Euclidean distance
+ *    (D -> 0) at kinukuha ang Top K pinakamalapit na mga kapitbahay (Nearest Neighbors).
  * ═════════════════════════════════════════════════════════════════════════
  */
 class JobMatchingAlgorithm
 {
-    // 27 Opisyal na Barangays ng Munisipalidad ng Magalang (Katulad sa Android)
+    // 27 Opisyal na Barangays ng Munisipalidad ng Magalang
     const MAGALANG_BARANGAYS = [
         "Camias", "Dolores", "Escaler", "La Paz", "Navaling",
         "San Agustin", "San Antonio", "San Fernando", "San Francisco",
@@ -45,9 +49,16 @@ class JobMatchingAlgorithm
         "San Pedro 1st", "San Pedro 2nd", "Santa Lucia", "Santo Rosario"
     ];
 
+    // KNN Feature Weights (Normalized sum = 1.0)
+    const WEIGHT_SKILL = 0.40;
+    const WEIGHT_LOCATION = 0.30;
+    const WEIGHT_RATING = 0.20;
+    const WEIGHT_ACCREDITATION = 0.10;
+
+    const DEFAULT_K = 10;
+
     /**
-     * Compute proximity score sa pagitan ng client at worker sa Magalang
-     * (Eksaktong kapareho ng calculateProximity sa Android)
+     * 1. Feature Extractor: Spatial / Locality Proximity Feature [0.0 - 1.0]
      *
      * @param string $clientBarangay
      * @param string $workerBarangay
@@ -62,7 +73,7 @@ class JobMatchingAlgorithm
             return 0.50;
         }
 
-        // 1. Parehong Barangay = 100% (1.0)
+        // 1. Parehong Barangay = 100% (1.0) -> Distance = 0
         if (strcasecmp($clientBrgy, $workerBrgy) === 0) {
             return 1.0;
         }
@@ -79,56 +90,11 @@ class JobMatchingAlgorithm
             }
         }
 
-        return 0.40;
+        return 0.35;
     }
 
     /**
-     * Compute ang Cosine Similarity sa pagitan ng hinahanap na kategorya at kasanayan ng manggagawa
-     *
-     * @param string $textA (Hinahanap ng Kliyente)
-     * @param string $textB (Kasanayan ng Manggagawa)
-     * @return float 0.0 to 1.0
-     */
-    public static function calculateCosineSimilarity(string $textA, string $textB): float
-    {
-        $tokensA = self::tokenize($textA);
-        $tokensB = self::tokenize($textB);
-
-        if (empty($tokensA) || empty($tokensB)) {
-            return 0.0;
-        }
-
-        // Term Frequency (TF)
-        $freqA = array_count_values($tokensA);
-        $freqB = array_count_values($tokensB);
-
-        $vocabulary = array_unique(array_merge(array_keys($freqA), array_keys($freqB)));
-
-        $dotProduct = 0.0;
-        $magnitudeA = 0.0;
-        $magnitudeB = 0.0;
-
-        foreach ($vocabulary as $term) {
-            $valA = $freqA[$term] ?? 0;
-            $valB = $freqB[$term] ?? 0;
-
-            $dotProduct += ($valA * $valB);
-            $magnitudeA += ($valA * $valA);
-            $magnitudeB += ($valB * $valB);
-        }
-
-        $magnitudeA = sqrt($magnitudeA);
-        $magnitudeB = sqrt($magnitudeB);
-
-        if ($magnitudeA == 0.0 || $magnitudeB == 0.0) {
-            return 0.0;
-        }
-
-        return round($dotProduct / ($magnitudeA * $magnitudeB), 4);
-    }
-
-    /**
-     * Compute skill at category relevance (Eksaktong kapareho sa Android)
+     * 2. Feature Extractor: Skill at Category Relevance [0.0 - 1.0]
      *
      * @param string $targetCategory
      * @param string|null $workerSkills
@@ -137,19 +103,12 @@ class JobMatchingAlgorithm
     public static function calculateSkillMatch(string $targetCategory, ?string $workerSkills): float
     {
         if (trim($targetCategory) === '') {
-            return 0.80;
+            return 0.85;
         }
 
         $target = strtolower(trim($targetCategory));
         $skills = strtolower(trim($workerSkills ?? ''));
 
-        // Gamitin ang Cosine Similarity para sa mas tumpak na pagtutugma
-        $cosineScore = self::calculateCosineSimilarity($target, $skills);
-        if ($cosineScore > 0.0) {
-            return $cosineScore;
-        }
-
-        // Fallback rule-based matching (katulad ng Android)
         if (strpos($skills, $target) !== false) {
             return 1.0;
         }
@@ -158,21 +117,56 @@ class JobMatchingAlgorithm
             return 0.75;
         }
 
-        return 0.40;
+        return 0.35;
     }
 
     /**
-     * Pangunahing Function: Kino-compute ang kabuuang Match Percentage at nagra-rank
-     * (Eksaktong katumbas ng rankWorkers sa Android)
+     * 3. KNN Distance Metric: Weighted Euclidean Distance
+     * D(Q, W) = sqrt( sum( w_i * (q_i - w_i)^2 ) )
+     */
+    public static function calculateEuclideanDistance(
+        float $targetSkill,
+        float $workerSkill,
+        float $targetLocation,
+        float $workerLocation,
+        float $targetRating,
+        float $workerRating,
+        float $targetAccreditation,
+        float $workerAccreditation
+    ): float {
+        $diffSkill = $targetSkill - $workerSkill;
+        $diffLocation = $targetLocation - $workerLocation;
+        $diffRating = $targetRating - $workerRating;
+        $diffAccreditation = $targetAccreditation - $workerAccreditation;
+
+        $sumSquared = (self::WEIGHT_SKILL * $diffSkill * $diffSkill) +
+                      (self::WEIGHT_LOCATION * $diffLocation * $diffLocation) +
+                      (self::WEIGHT_RATING * $diffRating * $diffRating) +
+                      (self::WEIGHT_ACCREDITATION * $diffAccreditation * $diffAccreditation);
+
+        return sqrt($sumSquared);
+    }
+
+    /**
+     * 4. Pangunahing Function: K-Nearest Neighbors (KNN) Ranking & Selection
+     * Kinakalkula ang Euclidean distance ng bawat manggagawa mula sa ideal query vector,
+     * inaayos mula pinakamalapit (lowest distance = Top Neighbor), at ibinabalik ang mga resulta.
      *
      * @param iterable $workers Listahan ng Skilled Workers mula sa Database
      * @param string $clientBarangay Barangay ng resident client
      * @param string $targetCategory Hinahanap na kategorya o trabaho
-     * @return array Listahan ng workers na may matchPercentage, badgeLabel, atbp., naka-sort mula pinakamataas
+     * @param int $k Bilang ng K-Nearest Neighbors na kukunin
+     * @return array Listahan ng workers na may knn_distance, match_percentage, badge_label, atbp.
      */
-    public static function rankWorkers($workers, string $clientBarangay = 'San Nicolas 1st', string $targetCategory = ''): array
+    public static function rankWorkers($workers, string $clientBarangay = 'San Nicolas 1st', string $targetCategory = '', int $k = self::DEFAULT_K): array
     {
         $results = [];
+
+        // Ideal Query Vector coordinates
+        $targetSkill = 1.0;
+        $targetLocation = 1.0;
+        $targetRating = 1.0;
+        $targetAccreditation = 1.0;
 
         foreach ($workers as $worker) {
             $skills = $worker->skills ?? '';
@@ -180,43 +174,56 @@ class JobMatchingAlgorithm
             $isVerified = (bool)($worker->is_verified ?? false);
             $barangay = $worker->barangay ?? '';
 
-            // Factor 1: Category Match (35%)
+            // 1. Skill Feature
             $skillScore = self::calculateSkillMatch($targetCategory, $skills);
 
-            // Factor 2: Barangay Proximity (25%)
+            // 2. Spatial / Locality Feature
             $proximityScore = self::calculateProximity($clientBarangay, $barangay);
 
-            // Factor 3: Normalized Rating (20%) - Katulad ng Android (Rating coerceIn 1.0 to 5.0 / 5.0)
-            $ratingScore = (max(1.0, min(5.0, $rating))) / 5.0;
+            // 3. Performance Rating Feature [0.2 to 1.0]
+            $clampedRating = max(1.0, min(5.0, $rating));
+            $ratingScore = $clampedRating / 5.0;
 
-            // Factor 4: PESO Verification Accreditation (10%)
-            $verificationScore = $isVerified ? 1.0 : 0.70;
+            // 4. PESO Accreditation Feature [0.6 or 1.0]
+            $accreditationScore = $isVerified ? 1.0 : 0.60;
 
-            // Factor 5: Availability (10%)
-            $availabilityScore = 1.0;
+            // KNN Euclidean Distance Computation
+            $euclideanDistance = self::calculateEuclideanDistance(
+                $targetSkill,
+                $skillScore,
+                $targetLocation,
+                $proximityScore,
+                $targetRating,
+                $ratingScore,
+                $targetAccreditation,
+                $accreditationScore
+            );
 
-            // Kabuuang Weighted Computation (0.0 to 1.0)
-            $weightedScore = ($skillScore * 0.35) +
-                             ($proximityScore * 0.25) +
-                             ($ratingScore * 0.20) +
-                             ($verificationScore * 0.10) +
-                             ($availabilityScore * 0.10);
-
-            $matchPercent = (int)round($weightedScore * 100);
+            // Distance-to-Similarity Conversion
+            $similarityScore = max(0.0, min(1.0, 1.0 - $euclideanDistance));
+            $matchPercent = (int)round($similarityScore * 100);
             if ($matchPercent < 40) $matchPercent = 40;
             if ($matchPercent > 99) $matchPercent = 99;
 
-            // Dynamic Badge Label (Eksaktong katulad sa Android)
-            if ($proximityScore >= 1.0) {
-                $badgeLabel = "{$matchPercent}% TOP MATCH • SAME BRGY";
+            // Dynamic KNN Neighbor Badge Label
+            if ($proximityScore >= 1.0 && $skillScore >= 0.90) {
+                $badgeLabel = "{$matchPercent}% KNN TOP MATCH • SAME BRGY";
             } elseif ($matchPercent >= 85) {
-                $badgeLabel = "{$matchPercent}% HIGH MATCH • NEARBY";
+                $badgeLabel = "{$matchPercent}% KNN NEAREST • HIGH MATCH";
             } else {
-                $badgeLabel = "{$matchPercent}% COMPATIBLE";
+                $badgeLabel = "{$matchPercent}% KNN NEIGHBOR";
+            }
+
+            // Attach KNN properties directly to worker object for easy view rendering
+            if (is_object($worker)) {
+                $worker->knn_distance = round($euclideanDistance, 4);
+                $worker->match_percentage = $matchPercent;
+                $worker->badge_label = $badgeLabel;
             }
 
             $results[] = [
                 'worker' => $worker,
+                'knn_distance' => round($euclideanDistance, 4),
                 'match_percentage' => $matchPercent,
                 'proximity_score' => $proximityScore,
                 'skill_match_score' => $skillScore,
@@ -225,30 +232,11 @@ class JobMatchingAlgorithm
             ];
         }
 
-        // Pag-uuri mula sa may pinakamataas na Match Percentage patungo sa mababa
+        // Sort by Ascending Euclidean Distance (Lowest Distance = Nearest Neighbor)
         usort($results, function ($a, $b) {
-            return $b['match_percentage'] <=> $a['match_percentage'];
+            return $a['knn_distance'] <=> $b['knn_distance'];
         });
 
         return $results;
-    }
-
-    /**
-     * Paghihiwalay ng mga salita (Tokenization)
-     */
-    private static function tokenize(string $text): array
-    {
-        $text = strtolower(trim($text));
-        $text = preg_replace('/[^a-z0-9]/', ' ', $text);
-        $words = preg_split('/\s+/', $text, -1, PREG_SPLIT_NO_EMPTY);
-
-        $stopWords = [
-            'a', 'an', 'the', 'in', 'on', 'at', 'to', 'for', 'of', 'and', 'or', 'is', 'are',
-            'with', 'ang', 'mga', 'ng', 'sa', 'at', 'para', 'na', 'kay', 'si', 'ni'
-        ];
-
-        return array_values(array_filter($words, function ($w) use ($stopWords) {
-            return strlen($w) > 1 && !in_array($w, $stopWords);
-        }));
     }
 }

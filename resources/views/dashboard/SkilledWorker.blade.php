@@ -636,7 +636,14 @@
                             @foreach($jobsList as $job)
                                 <div style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 14px; margin-bottom: 12px; border-left: 4px solid #3b82f6;">
                                     <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
-                                        <strong style="font-size: 14px;">{{ $job->title }}</strong>
+                                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                            <strong style="font-size: 14px;">{{ $job->title }}</strong>
+                                            @if(!empty($job->match_percentage))
+                                                <span style="font-size: 10.5px; background: rgba(37,99,235,0.25); color: #93c5fd; border: 1px solid #60a5fa; padding: 2px 7px; border-radius: 4px; font-weight: bold;">
+                                                    <i class="fa-solid fa-chart-line"></i> {{ $job->match_percentage }}% KNN Match
+                                                </span>
+                                            @endif
+                                        </div>
                                         <span style="font-size: 11px; background: rgba(37,99,235,0.3); padding: 2px 8px; border-radius: 12px; border: 1px solid #3b82f6;">{{ $job->category }}</span>
                                     </div>
                                     <p style="font-size: 12px; opacity: 0.85; margin: 6px 0;">{{ $job->description }}</p>

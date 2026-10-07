@@ -80,7 +80,20 @@ Route::middleware(['checkrole:skilled worker'])->group(function () {
                 $q->whereNull('applicant_username')
                   ->orWhere('applicant_username', '');
             })
-            ->latest('created_at')->take(10)->get();
+            ->latest('created_at')->take(15)->get();
+
+        // 🌟 Apply K-Nearest Neighbors (KNN) to rank available jobs relative to worker skills & barangay
+        if ($worker && $jobsList->count() > 0) {
+            foreach ($jobsList as $job) {
+                $proximity = \App\Services\JobMatchingAlgorithm::calculateProximity($worker->barangay ?? 'San Nicolas 1st', $job->barangay ?? '');
+                $skillMatch = \App\Services\JobMatchingAlgorithm::calculateSkillMatch($job->category ?? '', $worker->skills ?? '');
+                $dist = sqrt((0.6 * (1.0 - $skillMatch) * (1.0 - $skillMatch)) + (0.4 * (1.0 - $proximity) * (1.0 - $proximity)));
+                $job->knn_distance = round($dist, 4);
+                $pct = (int)round((1.0 - $dist) * 100);
+                $job->match_percentage = max(40, min(99, $pct));
+            }
+            $jobsList = $jobsList->sortBy('knn_distance')->values()->take(10);
+        }
 
         // Fetch incoming service requests (direct bookings from household clients)
         $serviceRequests = \App\Models\Booking::where(function($q) use ($worker) {
