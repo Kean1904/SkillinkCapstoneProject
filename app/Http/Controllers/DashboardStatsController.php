@@ -25,7 +25,7 @@ class DashboardStatsController extends Controller
         $availableJobs = JobPost::where(function ($q) {
             $q->whereNull('applicant_username')
               ->orWhere('applicant_username', '');
-        })->whereNotIn('status', ['Completed', 'Cancelled'])->count();
+        })->whereNotIn('status', ['Completed', 'Cancelled', 'Matched', 'Accepted', 'In Progress', 'IN_PROGRESS'])->count();
 
         // 2. Pending Jobs: Jobs that have been applied for and are pending review/action
         $pendingJobs = JobPost::whereNotNull('applicant_username')

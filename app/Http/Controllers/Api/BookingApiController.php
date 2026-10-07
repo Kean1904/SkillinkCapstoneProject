@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Booking;
+use App\Models\JobPost;
 use App\Models\User;
 use App\Mail\BookingAlertMail;
 use Illuminate\Support\Facades\DB;
@@ -70,9 +71,56 @@ class BookingApiController extends Controller
 
         $refNumber = $request->input('id') ?: ('BK-' . rand(100000, 999999));
 
+        // 🌟 BILATERAL MATCHING: Merge client's open job need in this category
+        $matchedClientJob = JobPost::where(function ($q) use ($validated, $client) {
+                if ($client) {
+                    $q->where('client_id', $client->user_id)
+                      ->orWhere('posted_by', $client->name);
+                } else {
+                    $q->where('posted_by', $validated['clientUsername']);
+                }
+            })
+            ->whereNotIn('status', ['Completed', 'Cancelled', 'Matched', 'Accepted', 'In Progress', 'IN_PROGRESS'])
+            ->where(function ($q) use ($validated) {
+                $cat = strtolower($validated['serviceCategory']);
+                $q->whereRaw('LOWER(category) = ?', [$cat])
+                  ->orWhere('category', 'like', "%{$validated['serviceCategory']}%");
+            })
+            ->latest('created_at')
+            ->first();
+
+        if ($matchedClientJob) {
+            $matchedClientJob->status = 'Matched';
+            $matchedClientJob->applicant_username = $worker ? $worker->name : $validated['workerUsername'];
+            $matchedClientJob->save();
+        }
+
+        // 🌟 BILATERAL MATCHING: Merge worker's open service offer in this category
+        $matchedWorkerOffer = JobPost::where(function ($q) use ($validated, $worker) {
+                if ($worker) {
+                    $q->where('client_id', $worker->user_id)
+                      ->orWhere('posted_by', $worker->name);
+                } else {
+                    $q->where('posted_by', $validated['workerUsername']);
+                }
+            })
+            ->whereNotIn('status', ['Completed', 'Cancelled', 'Matched', 'Accepted', 'In Progress', 'IN_PROGRESS'])
+            ->where(function ($q) use ($validated) {
+                $cat = strtolower($validated['serviceCategory']);
+                $q->whereRaw('LOWER(category) = ?', [$cat])
+                  ->orWhere('category', 'like', "%{$validated['serviceCategory']}%");
+            })
+            ->latest('created_at')
+            ->first();
+
+        if ($matchedWorkerOffer) {
+            $matchedWorkerOffer->status = 'Matched';
+            $matchedWorkerOffer->save();
+        }
+
         $booking = Booking::create([
             'booking_reference' => $refNumber,
-            'request_id' => 1,
+            'request_id' => $matchedClientJob ? $matchedClientJob->request_id : 1,
             'worker_id' => $worker ? $worker->user_id : 1,
             'client_username' => $validated['clientUsername'],
             'worker_username' => $worker ? $worker->name : $validated['workerUsername'],

@@ -250,7 +250,9 @@ class SkilledWorkerWebController extends Controller
         $myJobOffers = JobPost::where(function ($q) use ($worker) {
             $q->where('posted_by', $worker->name)
               ->orWhere('client_id', $worker->user_id);
-        })->latest('created_at')->get();
+        })->whereNotIn('status', ['Completed', 'Cancelled', 'Matched', 'Accepted', 'In Progress', 'IN_PROGRESS'])
+          ->latest('created_at')
+          ->get();
 
         return view('skilled_worker.my_services', compact('worker', 'myJobOffers'));
     }

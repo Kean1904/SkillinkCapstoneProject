@@ -481,14 +481,56 @@ class HouseholdClientController extends Controller
         $user = $this->getCurrentUser();
         $refNumber = 'SRV-' . strtoupper(substr(uniqid(), -6));
 
+        // 🌟 BILATERAL MATCHING: Merge client's open job need in this category
+        $matchedClientJob = JobPost::where(function ($q) use ($user) {
+                $q->where('client_id', $user->user_id)
+                  ->orWhere('posted_by', $user->name);
+            })
+            ->whereNotIn('status', ['Completed', 'Cancelled', 'Matched', 'Accepted', 'In Progress', 'IN_PROGRESS'])
+            ->where(function ($q) use ($validated) {
+                $cat = strtolower($validated['serviceCategory']);
+                $q->whereRaw('LOWER(category) = ?', [$cat])
+                  ->orWhere('category', 'like', "%{$validated['serviceCategory']}%");
+            })
+            ->latest('created_at')
+            ->first();
+
+        if ($matchedClientJob) {
+            $matchedClientJob->status = 'Matched';
+            $matchedClientJob->applicant_username = $worker ? $worker->name : $validated['workerUsername'];
+            $matchedClientJob->save();
+        }
+
+        // 🌟 BILATERAL MATCHING: Merge worker's open job offer in this category
+        $matchedWorkerOffer = JobPost::where(function ($q) use ($worker, $validated) {
+                if ($worker) {
+                    $q->where('client_id', $worker->user_id)
+                      ->orWhere('posted_by', $worker->name);
+                } else {
+                    $q->where('posted_by', $validated['workerUsername']);
+                }
+            })
+            ->whereNotIn('status', ['Completed', 'Cancelled', 'Matched', 'Accepted', 'In Progress', 'IN_PROGRESS'])
+            ->where(function ($q) use ($validated) {
+                $cat = strtolower($validated['serviceCategory']);
+                $q->whereRaw('LOWER(category) = ?', [$cat])
+                  ->orWhere('category', 'like', "%{$validated['serviceCategory']}%");
+            })
+            ->latest('created_at')
+            ->first();
+
+        if ($matchedWorkerOffer) {
+            $matchedWorkerOffer->status = 'Matched';
+            $matchedWorkerOffer->save();
+        }
+
         $booking = Booking::create([
             'booking_reference' => $refNumber,
-            'request_id' => 1,
+            'request_id' => $matchedClientJob ? $matchedClientJob->request_id : 1,
             'worker_id' => $worker ? $worker->user_id : 1,
             'client_username' => $user->name,
             'worker_username' => $worker ? $worker->name : $validated['workerUsername'],
             'client_name' => $user->full_name,
-            'worker_name' => $worker ? $worker->full_name : $validated['workerUsername'],
             'worker_name' => $worker ? $worker->full_name : $validated['workerUsername'],
             'service_category' => $validated['serviceCategory'],
             'task_description' => $validated['taskDescription'],
@@ -499,15 +541,24 @@ class HouseholdClientController extends Controller
             'status' => 'PENDING',
         ]);
 
+        $mergeAuditDetail = "";
+        if ($matchedClientJob) $mergeAuditDetail .= " [Merged Client Job Need #{$matchedClientJob->request_id}]";
+        if ($matchedWorkerOffer) $mergeAuditDetail .= " [Merged Worker Job Offer #{$matchedWorkerOffer->request_id}]";
+
         \App\Models\AuditLog::log(
             'BOOKING_CREATED',
-            "Household Client {$user->name} created booking {$refNumber} for {$booking->service_category} with worker {$booking->worker_name} ({$fixedBudget}).",
+            "Household Client {$user->name} created booking {$refNumber} for {$booking->service_category} with worker {$booking->worker_name} ({$fixedBudget}).{$mergeAuditDetail}",
             $user->name,
             'Household Client',
             $user->user_id
         );
 
-        return redirect()->route('household_client.hiring_history')->with('success', "Service booking request ({$refNumber}) submitted successfully with fixed rate {$fixedBudget}!");
+        $successMsg = "Service booking request ({$refNumber}) submitted successfully with fixed rate {$fixedBudget}!";
+        if ($matchedClientJob) {
+            $successMsg .= " Ang iyong Job Need ('{$matchedClientJob->title}') ay awtomatikong na-merge at naalis sa active job feed.";
+        }
+
+        return redirect()->route('household_client.hiring_history')->with('success', $successMsg);
     }
 
     public function jobPosts()
@@ -516,7 +567,7 @@ class HouseholdClientController extends Controller
         $activeJobs = JobPost::where(function ($q) use ($user) {
             $q->where('client_id', $user->user_id)
               ->orWhere('posted_by', $user->name);
-        })->whereNotIn('status', ['Completed', 'Cancelled'])
+        })->whereNotIn('status', ['Completed', 'Cancelled', 'Matched', 'Accepted', 'In Progress', 'IN_PROGRESS'])
           ->latest('created_at')
           ->get();
 
@@ -658,8 +709,29 @@ class HouseholdClientController extends Controller
         $workerName = $worker ? $worker->full_name : $job->applicant_username;
 
         if ($action === 'accept') {
-            $job->status = 'Accepted';
+            $job->status = 'Matched';
             $job->save();
+
+            // 🌟 BILATERAL MATCHING: Merge worker's open job offer in this category
+            if ($worker) {
+                $matchedWorkerOffer = JobPost::where(function ($q) use ($worker) {
+                        $q->where('client_id', $worker->user_id)
+                          ->orWhere('posted_by', $worker->name);
+                    })
+                    ->whereNotIn('status', ['Completed', 'Cancelled', 'Matched', 'Accepted', 'In Progress', 'IN_PROGRESS'])
+                    ->where(function ($q) use ($job) {
+                        $cat = strtolower($job->category);
+                        $q->whereRaw('LOWER(category) = ?', [$cat])
+                          ->orWhere('category', 'like', "%{$job->category}%");
+                    })
+                    ->latest('created_at')
+                    ->first();
+
+                if ($matchedWorkerOffer) {
+                    $matchedWorkerOffer->status = 'Matched';
+                    $matchedWorkerOffer->save();
+                }
+            }
 
             // Create or sync into service_bookings so it appears in both client's and worker's tracking!
             $refNumber = 'SRV-' . strtoupper(substr(uniqid(), -6));

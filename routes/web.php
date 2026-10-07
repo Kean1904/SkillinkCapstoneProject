@@ -64,7 +64,7 @@ Route::middleware(['checkrole:skilled worker'])->group(function () {
         $availableJobs = \App\Models\JobPost::where(function ($q) {
             $q->whereNull('applicant_username')
               ->orWhere('applicant_username', '');
-        })->whereNotIn('status', ['Completed', 'Cancelled'])->count();
+        })->whereNotIn('status', ['Completed', 'Cancelled', 'Matched', 'Accepted', 'In Progress', 'IN_PROGRESS'])->count();
 
         // Pending bookings & jobs for this specific worker
         $pendingJobs = \App\Models\Booking::where(function($q) use ($worker) {
@@ -75,7 +75,12 @@ Route::middleware(['checkrole:skilled worker'])->group(function () {
             ->whereNotIn('status', ['COMPLETED', 'CANCELLED', 'REJECTED'])
             ->count();
 
-        $jobsList = \App\Models\JobPost::whereNotIn('status', ['Completed', 'Cancelled'])->latest('created_at')->take(10)->get();
+        $jobsList = \App\Models\JobPost::whereNotIn('status', ['Completed', 'Cancelled', 'Matched', 'Accepted', 'In Progress', 'IN_PROGRESS'])
+            ->where(function ($q) {
+                $q->whereNull('applicant_username')
+                  ->orWhere('applicant_username', '');
+            })
+            ->latest('created_at')->take(10)->get();
 
         // Fetch incoming service requests (direct bookings from household clients)
         $serviceRequests = \App\Models\Booking::where(function($q) use ($worker) {

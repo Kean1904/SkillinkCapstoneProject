@@ -30,7 +30,7 @@ class JobApiController extends Controller
                 $query->where(function ($q) {
                     $q->whereNull('applicant_username')
                       ->orWhere('applicant_username', '');
-                })->whereNotIn('status', ['Completed', 'Cancelled']);
+                })->whereNotIn('status', ['Completed', 'Cancelled', 'Matched', 'Accepted', 'In Progress', 'IN_PROGRESS']);
             } elseif ($status === 'applied') {
                 $query->whereNotNull('applicant_username')->where('status', 'Applied');
             } else {
@@ -39,7 +39,7 @@ class JobApiController extends Controller
         }
 
         $jobs = $query->get()->map(function ($job) {
-            $isAvailable = empty($job->applicant_username) && !in_array($job->status, ['Completed', 'Cancelled']);
+            $isAvailable = empty($job->applicant_username) && !in_array($job->status, ['Completed', 'Cancelled', 'Matched', 'Accepted', 'In Progress', 'IN_PROGRESS']);
             return [
                 'id'                => (string) $job->request_id,
                 'title'             => $job->title ?? 'Service Requirement',
