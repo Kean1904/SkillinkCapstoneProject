@@ -8,6 +8,7 @@
     <ul class="sidebar-menu">
         <li><a href="{{ route('dashboard.SkilledWorker') }}" class="{{ ($active ?? '') === 'dashboard' ? 'active' : '' }}"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
         <li><a href="{{ route('skilled_worker.tracking_service') }}" class="{{ ($active ?? '') === 'tracking' ? 'active' : '' }}"><i class="fa-solid fa-route"></i> Tracking Service</a></li>
+        <li><a href="{{ route('skilled_worker.declined_bookings') }}" class="{{ ($active ?? '') === 'declined_bookings' ? 'active' : '' }}"><i class="fa-solid fa-calendar-xmark"></i> Declined Bookings</a></li>
         <li><a href="{{ route('skilled_worker.my_services') }}" class="{{ ($active ?? '') === 'services' ? 'active' : '' }}"><i class="fa-solid fa-wrench"></i> My Services</a></li>
         <li><a href="{{ route('skilled_worker.profile') }}" class="{{ ($active ?? '') === 'profile' ? 'active' : '' }}"><i class="fa-solid fa-user"></i> Profile</a></li>
         <li><a href="{{ route('skilled_worker.settings') }}" class="{{ ($active ?? '') === 'settings' ? 'active' : '' }}"><i class="fa-solid fa-gear"></i> Settings</a></li>

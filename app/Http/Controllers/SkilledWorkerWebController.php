@@ -37,7 +37,7 @@ class SkilledWorkerWebController extends Controller
                   ->orWhereRaw('LOWER(worker_username) = ?', [strtolower($worker->name)])
                   ->orWhere('worker_name', $worker->full_name);
             })
-            ->whereNotIn('status', ['COMPLETED', 'CANCELLED', 'REJECTED'])
+            ->whereNotIn('status', ['COMPLETED', 'CANCELLED', 'REJECTED', 'DECLINED'])
             ->latest('created_at')
             ->get();
 
@@ -397,5 +397,21 @@ class SkilledWorkerWebController extends Controller
         $worker->save();
 
         return back()->with('success', 'Your password has been changed successfully!');
+    }
+
+    public function declinedBookings()
+    {
+        $worker = $this->getCurrentWorker();
+        $declinedBookings = Booking::where(function($q) use ($worker) {
+                $q->where('worker_username', $worker->name)
+                  ->orWhere('worker_id', $worker->user_id)
+                  ->orWhereRaw('LOWER(worker_username) = ?', [strtolower($worker->name)])
+                  ->orWhere('worker_name', $worker->full_name);
+            })
+            ->whereIn('status', ['DECLINED', 'REJECTED', 'CANCELLED'])
+            ->latest('updated_at')
+            ->get();
+
+        return view('skilled_worker.declined_bookings', compact('worker', 'declinedBookings'));
     }
 }

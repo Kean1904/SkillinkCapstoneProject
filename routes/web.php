@@ -88,7 +88,7 @@ Route::middleware(['checkrole:skilled worker'])->group(function () {
                   ->orWhere('worker_id', $worker->user_id)
                   ->orWhereRaw('LOWER(worker_username) = ?', [strtolower($worker->name)]);
             })
-            ->whereNotIn('status', ['COMPLETED', 'CANCELLED', 'REJECTED'])
+            ->whereNotIn('status', ['COMPLETED', 'CANCELLED', 'REJECTED', 'DECLINED'])
             ->latest('created_at')
             ->take(5)
             ->get();
@@ -97,6 +97,7 @@ Route::middleware(['checkrole:skilled worker'])->group(function () {
     })->name('dashboard.SkilledWorker');
 
     Route::get('/skilled-worker/tracking-service', [SkilledWorkerWebController::class, 'trackingService'])->name('skilled_worker.tracking_service');
+    Route::get('/skilled-worker/declined-bookings', [SkilledWorkerWebController::class, 'declinedBookings'])->name('skilled_worker.declined_bookings');
     Route::post('/skilled-worker/complaint/submit', [SkilledWorkerWebController::class, 'submitComplaint'])->name('skilled_worker.complaint.submit');
     Route::post('/skilled-worker/job/{id}/apply', [SkilledWorkerWebController::class, 'applyJob'])->name('skilled_worker.job.apply');
     Route::post('/skilled-worker/bookings/{id}/status', [SkilledWorkerWebController::class, 'updateBookingStatus'])->name('skilled_worker.booking.update_status');
@@ -120,6 +121,7 @@ Route::middleware(['checkrole:residential'])->group(function () {
     Route::get('/dashboard/Residential', [HouseholdClientController::class, 'index'])->name('dashboard.Residential');
 
     Route::get('/household-client/hiring-history', [HouseholdClientController::class, 'hiringHistory'])->name('household_client.hiring_history');
+    Route::get('/household-client/declined-bookings', [HouseholdClientController::class, 'declinedBookings'])->name('household_client.declined_bookings');
     Route::post('/household-client/review/submit', [HouseholdClientController::class, 'submitReview'])->name('household_client.review.submit');
     Route::post('/household-client/complaint/submit', [HouseholdClientController::class, 'submitComplaint'])->name('household_client.complaint.submit');
     Route::get('/household-client/saved-workers', [HouseholdClientController::class, 'savedWorkers'])->name('household_client.saved_workers');

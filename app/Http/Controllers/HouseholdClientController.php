@@ -83,7 +83,7 @@ class HouseholdClientController extends Controller
                 $q->where('client_username', $user->name)
                   ->orWhereRaw('LOWER(client_username) = ?', [strtolower($user->name)]);
             })
-            ->whereNotIn('status', ['COMPLETED', 'CANCELLED'])
+            ->whereNotIn('status', ['COMPLETED', 'CANCELLED', 'DECLINED', 'REJECTED'])
             ->latest('created_at')
             ->get();
 
@@ -777,5 +777,19 @@ class HouseholdClientController extends Controller
 
             return back()->with('warning', "Tinanggihan ang aplikasyon ni {$rejectedApplicant}. Bukas muli ang job posting para sa ibang manggagawa mula sa Magalang.");
         }
+    }
+
+    public function declinedBookings()
+    {
+        $user = $this->getCurrentUser();
+        $declinedBookings = Booking::where(function($q) use ($user) {
+                $q->where('client_username', $user->name)
+                  ->orWhereRaw('LOWER(client_username) = ?', [strtolower($user->name)]);
+            })
+            ->whereIn('status', ['DECLINED', 'REJECTED', 'CANCELLED'])
+            ->latest('updated_at')
+            ->get();
+
+        return view('household_client.declined_bookings', compact('user', 'declinedBookings'));
     }
 }

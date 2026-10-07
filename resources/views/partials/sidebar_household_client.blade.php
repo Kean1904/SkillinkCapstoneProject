@@ -8,6 +8,7 @@
     <ul class="sidebar-menu">
         <li><a href="{{ route('dashboard.HouseholdClient') }}" class="{{ ($active ?? '') === 'dashboard' ? 'active' : '' }}"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
         <li><a href="{{ route('household_client.hiring_history') }}" class="{{ ($active ?? '') === 'hiring_history' ? 'active' : '' }}"><i class="fa-solid fa-clock-rotate-left"></i> Hiring History</a></li>
+        <li><a href="{{ route('household_client.declined_bookings') }}" class="{{ ($active ?? '') === 'declined_bookings' ? 'active' : '' }}"><i class="fa-solid fa-calendar-xmark"></i> Declined Bookings</a></li>
         <li><a href="{{ route('household_client.saved_workers') }}" class="{{ ($active ?? '') === 'saved_workers' ? 'active' : '' }}"><i class="fa-solid fa-bookmark"></i> Saved Workers</a></li>
         <li><a href="{{ route('household_client.job_posts') }}" class="{{ ($active ?? '') === 'job_posts' ? 'active' : '' }}"><i class="fa-solid fa-briefcase"></i> My Job Posts</a></li>
         <li><a href="{{ route('household_client.profile') }}" class="{{ ($active ?? '') === 'profile' ? 'active' : '' }}"><i class="fa-solid fa-user"></i> Profile</a></li>
