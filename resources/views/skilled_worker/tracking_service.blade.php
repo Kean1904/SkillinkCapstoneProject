@@ -439,45 +439,76 @@
         </div>
     </div>
 
-    <!-- COMPLAINT MODAL FOR SKILLED WORKER -->
+    <!-- EXPANDED COMPLAINT MODAL FOR SKILLED WORKER -->
     <div id="complaintModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.65); z-index: 3000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
-        <div style="background: #1e3a8a; border: 1px solid rgba(255,255,255,0.3); border-radius: 12px; padding: 25px; width: 90%; max-width: 480px; color: white; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h3 style="margin: 0; font-size: 18px; display: flex; align-items: center; gap: 8px;">
-                    <i class="fa-solid fa-triangle-exclamation" style="color: #ef4444;"></i> File Grievance to PESO Magalang
+        <div style="background: #1e3a8a; border: 1.5px solid rgba(255,255,255,0.3); border-radius: 14px; padding: 22px 25px; width: 92%; max-width: 530px; color: white; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h3 style="margin: 0; font-size: 17px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-triangle-exclamation" style="color: #ef4444;"></i> File Official Grievance to PESO Magalang
                 </h3>
-                <button type="button" onclick="closeComplaintModal()" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer;">&times;</button>
+                <button type="button" onclick="closeComplaintModal()" style="background: none; border: none; color: white; font-size: 20px; cursor: pointer;">&times;</button>
             </div>
-            <form method="POST" action="{{ route('skilled_worker.complaint.submit') }}">
+            <p style="font-size: 12px; opacity: 0.85; margin-bottom: 14px; line-height: 1.4;">
+                Magsumite ng pormal na reklamo laban sa kliyente kasama ang ebidensya para sa imbestigasyon ng PESO.
+            </p>
+
+            <form id="workerComplaintForm" method="POST" action="{{ route('skilled_worker.complaint.submit') }}" enctype="multipart/form-data">
                 @csrf
                 <input type="hidden" name="bookingId" id="compBookingId">
                 <input type="hidden" name="respondentUsername" id="compClientUsername">
                 
-                <div style="margin-bottom: 15px;">
-                    <label style="display: block; font-size: 13px; margin-bottom: 6px; font-weight: 500;">Respondent (Household Client)</label>
-                    <input type="text" id="displayClientName" readonly style="width: 100%; padding: 10px; border-radius: 6px; background: rgba(255,255,255,0.15); color: #93c5fd; border: 1px solid rgba(255,255,255,0.3); font-weight: bold; cursor: not-allowed;">
+                <div style="margin-bottom: 12px;">
+                    <label style="display: block; font-size: 12.5px; margin-bottom: 5px; font-weight: bold;">Respondent (Household Client)</label>
+                    <input type="text" id="displayClientName" readonly style="width: 100%; padding: 9px 12px; border-radius: 6px; background: rgba(255,255,255,0.15); color: #93c5fd; border: 1px solid rgba(255,255,255,0.3); font-weight: bold; cursor: not-allowed; font-size: 13px;">
                 </div>
 
-                <div style="margin-bottom: 15px;">
-                    <label style="display: block; font-size: 13px; margin-bottom: 6px; font-weight: 500;">Complaint Category</label>
-                    <select name="complaintType" style="width: 100%; padding: 10px; border-radius: 6px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.4);" required>
+                <div style="margin-bottom: 12px;">
+                    <label style="display: block; font-size: 12.5px; margin-bottom: 5px; font-weight: bold;">Complaint Category</label>
+                    <select name="complaintType" id="workerComplaintTypeSelect" onchange="toggleWorkerOtherCategory(this.value)" style="width: 100%; padding: 10px; border-radius: 6px; background: rgba(255,255,255,0.12); color: white; border: 1px solid rgba(255,255,255,0.4); outline: none; font-size: 13px;" required>
                         <option value="Non-Payment / Delayed Payment" style="color: black;">Non-Payment / Delayed Payment</option>
                         <option value="Underpayment / Disputed Amount" style="color: black;">Underpayment / Disputed Amount</option>
                         <option value="Unsafe Working Conditions" style="color: black;">Unsafe Working Conditions</option>
                         <option value="Verbal Abuse / Harassment" style="color: black;">Verbal Abuse / Harassment</option>
                         <option value="Unreasonable Task Scope / Demands" style="color: black;">Unreasonable Task Scope / Demands</option>
-                        <option value="Other Grievances" style="color: black;">Other Grievances</option>
+                        <option value="Others" style="color: black;">Others (Iba pang Reklamo)</option>
                     </select>
                 </div>
 
-                <div style="margin-bottom: 18px;">
-                    <label style="display: block; font-size: 13px; margin-bottom: 6px; font-weight: 500;">Detailed Incident Narrative</label>
-                    <textarea name="description" rows="4" style="width: 100%; padding: 10px; border-radius: 6px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.4); resize: vertical;" required placeholder="Ipaliwanag nang detalyado ang nangyari para sa imbestigasyon ng PESO..."></textarea>
+                <!-- DYNAMIC OTHER CATEGORY INPUT -->
+                <div id="workerOtherCategoryBox" style="display: none; margin-bottom: 12px;">
+                    <label style="display: block; font-size: 12px; margin-bottom: 4px; color: #fde047; font-weight: bold;">
+                        <i class="fa-solid fa-pen-to-square"></i> Pakisulat ang Partikular na Reklamo:
+                    </label>
+                    <input type="text" name="otherCategory" id="workerOtherCategoryInput" placeholder="Ilagay ang uri o dahilan ng reklamo kung wala sa pagpipilian..." style="width: 100%; padding: 9px 12px; border-radius: 6px; background: rgba(255,255,255,0.15); color: white; border: 1px solid #fde047; outline: none; font-size: 13px;">
+                </div>
+
+                <div style="margin-bottom: 12px;">
+                    <label style="display: block; font-size: 12.5px; margin-bottom: 5px; font-weight: bold;">Detailed Incident Narrative</label>
+                    <textarea name="description" id="workerDescriptionInput" rows="3" style="width: 100%; padding: 10px; border-radius: 6px; background: rgba(255,255,255,0.12); color: white; border: 1px solid rgba(255,255,255,0.4); resize: vertical; outline: none; font-size: 13px;" required placeholder="Ipaliwanag nang detalyado ang nangyari para sa imbestigasyon ng PESO..."></textarea>
+                </div>
+
+                <!-- EVIDENCE / PROOF UPLOAD (PICTURE O VIDEO - LIMIT OF 5) -->
+                <div style="margin-bottom: 16px; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <label style="font-size: 12.5px; font-weight: bold; color: #93c5fd; display: flex; align-items: center; gap: 6px;">
+                            <i class="fa-solid fa-photo-film"></i> Evidence / Proof Upload (Picture o Video):
+                        </label>
+                        <span style="font-size: 11px; background: rgba(234, 179, 8, 0.25); color: #fde047; border: 1px solid #eab308; padding: 1px 7px; border-radius: 10px; font-weight: bold;">
+                            Limit: 5 Files
+                        </span>
+                    </div>
+                    <p style="font-size: 11px; opacity: 0.8; margin-bottom: 8px;">
+                        Maaaring mag-upload ng litrato ng natapos na trabaho, chat screenshots, resibo, o video. Hanggang 5 media files lamang ang kabuuan.
+                    </p>
+                    <input type="file" name="evidence_files[]" id="workerEvidenceInput" accept="image/*,video/*" multiple style="width: 100%; padding: 8px; border-radius: 6px; background: rgba(255,255,255,0.1); color: white; border: 1px dashed rgba(255,255,255,0.4); font-size: 12px; cursor: pointer;" onchange="handleWorkerEvidenceChange(this, 'workerEvidencePreview', 'workerEvidenceCount')">
+                    
+                    <div id="workerEvidenceCount" style="font-size: 11px; color: #86efac; margin-top: 5px; display: none;"></div>
+                    <div id="workerEvidencePreview" style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px;"></div>
                 </div>
 
                 <div style="display: flex; gap: 10px; justify-content: flex-end;">
                     <button type="button" class="btn" style="background: rgba(255,255,255,0.2); color: white;" onclick="closeComplaintModal()">Cancel</button>
-                    <button type="submit" class="btn btn-danger" style="background: #dc2626; border: 1px solid #ef4444;">
+                    <button type="button" class="btn btn-danger" style="background: #dc2626; border: 1px solid #ef4444;" onclick="triggerWorkerComplaintConfirmation('workerComplaintForm', 'workerEvidenceInput', 'workerDescriptionInput', 'workerComplaintTypeSelect', 'workerOtherCategoryInput')">
                         <i class="fa-solid fa-paper-plane"></i> Submit Grievance
                     </button>
                 </div>
@@ -485,7 +516,30 @@
         </div>
     </div>
 
+    <!-- EVIDENCE CONFIRMATION MODAL -->
+    <div id="workerEvidenceConfirmModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 4000; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+        <div style="background: #0f172a; border: 2px solid #3b82f6; border-radius: 14px; padding: 25px; width: 90%; max-width: 460px; color: white; text-align: center; box-shadow: 0 15px 40px rgba(0,0,0,0.8);">
+            <div style="width: 52px; height: 52px; background: rgba(59, 130, 246, 0.2); border: 2px solid #60a5fa; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto;">
+                <i class="fa-solid fa-cloud-arrow-up" style="font-size: 24px; color: #60a5fa;"></i>
+            </div>
+            <h4 style="font-size: 16px; margin-bottom: 12px; color: #f8fafc; font-weight: 700;">Confirmation</h4>
+            <p style="font-size: 13.5px; line-height: 1.5; color: #e2e8f0; margin-bottom: 22px;">
+                Are you sure you want to submit this image and video as evidence for your complaint?
+            </p>
+            <div style="display: flex; justify-content: center; gap: 12px;">
+                <button type="button" onclick="closeWorkerEvidenceConfirmation()" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 10px 22px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; transition: background 0.2s;">
+                    I disagree
+                </button>
+                <button type="button" id="workerConfirmAgreeBtn" onclick="proceedWorkerComplaintSubmit()" style="background: #10b981; border: 1px solid #34d399; color: white; padding: 10px 24px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(16,185,129,0.3);">
+                    Yes, I Agree
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        let targetWorkerFormToSubmit = null;
+
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('active');
             document.getElementById('sidebarOverlay').classList.toggle('active');
@@ -500,6 +554,108 @@
 
         function closeComplaintModal() {
             document.getElementById('complaintModal').style.display = 'none';
+            closeWorkerEvidenceConfirmation();
+        }
+
+        function toggleWorkerOtherCategory(val) {
+            const box = document.getElementById('workerOtherCategoryBox');
+            const input = document.getElementById('workerOtherCategoryInput');
+            if (val === 'Others') {
+                box.style.display = 'block';
+                input.required = true;
+                input.focus();
+            } else {
+                box.style.display = 'none';
+                input.required = false;
+                input.value = '';
+            }
+        }
+
+        function handleWorkerEvidenceChange(input, previewContainerId, countContainerId) {
+            const preview = document.getElementById(previewContainerId);
+            const countBox = document.getElementById(countContainerId);
+            preview.innerHTML = '';
+
+            if (!input.files || input.files.length === 0) {
+                countBox.style.display = 'none';
+                return;
+            }
+
+            if (input.files.length > 5) {
+                alert('Paalala: Hanggang limang (5) litrato o video lamang ang pinapayagang ebidensya.');
+                input.value = '';
+                countBox.style.display = 'none';
+                return;
+            }
+
+            countBox.innerText = `Napiling ebidensya: ${input.files.length} file(s) (Maximum 5)`;
+            countBox.style.display = 'block';
+
+            Array.from(input.files).forEach((file, index) => {
+                const item = document.createElement('div');
+                item.style.position = 'relative';
+                item.style.width = '64px';
+                item.style.height = '64px';
+                item.style.borderRadius = '6px';
+                item.style.overflow = 'hidden';
+                item.style.border = '1px solid rgba(255,255,255,0.4)';
+                item.style.background = '#1e293b';
+
+                if (file.type.startsWith('image/')) {
+                    const img = document.createElement('img');
+                    img.src = URL.createObjectURL(file);
+                    img.style.width = '100%';
+                    img.style.height = '100%';
+                    img.style.objectFit = 'cover';
+                    item.appendChild(img);
+                } else {
+                    const vidIcon = document.createElement('div');
+                    vidIcon.style.width = '100%';
+                    vidIcon.style.height = '100%';
+                    vidIcon.style.display = 'flex';
+                    vidIcon.style.flexDirection = 'column';
+                    vidIcon.style.alignItems = 'center';
+                    vidIcon.style.justifyContent = 'center';
+                    vidIcon.style.color = '#fde047';
+                    vidIcon.style.fontSize = '18px';
+                    vidIcon.innerHTML = '<i class="fa-solid fa-video"></i><span style="font-size: 8px; color: white; margin-top: 2px;">Video</span>';
+                    item.appendChild(vidIcon);
+                }
+
+                preview.appendChild(item);
+            });
+        }
+
+        function triggerWorkerComplaintConfirmation(formId, fileInputId, descInputId, typeSelectId, otherInputId) {
+            const desc = document.getElementById(descInputId);
+            if (!desc.value.trim()) {
+                alert('Paki-lagay po ang buong detalye o salaysay ng reklamo.');
+                desc.focus();
+                return;
+            }
+
+            const typeSelect = document.getElementById(typeSelectId);
+            if (typeSelect && typeSelect.value === 'Others') {
+                const other = document.getElementById(otherInputId);
+                if (!other || !other.value.trim()) {
+                    alert('Pakisulat po ang partikular na reklamo kung pinili ang Others.');
+                    if (other) other.focus();
+                    return;
+                }
+            }
+
+            targetWorkerFormToSubmit = document.getElementById(formId);
+            document.getElementById('workerEvidenceConfirmModal').style.display = 'flex';
+        }
+
+        function closeWorkerEvidenceConfirmation() {
+            document.getElementById('workerEvidenceConfirmModal').style.display = 'none';
+        }
+
+        function proceedWorkerComplaintSubmit() {
+            if (targetWorkerFormToSubmit) {
+                targetWorkerFormToSubmit.submit();
+            }
         }
     </script>
 </body>

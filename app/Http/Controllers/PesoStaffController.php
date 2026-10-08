@@ -363,6 +363,8 @@ class PesoStaffController extends Controller
     {
         $complaint = Complaint::findOrFail($id);
         $complaint->status = 'Resolved';
+        $complaint->resolution_decision = $request->input('resolution_decision', 'Amicable Settlement / Cleared');
+        $complaint->sanction_status = $request->input('sanction_status', 'None');
         $complaint->resolution_notes = $request->input('notes', 'Resolved amicably by PESO Staff mediation.');
         $complaint->resolved_at = now();
         $complaint->save();

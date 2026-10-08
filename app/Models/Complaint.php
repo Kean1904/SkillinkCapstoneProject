@@ -20,9 +20,22 @@ class Complaint extends Model
         'respondent_username',
         'description',
         'complaint_type',
+        'other_category',
+        'evidence_files',
         'status',
         'resolution_notes',
+        'resolution_decision',
+        'sanction_status',
         'created_at',
         'resolved_at',
     ];
+
+    public function getEvidenceListAttribute()
+    {
+        if (empty($this->evidence_files)) {
+            return [];
+        }
+        $decoded = json_decode($this->evidence_files, true);
+        return is_array($decoded) ? $decoded : [];
+    }
 }

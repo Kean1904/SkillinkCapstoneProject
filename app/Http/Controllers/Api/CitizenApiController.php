@@ -165,9 +165,9 @@ class CitizenApiController extends Controller
 
     public function postComplaint(Request $request)
     {
-        $complainantUsername = $request->input('complainantUsername');
-        $respondentUsername = $request->input('respondentUsername');
-        $complaintType = $request->input('complaintType') ?? $request->input('serviceCategory') ?? 'Service Dispute';
+        $complainantUsername = $request->input('complainantUsername') ?? $request->input('complainant_username');
+        $respondentUsername = $request->input('respondentUsername') ?? $request->input('respondent_username');
+        $complaintType = $request->input('complaintType') ?? $request->input('complaint_type') ?? $request->input('serviceCategory') ?? 'Service Dispute';
         $description = $request->input('description') ?? $request->input('details') ?? '';
 
         if (empty($complainantUsername) || empty($respondentUsername) || empty($description)) {
@@ -176,12 +176,13 @@ class CitizenApiController extends Controller
 
         $complainant = User::where('name', $complainantUsername)->first();
 
+        $bookingParam = $request->input('bookingId') ?? $request->input('booking_id');
         $bookingId = null;
-        if ($request->has('bookingId') && !empty($request->input('bookingId'))) {
-            $booking = Booking::where('booking_reference', $request->input('bookingId'))
-                ->orWhere('booking_id', $request->input('bookingId'))
+        if (!empty($bookingParam)) {
+            $booking = Booking::where('booking_reference', $bookingParam)
+                ->orWhere('booking_id', $bookingParam)
                 ->first();
-            $bookingId = $booking ? $booking->booking_id : (is_numeric($request->input('bookingId')) ? (int)$request->input('bookingId') : null);
+            $bookingId = $booking ? $booking->booking_id : (is_numeric($bookingParam) ? (int)$bookingParam : null);
         }
 
         // Prevent duplicate complaint for the same booking
@@ -203,12 +204,50 @@ class CitizenApiController extends Controller
             }
         }
 
+        // Handle Evidence / Proof Upload (Images & Videos up to 5 files)
+        $uploadedEvidence = [];
+        if ($request->hasFile('evidence_files')) {
+            $files = $request->file('evidence_files');
+            if (!is_array($files)) {
+                $files = [$files];
+            }
+            $files = array_slice($files, 0, 5);
+            foreach ($files as $file) {
+                if ($file && $file->isValid()) {
+                    $ext = strtolower($file->getClientOriginalExtension());
+                    $isVideo = in_array($ext, ['mp4', 'mov', 'avi', 'webm', 'mkv', '3gp', 'ogg']);
+                    $fileName = 'comp_' . time() . '_' . uniqid() . '.' . $ext;
+                    $file->move(public_path('uploads/complaints'), $fileName);
+                    $uploadedEvidence[] = [
+                        'path' => 'uploads/complaints/' . $fileName,
+                        'name' => $file->getClientOriginalName(),
+                        'type' => $isVideo ? 'video' : 'image',
+                        'size' => filesize(public_path('uploads/complaints/' . $fileName)),
+                    ];
+                }
+            }
+        } elseif ($request->filled('evidence_files')) {
+            $raw = $request->input('evidence_files');
+            if (is_string($raw)) {
+                $decoded = json_decode($raw, true);
+                if (is_array($decoded)) {
+                    $uploadedEvidence = array_slice($decoded, 0, 5);
+                }
+            } elseif (is_array($raw)) {
+                $uploadedEvidence = array_slice($raw, 0, 5);
+            }
+        }
+
+        $otherCategory = $request->input('otherCategory') ?? $request->input('other_category');
+
         $complaint = Complaint::create([
             'booking_id' => $bookingId,
             'submitted_by' => $complainant ? $complainant->user_id : 1,
             'complainant_username' => $complainantUsername,
             'respondent_username' => $respondentUsername,
             'complaint_type' => $complaintType,
+            'other_category' => $otherCategory,
+            'evidence_files' => !empty($uploadedEvidence) ? json_encode($uploadedEvidence) : null,
             'description' => $description,
             'status' => 'Pending Investigation',
             'created_at' => now(),

@@ -82,7 +82,7 @@
             border: 2px solid #3b82f6;
             border-radius: 14px;
             width: 100%;
-            max-width: 580px;
+            max-width: 820px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
             color: white;
             overflow: hidden;
@@ -417,30 +417,77 @@
                         </div>
                         <div style="grid-column: span 2;">
                             <div style="font-size: 11px; color: #94a3b8; text-transform: uppercase;">Uri ng Reklamo (Complaint Category)</div>
-                            <span id="modalType" style="color: #fca5a5; font-weight: bold; font-size: 13px;">—</span>
+                            <div style="display: flex; align-items: center; gap: 8px; margin-top: 2px;">
+                                <span id="modalType" style="color: #fca5a5; font-weight: bold; font-size: 13px;">—</span>
+                                <span id="modalOtherCategoryBadge" style="display: none; background: rgba(234, 179, 8, 0.25); color: #fde047; border: 1px solid #eab308; padding: 2px 8px; border-radius: 6px; font-size: 11.5px; font-weight: bold;"></span>
+                            </div>
                         </div>
                     </div>
 
                     <!-- NARRATIVE REKLAMO BOX -->
-                    <div style="margin-bottom: 18px;">
+                    <div style="margin-bottom: 16px;">
                         <label style="display: block; font-size: 12px; font-weight: bold; color: #fde047; margin-bottom: 6px;">
                             <i class="fa-solid fa-bullhorn"></i> Reklamo ng Residente / Manggagawa (Grievance Narrative):
                         </label>
-                        <div id="modalDescription" style="background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 14px; font-size: 13px; line-height: 1.5; color: #f1f5f9; white-space: pre-wrap; max-height: 150px; overflow-y: auto;">
+                        <div id="modalDescription" style="background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 14px; font-size: 13px; line-height: 1.5; color: #f1f5f9; white-space: pre-wrap; max-height: 130px; overflow-y: auto;">
                             —
                         </div>
                     </div>
 
-                    <!-- MEDIATION & SOLUTION BOX -->
-                    <div style="margin-bottom: 14px;">
-                        <label style="display: block; font-size: 12.5px; font-weight: bold; color: #60a5fa; margin-bottom: 6px;">
-                            <i class="fa-solid fa-comment-medical"></i> Solusyon at Mediation Action (Staff / Admin Resolution Notes):
+                    <!-- EVIDENCE / PROOF ATTACHMENTS (IMAGE & VIDEO GALLERY) -->
+                    <div style="margin-bottom: 18px;">
+                        <label style="display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; font-weight: bold; color: #60a5fa; margin-bottom: 6px;">
+                            <span><i class="fa-solid fa-photo-film"></i> Katibayan / Ebidensya (Attached Images & Videos Proof):</span>
+                            <span id="modalEvidenceCount" style="font-size: 11px; background: rgba(59, 130, 246, 0.25); color: #93c5fd; padding: 2px 8px; border-radius: 10px; border: 1px solid #3b82f6;">0 Files</span>
                         </label>
-                        <textarea id="modalNotes" name="notes" rows="4" required placeholder="Isulat dito ang opisyal na solusyon, kasunduan sa pamamagitan ng mediation, o aksyon ng munisipyo..." style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(96,165,250,0.5); background: #1e293b; color: white; font-size: 13px; outline: none; font-family: inherit; resize: vertical;"></textarea>
+                        <div id="modalEvidenceGallery" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)); gap: 10px; background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 12px; min-height: 70px;">
+                            <!-- Injected dynamically via JS -->
+                        </div>
                     </div>
 
-                    <div id="modalResolvedBadge" style="display: none; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #86efac; padding: 10px; border-radius: 8px; font-size: 12px; font-weight: bold; text-align: center;">
-                        <i class="fa-solid fa-check-circle"></i> Ang kasong ito ay naresolba na. Status: CASE CLOSE.
+                    <!-- MEDIATION, DECISION & SANCTION CONTROLS -->
+                    <div id="resolutionControlsSection" style="margin-bottom: 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 14px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                            <div>
+                                <label style="display: block; font-size: 12px; font-weight: bold; color: #86efac; margin-bottom: 5px;">
+                                    <i class="fa-solid fa-gavel"></i> Executive Resolution Decision:
+                                </label>
+                                <select name="resolution_decision" id="modalDecisionSelect" style="width: 100%; padding: 9px; border-radius: 6px; background: #1e293b; color: white; border: 1px solid rgba(255,255,255,0.3); font-size: 12.5px; outline: none;">
+                                    <option value="Amicable Settlement / Cleared">Amicable Settlement / Cleared (Pagkakasundo)</option>
+                                    <option value="Warning Issued">Warning Issued (Opisyal na Babala)</option>
+                                    <option value="Required Work Rectification / Refund">Required Work Rectification / Refund</option>
+                                    <option value="Temporary Account Suspension">Temporary Account Suspension</option>
+                                    <option value="Revocation of Accreditation / Blacklisted">Revocation of Accreditation / Blacklisted</option>
+                                    <option value="Dismissed / Insufficient Evidence">Dismissed / Insufficient Evidence</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 12px; font-weight: bold; color: #fca5a5; margin-bottom: 5px;">
+                                    <i class="fa-solid fa-ban"></i> Sanction Status:
+                                </label>
+                                <select name="sanction_status" id="modalSanctionSelect" style="width: 100%; padding: 9px; border-radius: 6px; background: #1e293b; color: white; border: 1px solid rgba(255,255,255,0.3); font-size: 12.5px; outline: none;">
+                                    <option value="None">None / No Sanction</option>
+                                    <option value="1st Written Warning">1st Official Written Warning</option>
+                                    <option value="7-Day Suspension">7-Day Account Suspension</option>
+                                    <option value="30-Day Suspension">30-Day Account Suspension</option>
+                                    <option value="Permanent Ban">Permanent Revocation & Ban</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label style="display: block; font-size: 12.5px; font-weight: bold; color: #60a5fa; margin-bottom: 6px;">
+                                <i class="fa-solid fa-comment-medical"></i> Solusyon at Mediation Action (Staff / Admin Resolution Notes):
+                            </label>
+                            <textarea id="modalNotes" name="notes" rows="3" required placeholder="Isulat dito ang opisyal na solusyon, kasunduan sa pamamagitan ng mediation, o aksyon ng munisipyo..." style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(96,165,250,0.5); background: #1e293b; color: white; font-size: 13px; outline: none; font-family: inherit; resize: vertical;"></textarea>
+                        </div>
+                    </div>
+
+                    <div id="modalResolvedBadge" style="display: none; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #86efac; padding: 12px; border-radius: 8px; font-size: 12.5px; text-align: left; line-height: 1.4;">
+                        <div style="font-weight: bold; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                            <i class="fa-solid fa-check-circle"></i> Ang kasong ito ay ganap nang naresolba. Status: CASE CLOSE.
+                        </div>
+                        <div id="modalResolvedDetails" style="font-size: 11.5px; color: #bbf7d0;"></div>
                     </div>
                 </div>
 
@@ -449,7 +496,7 @@
                         Isara
                     </button>
                     <button type="submit" id="btnAdminModalSubmitResolve" class="btn btn-resolve" style="padding: 8px 20px; font-size: 13px;">
-                        <i class="fa-solid fa-check"></i> Resolve
+                        <i class="fa-solid fa-check"></i> Submit Resolution & Close Case
                     </button>
                 </div>
             </form>
@@ -470,24 +517,126 @@
             document.getElementById('modalComplainant').innerText = complaint.complainant_username || 'Citizen';
             document.getElementById('modalRespondent').innerText = '@ ' + (complaint.respondent_username || 'N/A');
             document.getElementById('modalType').innerText = complaint.complaint_type || 'General Incident';
+
+            // Other category badge
+            const otherBadge = document.getElementById('modalOtherCategoryBadge');
+            if (complaint.other_category && complaint.other_category.trim()) {
+                otherBadge.innerText = 'Dahilan: ' + complaint.other_category;
+                otherBadge.style.display = 'inline-block';
+            } else {
+                otherBadge.style.display = 'none';
+            }
+
             document.getElementById('modalDescription').innerText = complaint.description || 'Walang detalye na ibinigay.';
+
+            // Render Attached Evidence Gallery (Images & Videos)
+            const gallery = document.getElementById('modalEvidenceGallery');
+            const countBadge = document.getElementById('modalEvidenceCount');
+            gallery.innerHTML = '';
+
+            let evidenceList = [];
+            if (complaint.evidence_files) {
+                if (typeof complaint.evidence_files === 'string') {
+                    try {
+                        evidenceList = JSON.parse(complaint.evidence_files);
+                    } catch (_) {
+                        evidenceList = [];
+                    }
+                } else if (Array.isArray(complaint.evidence_files)) {
+                    evidenceList = complaint.evidence_files;
+                }
+            }
+
+            if (Array.isArray(evidenceList) && evidenceList.length > 0) {
+                countBadge.innerText = evidenceList.length + ' / 5 Files Attached';
+                countBadge.style.background = 'rgba(16, 185, 129, 0.25)';
+                countBadge.style.borderColor = '#10b981';
+                countBadge.style.color = '#86efac';
+
+                evidenceList.forEach((item, idx) => {
+                    const card = document.createElement('div');
+                    card.style.background = '#0f172a';
+                    card.style.borderRadius = '8px';
+                    card.style.border = '1px solid rgba(255,255,255,0.2)';
+                    card.style.overflow = 'hidden';
+                    card.style.display = 'flex';
+                    card.style.flexDirection = 'column';
+
+                    const filePath = typeof item === 'string' ? item : (item.path || '');
+                    const fullUrl = filePath.startsWith('http') ? filePath : '{{ url('/') }}/' + filePath.replace(/^\/+/, '');
+                    const isVideo = (typeof item === 'object' && item.type === 'video') || /\.(mp4|mov|avi|webm|mkv|3gp)$/i.test(filePath);
+
+                    if (isVideo) {
+                        card.innerHTML = `
+                            <div style="position: relative; width: 100%; height: 110px; background: black;">
+                                <video controls style="width: 100%; height: 100%; object-fit: contain;">
+                                    <source src="${fullUrl}">
+                                </video>
+                            </div>
+                            <div style="padding: 6px 8px; font-size: 10.5px; background: rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
+                                <span style="color: #fde047; font-weight: bold;"><i class="fa-solid fa-video"></i> Video Evidence</span>
+                                <a href="${fullUrl}" target="_blank" style="color: #93c5fd; text-decoration: none;"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+                            </div>
+                        `;
+                    } else {
+                        card.innerHTML = `
+                            <a href="${fullUrl}" target="_blank" style="display: block; width: 100%; height: 110px; overflow: hidden; background: #1e293b; text-align: center;">
+                                <img src="${fullUrl}" alt="Evidence" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                            </a>
+                            <div style="padding: 6px 8px; font-size: 10.5px; background: rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
+                                <span style="color: #86efac; font-weight: bold;"><i class="fa-solid fa-image"></i> Photo Evidence</span>
+                                <a href="${fullUrl}" target="_blank" style="color: #93c5fd; text-decoration: none;" title="Open full size"><i class="fa-solid fa-magnifying-glass-plus"></i> View</a>
+                            </div>
+                        `;
+                    }
+
+                    gallery.appendChild(card);
+                });
+            } else {
+                countBadge.innerText = '0 Files';
+                countBadge.style.background = 'rgba(255, 255, 255, 0.1)';
+                countBadge.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                countBadge.style.color = '#94a3b8';
+                gallery.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 18px; color: #94a3b8; font-size: 12px;">
+                        <i class="fa-solid fa-file-circle-xmark" style="font-size: 24px; margin-bottom: 6px; display: block; opacity: 0.6;"></i>
+                        Walang kalakip na litrato o video (Salaysay lamang ang isinumite).
+                    </div>
+                `;
+            }
 
             const notesField = document.getElementById('modalNotes');
             notesField.value = complaint.resolution_notes || '';
 
+            const decisionSelect = document.getElementById('modalDecisionSelect');
+            const sanctionSelect = document.getElementById('modalSanctionSelect');
+            if (decisionSelect) decisionSelect.value = complaint.resolution_decision || 'Amicable Settlement / Cleared';
+            if (sanctionSelect) sanctionSelect.value = complaint.sanction_status || 'None';
+
             const submitBtn = document.getElementById('btnAdminModalSubmitResolve');
             const resolvedNotice = document.getElementById('modalResolvedBadge');
+            const resolvedDetails = document.getElementById('modalResolvedDetails');
 
             if (isResolved) {
                 notesField.readOnly = true;
                 notesField.style.background = '#0f172a';
                 notesField.style.borderColor = 'rgba(255,255,255,0.2)';
+                if (decisionSelect) decisionSelect.disabled = true;
+                if (sanctionSelect) sanctionSelect.disabled = true;
                 submitBtn.style.display = 'none';
                 resolvedNotice.style.display = 'block';
+
+                resolvedDetails.innerHTML = `
+                    <strong>Decision:</strong> ${complaint.resolution_decision || 'Amicable Settlement'} &bull; 
+                    <strong>Sanction:</strong> ${complaint.sanction_status || 'None'} <br>
+                    <strong>Date Resolved:</strong> ${complaint.resolved_at || 'Recorded'}
+                `;
             } else {
                 notesField.readOnly = false;
                 notesField.style.background = '#1e293b';
                 notesField.style.borderColor = 'rgba(96,165,250,0.5)';
+                if (decisionSelect) decisionSelect.disabled = false;
+                if (sanctionSelect) sanctionSelect.disabled = false;
                 submitBtn.style.display = 'inline-flex';
                 resolvedNotice.style.display = 'none';
             }

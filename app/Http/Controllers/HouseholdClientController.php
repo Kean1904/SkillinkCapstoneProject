@@ -271,12 +271,45 @@ class HouseholdClientController extends Controller
             }
         }
 
+        // Handle Evidence / Proof Upload (Images & Videos up to 5 files)
+        $uploadedEvidence = [];
+        if ($request->hasFile('evidence_files')) {
+            $files = $request->file('evidence_files');
+            if (!is_array($files)) {
+                $files = [$files];
+            }
+            $files = array_slice($files, 0, 5); // Limit of 5 media items
+
+            foreach ($files as $file) {
+                if ($file && $file->isValid()) {
+                    $ext = strtolower($file->getClientOriginalExtension());
+                    $isVideo = in_array($ext, ['mp4', 'mov', 'avi', 'webm', 'mkv', '3gp', 'ogg']);
+                    $fileName = 'comp_' . time() . '_' . uniqid() . '.' . $ext;
+                    $file->move(public_path('uploads/complaints'), $fileName);
+                    $uploadedEvidence[] = [
+                        'path' => 'uploads/complaints/' . $fileName,
+                        'name' => $file->getClientOriginalName(),
+                        'type' => $isVideo ? 'video' : 'image',
+                        'size' => filesize(public_path('uploads/complaints/' . $fileName)),
+                    ];
+                }
+            }
+        }
+
+        $complaintType = $request->complaintType;
+        $otherCategory = null;
+        if (in_array(trim($complaintType), ['Others', 'Other Grievances'])) {
+            $otherCategory = trim($request->input('otherCategory', ''));
+        }
+
         $complaint = Complaint::create([
             'booking_id' => $numericBookingId,
             'submitted_by' => $user->user_id ?? 1,
             'complainant_username' => $user->name,
             'respondent_username' => $request->respondentUsername ?? ($booking ? $booking->worker_username : 'Unknown Worker'),
-            'complaint_type' => $request->complaintType,
+            'complaint_type' => $complaintType,
+            'other_category' => $otherCategory,
+            'evidence_files' => !empty($uploadedEvidence) ? json_encode($uploadedEvidence) : null,
             'description' => $request->description,
             'status' => 'Pending',
             'created_at' => now(),
