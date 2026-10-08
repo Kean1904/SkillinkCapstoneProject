@@ -602,6 +602,9 @@
                                         <span style="font-size: 11px; opacity: 0.75;"><i class="fa-solid fa-location-dot"></i> {{ $worker->barangay }}</span>
                                     </div>
                                     <div style="display: flex; align-items: center; gap: 8px;">
+                                        <button type="button" onclick="openChatModal('{{ $worker->name }}', '{{ addslashes($worker->full_name) }}', '{{ addslashes($worker->skills ?? 'General Handyman') }}', '{{ $worker->contact_number ?? $worker->phone_number ?? '' }}')" style="background: #0284c7; border: 1px solid #38bdf8; color: white; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 12px; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 6px rgba(0,0,0,0.25);" title="Send inquiry or clarify details before booking">
+                                            <i class="fa-solid fa-comments"></i> Message
+                                        </button>
                                         <button type="button" onclick="openBookModal('{{ $worker->name }}', '{{ $worker->full_name }}', '{{ $worker->skills }}', '{{ $worker->service_rate_display }}')" style="background: #0033a0; border: 1px solid #60a5fa; color: white; border-radius: 6px; padding: 6px 14px; cursor: pointer; font-size: 12px; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 6px rgba(0,0,0,0.25);">
                                             <i class="fa-solid fa-calendar-check"></i> Book Now
                                         </button>
@@ -783,6 +786,7 @@
 
     @include('partials.privacy_consent_modal')
     @include('partials.booking_modal_with_calendar')
+    @include('partials.chat_popup')
 
 </body>
 </html>

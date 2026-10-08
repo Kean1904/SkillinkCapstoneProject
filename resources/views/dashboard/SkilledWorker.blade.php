@@ -707,7 +707,10 @@
                                         <div style="font-size: 12.5px; font-weight: bold; margin: 4px 0 2px 0;">{{ $req->service_category }}</div>
                                         <div style="font-size: 11px; opacity: 0.85;">Client: {{ $req->client_name ?? $req->client_username }}</div>
                                         <div style="font-size: 11px; opacity: 0.85; color: #86efac; font-weight: bold;">Budget: {{ $req->estimated_budget }}</div>
-                                        <div style="margin-top: 6px; text-align: right;">
+                                        <div style="margin-top: 6px; text-align: right; display: flex; justify-content: flex-end; gap: 6px;">
+                                            <button type="button" onclick="openChatModal('{{ $req->client_username }}', '{{ addslashes($req->client_name ?? $req->client_username) }}', 'Household Client', '{{ $req->client_contact ?? '' }}')" style="background: #0284c7; border: 1px solid #38bdf8; color: white; padding: 3px 8px; border-radius: 4px; font-size: 10.5px; cursor: pointer; font-weight: bold;">
+                                                <i class="fa-solid fa-comments"></i> Chat
+                                            </button>
                                             <a href="{{ route('skilled_worker.tracking_service') }}" style="background: #2563eb; color: white; padding: 3px 8px; border-radius: 4px; font-size: 10.5px; text-decoration: none; font-weight: bold;">Open in Tracking</a>
                                         </div>
                                     </div>
@@ -877,6 +880,7 @@
     </script>
 
     @include('partials.privacy_consent_modal')
+    @include('partials.chat_popup')
 
 </body>
 </html>

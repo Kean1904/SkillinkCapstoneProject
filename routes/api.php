@@ -47,6 +47,11 @@ Route::put('/bookings/{id}/status', [BookingApiController::class, 'updateStatus'
 Route::post('/reviews', [CitizenApiController::class, 'postReview']);
 Route::post('/complaints', [CitizenApiController::class, 'postComplaint']);
 
+// In-App Messaging & Pre-booking Clarification
+Route::get('/messages', [\App\Http\Controllers\Api\ChatApiController::class, 'getMessages']);
+Route::post('/messages', [\App\Http\Controllers\Api\ChatApiController::class, 'sendMessage']);
+Route::get('/messages/conversations', [\App\Http\Controllers\Api\ChatApiController::class, 'getConversations']);
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();

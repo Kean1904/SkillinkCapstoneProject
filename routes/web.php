@@ -48,6 +48,11 @@ Route::post('/password/reset', [LoginController::class, 'updatePasswordWithToken
 Route::get('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::post('/user/consent/accept', [LoginController::class, 'acceptConsent'])->name('user.consent.accept');
 
+// In-App Messaging (Pre-booking Clarification)
+Route::get('/chat/messages', [\App\Http\Controllers\Api\ChatApiController::class, 'getMessages'])->name('chat.messages');
+Route::post('/chat/send', [\App\Http\Controllers\Api\ChatApiController::class, 'sendMessage'])->name('chat.send');
+Route::get('/chat/conversations', [\App\Http\Controllers\Api\ChatApiController::class, 'getConversations'])->name('chat.conversations');
+
 /*
 |--------------------------------------------------------------------------
 | 1. SKILLED WORKER ROUTES (Protected by CheckRole)

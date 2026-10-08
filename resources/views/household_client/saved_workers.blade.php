@@ -266,7 +266,10 @@
                                     <p style="margin-top: 4px; color: #93c5fd;"><i class="fa-solid fa-certificate"></i> {{ $worker->certificate_proof ?? 'TESDA NC II' }}</p>
                                 </div>
 
-                                <div style="display: flex; gap: 8px; margin-top: 10px;">
+                                <div style="display: flex; gap: 6px; margin-top: 10px;">
+                                    <button class="btn" style="background: #0284c7; border: 1px solid #38bdf8; color: white; padding: 7px 12px; font-size: 12px; font-weight: bold; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" onclick="openChatModal('{{ $worker->name }}', '{{ addslashes($worker->full_name) }}', '{{ addslashes($worker->skills ?? 'General Handyman') }}', '{{ $worker->contact_number ?? $worker->phone_number ?? '' }}')" title="Message worker">
+                                        <i class="fa-solid fa-comments"></i> Message
+                                    </button>
                                     <button class="btn btn-primary" style="flex: 1; justify-content: center;" onclick="openBookModal('{{ $worker->name }}', '{{ $worker->full_name }}', '{{ $worker->skills }}', '{{ $worker->service_rate_display }}')">
                                         <i class="fa-solid fa-calendar-check"></i> Book Now
                                     </button>
@@ -295,6 +298,7 @@
 
     <!-- DIRECT BOOKING MODAL WITH DYNAMIC CALENDAR & FIXED WORKER RATE -->
     @include('partials.booking_modal_with_calendar')
+    @include('partials.chat_popup')
 
     <script>
         function toggleSidebar() {
