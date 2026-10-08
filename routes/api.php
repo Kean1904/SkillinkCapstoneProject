@@ -28,6 +28,9 @@ Route::get('/jobs/stats', [DashboardStatsController::class, 'getLiveStats']);
 Route::get('/dashboard/stats', [DashboardStatsController::class, 'getLiveStats']);
 
 
+// Announcements
+Route::get('/announcements', [CitizenApiController::class, 'getAnnouncements']);
+
 // Citizens & Workers
 Route::get('/workers', [CitizenApiController::class, 'getWorkers']);
 Route::get('/users', [CitizenApiController::class, 'getUsers']);

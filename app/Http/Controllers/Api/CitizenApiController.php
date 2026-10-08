@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\Booking;
 use App\Models\Review;
 use App\Models\Complaint;
+use App\Models\Announcement;
 use Illuminate\Support\Facades\DB;
 
 class CitizenApiController extends Controller
@@ -284,5 +285,36 @@ class CitizenApiController extends Controller
             'success' => false,
             'message' => 'User not found or username not provided',
         ], 404);
+    }
+
+    public function getAnnouncements(Request $request)
+    {
+        $role = strtolower($request->input('role', 'all'));
+        $targetAudience = ['all'];
+        if (str_contains($role, 'skilled')) {
+            $targetAudience[] = 'skilled_worker';
+        } elseif (str_contains($role, 'resident') || str_contains($role, 'client')) {
+            $targetAudience[] = 'residential';
+        } else {
+            $targetAudience[] = 'skilled_worker';
+            $targetAudience[] = 'residential';
+        }
+
+        $announcements = Announcement::whereIn('target_audience', $targetAudience)
+            ->latest()
+            ->take(20)
+            ->get()
+            ->map(function ($a) {
+                return [
+                    'id' => $a->id,
+                    'title' => $a->title,
+                    'category' => $a->category,
+                    'targetAudience' => $a->target_audience,
+                    'message' => $a->message,
+                    'createdAt' => $a->created_at ? $a->created_at->format('M d, Y h:i A') : '',
+                ];
+            });
+
+        return response()->json($announcements, 200);
     }
 }

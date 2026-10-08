@@ -256,7 +256,7 @@
                                 <th>Barangay</th>
                                 <th>TESDA Proof / Document</th>
                                 <th>Status</th>
-                                <th style="min-width: 300px; text-align: center; white-space: nowrap;">ACTION</th>
+                                <th style="min-width: 220px; text-align: center; white-space: nowrap;">ACTION</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -288,32 +288,22 @@
                                         </td>
                                         <td style="white-space: nowrap; text-align: center;">
                                             @if($w->is_verified)
-                                                <div style="display: inline-flex; gap: 8px; align-items: center; justify-content: center; flex-wrap: nowrap;">
-                                                    <span style="color: #10b981; font-weight: bold; font-size: 12px; display: inline-flex; align-items: center; gap: 5px; background: rgba(16, 185, 129, 0.15); padding: 6px 12px; border-radius: 6px; border: 1px solid #10b981;">
-                                                        <i class="fa-solid fa-circle-check"></i> Verified Worker
-                                                    </span>
-                                                    <button type="button" class="btn btn-danger" onclick="openReasonModal({{ $w->user_id }}, '{{ addslashes($w->full_name) }}', 'deny')" style="background: #ef4444; color: white; border: none; padding: 6px 10px; border-radius: 6px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px;" title="Revoke accreditation">
-                                                        <i class="fa-solid fa-xmark"></i> Revoke
-                                                    </button>
-                                                </div>
+                                                <span style="color: #10b981; font-weight: bold; font-size: 12px; display: inline-flex; align-items: center; gap: 5px; background: rgba(16, 185, 129, 0.15); padding: 6px 14px; border-radius: 6px; border: 1px solid #10b981;">
+                                                    <i class="fa-solid fa-circle-check"></i> Verified Worker
+                                                </span>
                                             @else
                                                 <div style="display: inline-flex; gap: 8px; align-items: center; justify-content: center; flex-wrap: nowrap;">
                                                     <!-- APPROVED (GREEN) -->
                                                     <form method="POST" action="{{ route('peso.accredit', $w->user_id) }}" style="display:inline; margin: 0;">
                                                         @csrf
-                                                        <button type="submit" class="btn btn-success" style="background: #10b981; color: white; border: none; padding: 7px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; font-size: 12px; transition: all 0.2s;" title="Approve and accredit this skilled worker">
+                                                        <button type="submit" class="btn btn-success" style="background: #10b981; color: white; border: none; padding: 7px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; font-size: 12px; transition: all 0.2s; white-space: nowrap;" title="Approve and accredit this skilled worker">
                                                             <i class="fa-solid fa-check"></i> Approved
                                                         </button>
                                                     </form>
 
                                                     <!-- DENIED (RED) -->
-                                                    <button type="button" class="btn btn-danger" onclick="openReasonModal({{ $w->user_id }}, '{{ addslashes($w->full_name) }}', 'deny')" style="background: #ef4444; color: white; border: none; padding: 7px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; font-size: 12px; transition: all 0.2s;" title="Deny accreditation with reason">
+                                                    <button type="button" class="btn btn-danger" onclick="openReasonModal({{ $w->user_id }}, '{{ addslashes($w->full_name) }}', 'deny')" style="background: #ef4444; color: white; border: none; padding: 7px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; font-size: 12px; transition: all 0.2s; white-space: nowrap;" title="Deny accreditation with reason">
                                                         <i class="fa-solid fa-xmark"></i> Denied
-                                                    </button>
-
-                                                    <!-- RE-UPLOAD (YELLOW) -->
-                                                    <button type="button" class="btn btn-warning" onclick="openReasonModal({{ $w->user_id }}, '{{ addslashes($w->full_name) }}', 'reupload')" style="background: #eab308; color: #0f172a; border: none; padding: 7px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; font-size: 12px; transition: all 0.2s;" title="Request worker to re-upload documents">
-                                                        <i class="fa-solid fa-rotate"></i> Re-Upload
                                                     </button>
                                                 </div>
                                             @endif

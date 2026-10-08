@@ -484,9 +484,6 @@
                         <span style="color: #10b981; font-weight: bold; font-size: 15px; display: inline-flex; align-items: center; gap: 8px; background: rgba(16, 185, 129, 0.15); padding: 10px 20px; border-radius: 8px; border: 1px solid #10b981;">
                             <i class="fa-solid fa-circle-check" style="font-size: 18px;"></i> Verified & Officially Accredited
                         </span>
-                        <button type="button" class="btn-action btn-unaccredit" onclick="openReasonModal('deny')" title="Revoke accreditation">
-                            <i class="fa-solid fa-circle-xmark"></i> REVOKE ACCREDITATION
-                        </button>
                     @else
                         <!-- CONFIRM & ACCREDIT -->
                         <form method="POST" action="{{ route('peso.accredit', $worker->user_id) }}" style="margin: 0;">
