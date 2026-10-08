@@ -506,6 +506,38 @@
                 <!-- MAIN COLUMN -->
                 <div class="main-column">
 
+                    @if(isset($announcements) && count($announcements) > 0)
+                        <div class="panel" style="background: rgba(15, 23, 42, 0.75); border: 2px solid #3b82f6; margin-bottom: 20px; min-height: auto; padding: 18px 20px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                                <h3 style="color: white; font-size: 15px; display: flex; align-items: center; gap: 8px; margin: 0;">
+                                    <i class="fa-solid fa-bullhorn" style="color: #60a5fa;"></i>
+                                    OPISYAL NA ABISO NG PESO MAGALANG
+                                </h3>
+                                <span style="font-size: 11px; color: #93c5fd; background: rgba(59, 130, 246, 0.25); padding: 3px 10px; border-radius: 6px; font-weight: bold; border: 1px solid #3b82f6;">
+                                    <i class="fa-solid fa-circle-info"></i> Municipal Feed
+                                </span>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 10px;">
+                                @foreach($announcements as $ann)
+                                    <div style="background: rgba(255, 255, 255, 0.06); border-left: 4px solid #3b82f6; border-radius: 6px; padding: 12px 14px;">
+                                        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 6px;">
+                                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                                <strong style="color: white; font-size: 14px;">{{ $ann->title }}</strong>
+                                                <span style="background: rgba(59, 130, 246, 0.3); color: #bfdbfe; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">
+                                                    {{ $ann->category }}
+                                                </span>
+                                            </div>
+                                            <span style="font-size: 11px; color: #94a3b8;">
+                                                <i class="fa-regular fa-clock"></i> {{ $ann->created_at ? $ann->created_at->format('M d, Y h:i A') : 'Recent' }}
+                                            </span>
+                                        </div>
+                                        <p style="font-size: 12.5px; color: #f1f5f9; margin-top: 6px; line-height: 1.45; white-space: pre-line;">{{ $ann->message }}</p>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
                     <!-- STAT CARDS -->
                     <div class="stats-row">
                         <div class="stat-card">

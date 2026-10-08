@@ -169,7 +169,8 @@ class PesoStaffController extends Controller
     public function announcements()
     {
         $jobs = JobPost::latest()->get();
-        return view('peso_staff.announcements', compact('jobs'));
+        $announcements = \App\Models\Announcement::latest()->get();
+        return view('peso_staff.announcements', compact('jobs', 'announcements'));
     }
 
     public function profile()
@@ -248,6 +249,8 @@ class PesoStaffController extends Controller
     {
         $user = User::findOrFail($id);
         $user->is_verified = true;
+        $user->verification_status = 'verified';
+        $user->rejection_reason = null;
         $user->save();
 
         \App\Models\AuditLog::log(
@@ -264,18 +267,41 @@ class PesoStaffController extends Controller
     public function unaccreditWorker(Request $request, $id)
     {
         $user = User::findOrFail($id);
+        $reason = $request->input('rejection_reason', 'Hindi pumasa sa pagsusuri ng PESO Staff.');
         $user->is_verified = false;
+        $user->verification_status = 'rejected';
+        $user->rejection_reason = $reason;
         $user->save();
 
         \App\Models\AuditLog::log(
             'ACCREDITATION_REVOKED',
-            "PESO Staff revoked accreditation status for worker: {$user->full_name}.",
+            "PESO Staff denied/revoked accreditation status for worker: {$user->full_name}. Reason: {$reason}",
             Session::get('user_name', 'PESO Staff'),
             'PESO Staff',
             $user->user_id
         );
 
-        return back()->with('success', "Worker {$user->full_name} status updated to Unaccredited.");
+        return back()->with('success', "Worker {$user->full_name} status updated to Denied. Reason: {$reason}");
+    }
+
+    public function requestReupload(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+        $reason = $request->input('rejection_reason', 'Kailangan ng mas malinaw o kumpletong kopya ng dokumento / ID / TESDA Certification.');
+        $user->is_verified = false;
+        $user->verification_status = 're_upload';
+        $user->rejection_reason = $reason;
+        $user->save();
+
+        \App\Models\AuditLog::log(
+            'ACCREDITATION_REUPLOAD_REQUESTED',
+            "PESO Staff requested document re-upload for worker: {$user->full_name}. Reason: {$reason}",
+            Session::get('user_name', 'PESO Staff'),
+            'PESO Staff',
+            $user->user_id
+        );
+
+        return back()->with('success', "Naabisuhan na si {$user->full_name} na kailangan mag-Re-Upload ng dokumento. Dahilan: {$reason}");
     }
 
     /**
@@ -288,6 +314,15 @@ class PesoStaffController extends Controller
             'category' => 'required|string|max:100',
             'message' => 'required|string',
             'target_audience' => 'required|string|in:all,skilled_worker,residential',
+        ]);
+
+        // Persist announcement in database for dashboards (Workers and Clients)
+        $announcement = \App\Models\Announcement::create([
+            'title' => trim($request->title),
+            'category' => trim($request->category),
+            'message' => trim($request->message),
+            'target_audience' => trim($request->target_audience),
+            'posted_by' => Session::get('user_name', 'PESO Staff Magalang'),
         ]);
 
         $query = User::whereNotNull('email')->where('email', '!=', '');
@@ -303,13 +338,15 @@ class PesoStaffController extends Controller
 
         \App\Models\AuditLog::log(
             'ANNOUNCEMENT_BROADCAST',
-            "Broadcasted municipal notice: '{$request->title}' to {$recipients->count()} recipients.",
+            "Broadcasted municipal notice: '{$request->title}' ({$request->category}) for {$request->target_audience} to {$recipients->count()} recipients.",
             Session::get('user_name', 'PESO Staff'),
             'PESO Staff',
             Session::get('user_id')
         );
 
-        return back()->with('success', "Municipal announcement broadcasted successfully to {$recipients->count()} registered constituents!");
+        $targetText = $request->target_audience === 'skilled_worker' ? 'Skilled Workers lamang' : ($request->target_audience === 'residential' ? 'Household Clients lamang' : 'lahat ng rehistradong gumagamit');
+
+        return back()->with('success', "Municipal announcement ('{$request->title}') posted successfully para sa {$targetText} at naka-broadcast sa {$recipients->count()} accounts!");
     }
 
     public function postOutsideJob(Request $request)

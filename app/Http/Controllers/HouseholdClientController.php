@@ -57,7 +57,12 @@ class HouseholdClientController extends Controller
             ->pluck('worker_id')
             ->toArray();
 
-        return view('dashboard.HouseholdClient', compact('user', 'availableWorkers', 'postedJobs', 'workersList', 'search', 'savedWorkerIds'));
+        $announcements = \App\Models\Announcement::whereIn('target_audience', ['all', 'residential'])
+            ->latest()
+            ->take(5)
+            ->get();
+
+        return view('dashboard.HouseholdClient', compact('user', 'availableWorkers', 'postedJobs', 'workersList', 'search', 'savedWorkerIds', 'announcements'));
     }
 
     public function hiringHistory()

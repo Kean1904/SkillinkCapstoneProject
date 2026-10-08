@@ -496,17 +496,54 @@
                         </div>
                     </div>
 
+                    <!-- MUNICIPAL ANNOUNCEMENTS (PESO BROADCAST FEED) -->
+                    @if(isset($announcements) && count($announcements) > 0)
+                        <div class="panel" style="background: rgba(15, 23, 42, 0.75); border: 2px solid #3b82f6; margin-bottom: 20px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                                <h3 style="color: white; font-size: 15px; display: flex; align-items: center; gap: 8px; margin: 0;">
+                                    <i class="fa-solid fa-bullhorn" style="color: #60a5fa;"></i>
+                                    OPISYAL NA ABISO NG PESO MAGALANG
+                                </h3>
+                                <span style="font-size: 11px; color: #93c5fd; background: rgba(59, 130, 246, 0.25); padding: 3px 10px; border-radius: 6px; font-weight: bold; border: 1px solid #3b82f6;">
+                                    <i class="fa-solid fa-circle-info"></i> Municipal Feed
+                                </span>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 10px;">
+                                @foreach($announcements as $ann)
+                                    <div style="background: rgba(255, 255, 255, 0.06); border-left: 4px solid #3b82f6; border-radius: 6px; padding: 12px 14px;">
+                                        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 6px;">
+                                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                                <strong style="color: white; font-size: 14px;">{{ $ann->title }}</strong>
+                                                <span style="background: rgba(59, 130, 246, 0.3); color: #bfdbfe; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">
+                                                    {{ $ann->category }}
+                                                </span>
+                                            </div>
+                                            <span style="font-size: 11px; color: #94a3b8;">
+                                                <i class="fa-regular fa-clock"></i> {{ $ann->created_at ? $ann->created_at->format('M d, Y h:i A') : 'Recent' }}
+                                            </span>
+                                        </div>
+                                        <p style="font-size: 12.5px; color: #f1f5f9; margin-top: 6px; line-height: 1.45; white-space: pre-line;">{{ $ann->message }}</p>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
                     <!-- PESO ACCREDITATION STATUS & CREDENTIAL APPLICATION -->
-                    <div class="panel" style="background: rgba(30, 58, 138, 0.55); border: 2px solid {{ ($worker->is_verified ?? false) ? '#10b981' : '#f59e0b' }}; margin-bottom: 20px;">
+                    <div class="panel" style="background: rgba(30, 58, 138, 0.55); border: 2px solid {{ ($worker->is_verified ?? false) ? '#10b981' : ((($worker->verification_status ?? '') === 're_upload') ? '#eab308' : ((($worker->verification_status ?? '') === 'rejected') ? '#ef4444' : '#f59e0b')) }}; margin-bottom: 20px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                             <div>
                                 <h3 style="color: white; font-size: 16px; display: flex; align-items: center; gap: 8px;">
-                                    <i class="fa-solid fa-certificate" style="color: {{ ($worker->is_verified ?? false) ? '#10b981' : '#fde047' }};"></i>
+                                    <i class="fa-solid fa-certificate" style="color: {{ ($worker->is_verified ?? false) ? '#10b981' : ((($worker->verification_status ?? '') === 're_upload') ? '#fde047' : '#f59e0b') }};"></i>
                                     PESO ACCREDITATION & TESDA CREDENTIALS
                                 </h3>
                                 <p style="font-size: 12px; color: rgba(255,255,255,0.85); margin-top: 2px;">
                                     @if($worker->is_verified ?? false)
                                         Opisyal kang kinikilala at accredited ng Public Employment Service Office (PESO) ng Munisipyo ng Magalang.
+                                    @elseif(($worker->verification_status ?? '') === 're_upload')
+                                        May kahilingan ang PESO Staff na mag-re-upload ng mas malinaw o kumpletong kopya ng iyong mga dokumento.
+                                    @elseif(($worker->verification_status ?? '') === 'rejected')
+                                        Hindi pumasa ang naunang aplikasyon. Maaari kang mag-submit muli ng kumpletong requirements.
                                     @else
                                         Mag-submit ng patunay ng TESDA Certificate at Valid ID para suriin at ma-accredit ng PESO Staff.
                                     @endif
@@ -517,6 +554,14 @@
                                     <span style="background: #10b981; color: white; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: bold; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 10px rgba(16,185,129,0.5);">
                                         <i class="fa-solid fa-circle-check"></i> OFFICIALLY ACCREDITED
                                     </span>
+                                @elseif(($worker->verification_status ?? '') === 're_upload')
+                                    <span style="background: #eab308; color: #0f172a; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: bold; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 0 10px rgba(234,179,8,0.5);">
+                                        <i class="fa-solid fa-rotate"></i> RE-UPLOAD REQUIRED
+                                    </span>
+                                @elseif(($worker->verification_status ?? '') === 'rejected')
+                                    <span style="background: #ef4444; color: white; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: bold; display: inline-flex; align-items: center; gap: 6px;">
+                                        <i class="fa-solid fa-circle-xmark"></i> APPLICATION DENIED
+                                    </span>
                                 @else
                                     <span style="background: #f59e0b; color: white; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: bold; display: inline-flex; align-items: center; gap: 6px;">
                                         <i class="fa-solid fa-clock"></i> PENDING PESO REVIEW
@@ -524,6 +569,27 @@
                                 @endif
                             </div>
                         </div>
+
+                        <!-- RE-UPLOAD / REJECTION REASON BANNER -->
+                        @if(($worker->verification_status ?? '') === 're_upload')
+                            <div style="margin-top: 14px; background: rgba(234, 179, 8, 0.2); border: 1.5px solid #eab308; padding: 12px 16px; border-radius: 8px; color: #fde047;">
+                                <div style="font-weight: bold; font-size: 13.5px; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fa-solid fa-triangle-exclamation"></i> KAILANGAN NG RE-UPLOAD NG DOKUMENTO (PESO Notice)
+                                </div>
+                                <p style="font-size: 12.5px; margin-top: 5px; color: white; line-height: 1.4;">
+                                    <strong>Dahilan mula sa PESO Staff:</strong> {{ $worker->rejection_reason ?? 'Paki-upload muli ang mas malinaw o kumpletong kopya ng inyong Valid ID o TESDA Certificate.' }}
+                                </p>
+                            </div>
+                        @elseif(($worker->verification_status ?? '') === 'rejected')
+                            <div style="margin-top: 14px; background: rgba(239, 68, 68, 0.2); border: 1.5px solid #ef4444; padding: 12px 16px; border-radius: 8px; color: #fca5a5;">
+                                <div style="font-weight: bold; font-size: 13.5px; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fa-solid fa-circle-xmark"></i> APPLICATION STATUS: DENIED
+                                </div>
+                                <p style="font-size: 12.5px; margin-top: 5px; color: white; line-height: 1.4;">
+                                    <strong>Dahilan mula sa PESO Staff:</strong> {{ $worker->rejection_reason ?? 'Hindi pumasa sa verification.' }}
+                                </p>
+                            </div>
+                        @endif
 
                         <hr style="margin: 14px 0; border-color: rgba(255,255,255,0.2);">
 
@@ -559,10 +625,10 @@
                             </div>
                         </div>
 
-                        <!-- SUBMIT APPLICATION FORM -->
-                        <details style="background: rgba(0,0,0,0.25); border-radius: 8px; padding: 12px 16px; border: 1px solid rgba(255,255,255,0.2);" {{ !($worker->is_verified ?? false) ? 'open' : '' }}>
+                        <!-- SUBMIT / RE-SUBMIT APPLICATION FORM -->
+                        <details style="background: rgba(0,0,0,0.25); border-radius: 8px; padding: 12px 16px; border: 1px solid rgba(255,255,255,0.2);" {{ (!($worker->is_verified ?? false) || (($worker->verification_status ?? '') === 're_upload')) ? 'open' : '' }}>
                             <summary style="cursor: pointer; font-weight: bold; color: #93c5fd; font-size: 13.5px; user-select: none;">
-                                <i class="fa-solid fa-upload"></i> {{ ($worker->is_verified ?? false) ? 'Update Credentials / Re-submit Proof' : 'Upload Credentials & Submit Application for Accreditation' }}
+                                <i class="fa-solid fa-upload"></i> {{ (($worker->verification_status ?? '') === 're_upload') ? '📤 I-upload Muli ang Tamang Dokumento (Resubmit Credentials)' : (($worker->is_verified ?? false) ? 'Update Credentials / Re-submit Proof' : 'Upload Credentials & Submit Application for Accreditation') }}
                             </summary>
 
                             <form id="accreditationForm" action="{{ route('skilled_worker.submit_application') }}" method="POST" enctype="multipart/form-data" style="margin-top: 14px;" onsubmit="return validateAccreditationForm(event)">

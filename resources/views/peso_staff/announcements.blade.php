@@ -256,22 +256,22 @@
                             <label style="display: block; font-size: 12.5px; font-weight: bold; margin-bottom: 6px; color: #bfdbfe;">
                                 <i class="fa-solid fa-users"></i> Target na Makakatanggap (Audience)
                             </label>
-                            <select name="target_audience" required style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.25); background: #1e293b; color: white; font-size: 13.5px; outline: none;">
-                                <option value="all">Lahat ng Rehistradong Gumagamit (Workers at HouseHold Clients)</option>
-                                <option value="skilled_worker">Mga Skilled Workers Lamang</option>
-                                <option value="residential">Mga HouseHold Clients Lamang</option>
+                            <select name="target_audience" required style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1.5px solid #60a5fa; background: #ffffff; color: #0f172a; font-weight: bold; font-size: 13.5px; outline: none;">
+                                <option value="all" style="color: #0f172a; background: #ffffff; font-weight: 500;">Lahat ng Rehistradong Gumagamit (Workers at HouseHold Clients)</option>
+                                <option value="skilled_worker" style="color: #0f172a; background: #ffffff; font-weight: 500;">Mga Skilled Workers Lamang</option>
+                                <option value="residential" style="color: #0f172a; background: #ffffff; font-weight: 500;">Mga HouseHold Clients Lamang</option>
                             </select>
                         </div>
                         <div>
                             <label style="display: block; font-size: 12.5px; font-weight: bold; margin-bottom: 6px; color: #bfdbfe;">
                                 <i class="fa-solid fa-tag"></i> Uri ng Abiso (Category)
                             </label>
-                            <select name="category" required style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.25); background: #1e293b; color: white; font-size: 13.5px; outline: none;">
-                                <option value="System Maintenance & Updates">System Maintenance & System Updates</option>
-                                <option value="PESO Official Advisory">Opisyal na Abiso ng PESO Magalang</option>
-                                <option value="LGU Magalang Notice">LGU Magalang Municipal Advisory</option>
-                                <option value="TESDA NC II Assessment">Libreng TESDA Assessment / Training</option>
-                                <option value="Job Fair / Emergency Hiring">Job Fair / Emergency Employment (TUPAD)</option>
+                            <select name="category" required style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1.5px solid #60a5fa; background: #ffffff; color: #0f172a; font-weight: bold; font-size: 13.5px; outline: none;">
+                                <option value="System Maintenance & Updates" style="color: #0f172a; background: #ffffff; font-weight: 500;">System Maintenance & System Updates</option>
+                                <option value="PESO Official Advisory" style="color: #0f172a; background: #ffffff; font-weight: 500;">Opisyal na Abiso ng PESO Magalang</option>
+                                <option value="LGU Magalang Notice" style="color: #0f172a; background: #ffffff; font-weight: 500;">LGU Magalang Municipal Advisory</option>
+                                <option value="TESDA NC II Assessment" style="color: #0f172a; background: #ffffff; font-weight: 500;">Libreng TESDA Assessment / Training</option>
+                                <option value="Job Fair / Emergency Hiring" style="color: #0f172a; background: #ffffff; font-weight: 500;">Job Fair / Emergency Employment (TUPAD)</option>
                             </select>
                         </div>
                     </div>
@@ -300,25 +300,73 @@
 
             <!-- ACTIVE ANNOUNCEMENTS -->
             <div class="card">
-                <h3><i class="fa-solid fa-newspaper"></i> Active Public Announcements</h3>
-                <p style="font-size: 13px; opacity: 0.85;">Mga opisyal na abiso ng PESO Magalang para sa mga manggagawa at residente.</p>
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <h3><i class="fa-solid fa-newspaper" style="color: #60a5fa;"></i> Active Municipal Announcements (Live Feed)</h3>
+                        <p style="font-size: 13px; opacity: 0.85;">Mga opisyal na abisong aktibong lumalabas sa dashboard ng mga manggagawa at kliyente sa Magalang.</p>
+                    </div>
+                    <div>
+                        <span style="background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid #3b82f6; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: bold;">
+                            Total: {{ isset($announcements) ? count($announcements) : 2 }} Abiso
+                        </span>
+                    </div>
+                </div>
                 <hr>
 
-                <div style="background: rgba(255,255,255,0.08); border-left: 4px solid #3b82f6; border-radius: 8px; padding: 15px; margin-bottom: 12px;">
-                    <div style="display: flex; justify-content: space-between;">
-                        <strong style="font-size: 15px; color: #93c5fd;">TUPAD Emergency Employment Program Registration</strong>
-                        <span style="font-size: 11px; opacity: 0.7;">Sept 2026</span>
+                @if(isset($announcements) && count($announcements) > 0)
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        @foreach($announcements as $ann)
+                            <div style="background: rgba(255,255,255,0.07); border-left: 4px solid {{ $ann->target_audience === 'skilled_worker' ? '#10b981' : ($ann->target_audience === 'residential' ? '#f59e0b' : '#3b82f6') }}; border-radius: 8px; padding: 16px;">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px;">
+                                    <div>
+                                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px;">
+                                            <strong style="font-size: 15px; color: white;">{{ $ann->title }}</strong>
+                                            <span style="background: rgba(59, 130, 246, 0.25); color: #93c5fd; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: bold;">
+                                                <i class="fa-solid fa-tag"></i> {{ $ann->category }}
+                                            </span>
+                                            @if($ann->target_audience === 'skilled_worker')
+                                                <span style="background: rgba(16, 185, 129, 0.25); color: #86efac; border: 1px solid #10b981; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: bold;">
+                                                    <i class="fa-solid fa-user-gear"></i> Skilled Workers Lamang
+                                                </span>
+                                            @elseif($ann->target_audience === 'residential')
+                                                <span style="background: rgba(234, 179, 8, 0.25); color: #fde047; border: 1px solid #eab308; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: bold;">
+                                                    <i class="fa-solid fa-house-user"></i> Household Clients Lamang
+                                                </span>
+                                            @else
+                                                <span style="background: rgba(147, 51, 234, 0.25); color: #d8b4fe; border: 1px solid #a855f7; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: bold;">
+                                                    <i class="fa-solid fa-users"></i> Pangkalahatan (All Users)
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <span style="font-size: 11.5px; opacity: 0.75; color: #94a3b8;">
+                                        <i class="fa-regular fa-clock"></i> {{ $ann->created_at ? $ann->created_at->format('M d, Y h:i A') : 'Recent' }}
+                                    </span>
+                                </div>
+                                <p style="font-size: 13px; margin-top: 8px; opacity: 0.92; line-height: 1.5; white-space: pre-line;">{{ $ann->message }}</p>
+                                <div style="font-size: 11px; color: #64748b; margin-top: 8px;">
+                                    <i class="fa-solid fa-bullhorn"></i> Posted by: <strong>{{ $ann->posted_by }}</strong>
+                                </div>
+                            </div>
+                        @endforeach
                     </div>
-                    <p style="font-size: 13px; margin-top: 6px; opacity: 0.9;">Bukas na ang registration para sa mga manggagawang kwalipikado sa TUPAD Community Clean-up and Repair Project. Magtungo sa PESO Office dala ang inyong Valid ID.</p>
-                </div>
+                @else
+                    <div style="background: rgba(255,255,255,0.08); border-left: 4px solid #3b82f6; border-radius: 8px; padding: 15px; margin-bottom: 12px;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <strong style="font-size: 15px; color: #93c5fd;">TUPAD Emergency Employment Program Registration</strong>
+                            <span style="font-size: 11px; opacity: 0.7;">Municipal Advisory</span>
+                        </div>
+                        <p style="font-size: 13px; margin-top: 6px; opacity: 0.9;">Bukas na ang registration para sa mga manggagawang kwalipikado sa TUPAD Community Clean-up and Repair Project. Magtungo sa PESO Office dala ang inyong Valid ID.</p>
+                    </div>
 
-                <div style="background: rgba(255,255,255,0.08); border-left: 4px solid #10b981; border-radius: 8px; padding: 15px;">
-                    <div style="display: flex; justify-content: space-between;">
-                        <strong style="font-size: 15px; color: #86efac;">Free TESDA NC II Assessment & Screening</strong>
-                        <span style="font-size: 11px; opacity: 0.7;">Oct 2026</span>
+                    <div style="background: rgba(255,255,255,0.08); border-left: 4px solid #10b981; border-radius: 8px; padding: 15px;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <strong style="font-size: 15px; color: #86efac;">Free TESDA NC II Assessment & Screening</strong>
+                            <span style="font-size: 11px; opacity: 0.7;">Skills Training</span>
+                        </div>
+                        <p style="font-size: 13px; margin-top: 6px; opacity: 0.9;">Libreng assessment para sa mga skilled plumbers, electricians, at welders upang magkaroon ng opisyal na TESDA NC II Certification sa tulong ng LGU Magalang.</p>
                     </div>
-                    <p style="font-size: 13px; margin-top: 6px; opacity: 0.9;">Libreng assessment para sa mga skilled plumbers, electricians, at welders upang magkaroon ng opisyal na TESDA NC II Certification sa tulong ng LGU Magalang.</p>
-                </div>
+                @endif
             </div>
 
             <!-- LIVE UPDATED JOBS & OUTSIDE MAGALANG POSTINGS -->

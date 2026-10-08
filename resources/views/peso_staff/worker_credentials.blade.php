@@ -109,6 +109,14 @@
         }
         .btn-unaccredit:hover { background: #dc2626; }
 
+        .btn-reupload {
+            background: #eab308;
+            color: #0f172a;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(234, 179, 8, 0.35);
+        }
+        .btn-reupload:hover { background: #ca8a04; color: white; }
+
         /* STANDARDIZED COMPACT SIDEBAR (ADMIN-STYLE PROPORTIONS) */
         .sidebar {
             position: fixed;
@@ -461,29 +469,42 @@
                 <p style="font-size: 13.5px; opacity: 0.9;">
                     Ang PESO Staff ang may kapangyarihang mag-kumpirma kung totoo at lehitimo ang TESDA Certificate at dokumento ng manggagawa bago ibigay ang opisyal na PESO Accreditation.
                 </p>
+
+                @if(!empty($worker->rejection_reason))
+                    <div style="margin-top: 12px; background: rgba(234, 179, 8, 0.2); border: 1px solid #eab308; padding: 12px 16px; border-radius: 8px; color: #fde047; font-size: 13px;">
+                        <strong><i class="fa-solid fa-triangle-exclamation"></i> Kasalukuyang Tala / Huling Dahilan:</strong>
+                        <span style="color: white; margin-left: 6px;">{{ $worker->rejection_reason }}</span>
+                    </div>
+                @endif
+
                 <hr>
 
-                <div style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap;">
+                <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
                     @if($worker->is_verified)
                         <span style="color: #10b981; font-weight: bold; font-size: 15px; display: inline-flex; align-items: center; gap: 8px; background: rgba(16, 185, 129, 0.15); padding: 10px 20px; border-radius: 8px; border: 1px solid #10b981;">
-                            <i class="fa-solid fa-circle-check" style="font-size: 18px;"></i> Verified Worker
+                            <i class="fa-solid fa-circle-check" style="font-size: 18px;"></i> Verified & Officially Accredited
                         </span>
+                        <button type="button" class="btn-action btn-unaccredit" onclick="openReasonModal('deny')" title="Revoke accreditation">
+                            <i class="fa-solid fa-circle-xmark"></i> REVOKE ACCREDITATION
+                        </button>
                     @else
                         <!-- CONFIRM & ACCREDIT -->
                         <form method="POST" action="{{ route('peso.accredit', $worker->user_id) }}" style="margin: 0;">
                             @csrf
                             <button type="submit" class="btn-action btn-confirm" title="Confirm validity and approve accreditation for this skilled worker">
-                                <i class="fa-solid fa-circle-check"></i> APPROVED (ACCREDIT WORKER)
+                                <i class="fa-solid fa-circle-check"></i> APPROVED (ACCREDIT)
                             </button>
                         </form>
 
-                        <!-- UNACCREDIT / REVOKE -->
-                        <form method="POST" action="{{ route('peso.unaccredit', $worker->user_id) }}" style="margin: 0;">
-                            @csrf
-                            <button type="submit" class="btn-action btn-unaccredit" title="Deny accreditation or mark as unaccredited">
-                                <i class="fa-solid fa-circle-xmark"></i> DENIED (REVOKE ACCREDITATION)
-                            </button>
-                        </form>
+                        <!-- DENIED (RED) -->
+                        <button type="button" class="btn-action btn-unaccredit" onclick="openReasonModal('deny')" title="Deny accreditation with reason">
+                            <i class="fa-solid fa-circle-xmark"></i> DENIED
+                        </button>
+
+                        <!-- RE-UPLOAD (YELLOW) -->
+                        <button type="button" class="btn-action btn-reupload" onclick="openReasonModal('reupload')" title="Request worker to re-upload clear ID or certificate">
+                            <i class="fa-solid fa-rotate"></i> RE-UPLOAD
+                        </button>
                     @endif
 
                     <!-- BACK -->
@@ -496,10 +517,103 @@
         </div>
     </div>
 
+    <!-- REASON MODAL (FOR DENIED OR RE-UPLOAD) -->
+    <div id="actionReasonModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 3000; align-items: center; justify-content: center; padding: 16px;">
+        <div style="background: #0f172a; border: 2px solid #3b82f6; border-radius: 14px; width: 100%; max-width: 520px; color: white; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.6);" onclick="event.stopPropagation();">
+            <div style="background: #1e293b; padding: 14px 20px; border-bottom: 1px solid rgba(255,255,255,0.15); display: flex; justify-content: space-between; align-items: center;">
+                <h3 id="modalReasonTitle" style="font-size: 15px; margin: 0; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-clipboard-question" style="color: #fde047;"></i> Dahilan ng Aksyon
+                </h3>
+                <button type="button" onclick="closeReasonModal()" style="background: none; border: none; color: #94a3b8; font-size: 20px; cursor: pointer;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="actionReasonForm" method="POST" action="">
+                @csrf
+                <div style="padding: 20px;">
+                    <p id="modalReasonSubtitle" style="font-size: 12.5px; color: #cbd5e1; margin-bottom: 14px;">
+                        Pumili o isulat ang opisyal na dahilan para maabisuhan si <strong>{{ $worker->full_name }}</strong>:
+                    </p>
+
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: block; font-size: 12px; font-weight: bold; color: #93c5fd; margin-bottom: 6px;">
+                            Karaniwang Dahilan (Quick Presets):
+                        </label>
+                        <select id="presetReasonSelect" onchange="applyPresetReason(this.value)" style="width: 100%; padding: 10px; border-radius: 6px; background: #ffffff; color: #1e293b; font-weight: 500; font-size: 13px; outline: none; border: 1px solid rgba(255,255,255,0.3);">
+                            <option value="">-- Pumili ng Dahilan o Mag-type sa ibaba --</option>
+                            <option value="Malabo ang in-upload na Valid ID / Hindi mabasa ang impormasyon.">Malabo ang in-upload na Valid ID / Hindi mabasa ang impormasyon.</option>
+                            <option value="Kulang ang TESDA NC II Certificate / Hindi tugma ang ipinakitang sertipiko.">Kulang ang TESDA NC II Certificate / Hindi tugma ang sertipiko.</option>
+                            <option value="Kulang ang dokumento (Paki-upload kapwa ang Valid ID at TESDA Certificate).">Kulang ang dokumento (Paki-upload kapwa ang ID at TESDA Certificate).</option>
+                            <option value="Paso o expired na ang lisensya / sertipiko.">Paso o expired na ang lisensya / sertipiko.</option>
+                            <option value="Hindi tugma ang rehistradong pangalan sa nakalagay sa ID / Sertipiko.">Hindi tugma ang rehistradong pangalan sa dokumento.</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label style="display: block; font-size: 12px; font-weight: bold; color: #fde047; margin-bottom: 6px;">
+                            Paliwanag / Tala para sa Manggagawa (Required):
+                        </label>
+                        <textarea id="rejectionReasonText" name="rejection_reason" rows="3" required placeholder="Isulat dito ang espesipikong dahilan kung bakit kailangan mag-re-upload o i-deny..." style="width: 100%; padding: 10px; border-radius: 6px; background: #1e293b; color: white; font-size: 13px; border: 1px solid rgba(255,255,255,0.3); outline: none; resize: vertical;"></textarea>
+                    </div>
+                </div>
+
+                <div style="background: #1e293b; padding: 12px 20px; border-top: 1px solid rgba(255,255,255,0.15); display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" onclick="closeReasonModal()" style="background: rgba(255,255,255,0.15); color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 13px; cursor: pointer;">
+                        Kanselahin
+                    </button>
+                    <button type="submit" id="btnSubmitReason" style="padding: 8px 20px; font-size: 13px; font-weight: bold; border-radius: 6px; border: none; cursor: pointer; color: white;">
+                        Kumpirmahin
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('active');
             document.getElementById('sidebarOverlay').classList.toggle('active');
+        }
+
+        function openReasonModal(mode) {
+            const modal = document.getElementById('actionReasonModal');
+            const form = document.getElementById('actionReasonForm');
+            const title = document.getElementById('modalReasonTitle');
+            const btn = document.getElementById('btnSubmitReason');
+            const textarea = document.getElementById('rejectionReasonText');
+            const preset = document.getElementById('presetReasonSelect');
+
+            preset.value = "";
+            textarea.value = "";
+
+            if (mode === 'reupload') {
+                title.innerHTML = '<i class="fa-solid fa-rotate" style="color: #fde047;"></i> Humiling ng Re-Upload ng Dokumento';
+                form.action = "{{ route('peso.request_reupload', $worker->user_id) }}";
+                btn.innerText = "Ipadala ang Re-Upload Request";
+                btn.style.background = "#eab308";
+                btn.style.color = "#0f172a";
+                textarea.value = "Kailangan ng mas malinaw o kumpletong kopya ng dokumento / ID / TESDA Certification.";
+            } else {
+                title.innerHTML = '<i class="fa-solid fa-circle-xmark" style="color: #f87171;"></i> I-Deny ang Accreditation Application';
+                form.action = "{{ route('peso.unaccredit', $worker->user_id) }}";
+                btn.innerText = "Kumpirmahin ang Pag-Deny";
+                btn.style.background = "#ef4444";
+                btn.style.color = "#ffffff";
+                textarea.value = "Hindi pumasa sa pagsusuri ng PESO Staff ang isinumiteng dokumento.";
+            }
+
+            modal.style.display = 'flex';
+        }
+
+        function closeReasonModal() {
+            document.getElementById('actionReasonModal').style.display = 'none';
+        }
+
+        function applyPresetReason(val) {
+            if (val) {
+                document.getElementById('rejectionReasonText').value = val;
+            }
         }
     </script>
 </body>

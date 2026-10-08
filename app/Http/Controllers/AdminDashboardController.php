@@ -387,7 +387,8 @@ class AdminDashboardController extends Controller
     public function announcements()
     {
         $jobs = JobPost::latest()->get();
-        return view('admin.announcements', compact('jobs'));
+        $announcements = \App\Models\Announcement::latest()->get();
+        return view('admin.announcements', compact('jobs', 'announcements'));
     }
 
     public function broadcastAnnouncement(Request $request)
@@ -397,6 +398,14 @@ class AdminDashboardController extends Controller
             'category' => 'required|string|max:100',
             'message' => 'required|string',
             'target_audience' => 'required|string|in:all,skilled_worker,residential',
+        ]);
+
+        \App\Models\Announcement::create([
+            'title' => trim($request->title),
+            'category' => trim($request->category),
+            'message' => trim($request->message),
+            'target_audience' => trim($request->target_audience),
+            'posted_by' => Session::get('user_name', 'Municipal Administrator'),
         ]);
 
         $query = User::whereNotNull('email')->where('email', '!=', '');
@@ -412,13 +421,15 @@ class AdminDashboardController extends Controller
 
         \App\Models\AuditLog::log(
             'ANNOUNCEMENT_BROADCAST',
-            "Administrator broadcasted municipal announcement: '{$request->title}' to {$recipients->count()} recipients.",
+            "Administrator broadcasted municipal announcement: '{$request->title}' ({$request->category}) for {$request->target_audience} to {$recipients->count()} recipients.",
             Session::get('user_name', 'Administrator'),
             'Administrator',
             Session::get('user_id')
         );
 
-        return back()->with('success', "Municipal announcement broadcasted successfully to {$recipients->count()} registered users!");
+        $targetText = $request->target_audience === 'skilled_worker' ? 'Skilled Workers lamang' : ($request->target_audience === 'residential' ? 'Household Clients lamang' : 'lahat ng rehistradong gumagamit');
+
+        return back()->with('success', "Municipal announcement ('{$request->title}') posted successfully para sa {$targetText} at broadcasted sa {$recipients->count()} accounts!");
     }
 
     public function postOutsideJob(Request $request)

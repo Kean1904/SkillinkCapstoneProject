@@ -30,6 +30,8 @@ class User extends Authenticatable
         'certificate_file',
         'valid_id_proof',
         'is_verified',
+        'verification_status',
+        'rejection_reason',
         'rating',
         'profile_image_uri',
         'location_tag',

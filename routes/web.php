@@ -111,7 +111,12 @@ Route::middleware(['checkrole:skilled worker'])->group(function () {
             ->take(5)
             ->get();
 
-        return view('dashboard.SkilledWorker', compact('availableJobs', 'pendingJobs', 'jobsList', 'worker', 'serviceRequests'));
+        $announcements = \App\Models\Announcement::whereIn('target_audience', ['all', 'skilled_worker'])
+            ->latest()
+            ->take(5)
+            ->get();
+
+        return view('dashboard.SkilledWorker', compact('availableJobs', 'pendingJobs', 'jobsList', 'worker', 'serviceRequests', 'announcements'));
     })->name('dashboard.SkilledWorker');
 
     Route::get('/skilled-worker/tracking-service', [SkilledWorkerWebController::class, 'trackingService'])->name('skilled_worker.tracking_service');
@@ -185,6 +190,7 @@ Route::middleware(['checkrole:peso staff'])->group(function () {
     Route::get('/peso-staff/worker/{id}/credentials', [PesoStaffController::class, 'viewCredentials'])->name('peso_staff.worker_credentials');
     Route::post('/dashboard/PesoStaff/accredit/{id}', [PesoStaffController::class, 'accreditWorker'])->name('peso.accredit');
     Route::post('/dashboard/PesoStaff/unaccredit/{id}', [PesoStaffController::class, 'unaccreditWorker'])->name('peso.unaccredit');
+    Route::post('/dashboard/PesoStaff/request-reupload/{id}', [PesoStaffController::class, 'requestReupload'])->name('peso.request_reupload');
     Route::get('/peso-staff/job-tracking', [PesoStaffController::class, 'jobTracking'])->name('peso_staff.job_tracking');
     Route::get('/peso-staff/complaints', [PesoStaffController::class, 'complaints'])->name('peso_staff.complaints');
     Route::post('/dashboard/PesoStaff/complaint/{id}/resolve', [PesoStaffController::class, 'resolveComplaint'])->name('peso.resolve_complaint');

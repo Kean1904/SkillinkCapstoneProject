@@ -394,17 +394,19 @@ class SkilledWorkerWebController extends Controller
 
         // Accreditation application state: Pending PESO Staff Review
         $worker->is_verified = false;
+        $worker->verification_status = 'pending';
+        $worker->rejection_reason = null;
         $worker->save();
 
         \App\Models\AuditLog::log(
             'CREDENTIALS_SUBMISSION',
-            "Worker {$worker->name} submitted credentials (TESDA / Valid ID) for PESO Accreditation.",
+            "Worker {$worker->name} submitted/resubmitted credentials (TESDA / Valid ID) for PESO Accreditation.",
             $worker->name,
             'Skilled Worker',
             $worker->user_id
         );
 
-        return back()->with('success', 'Your PESO accreditation application has been submitted successfully! PESO Staff will verify your TESDA certificate and credentials.');
+        return back()->with('success', 'Your credentials have been submitted/resubmitted successfully! PESO Staff will verify your updated TESDA certificate and documents.');
     }
 
     public function profile()

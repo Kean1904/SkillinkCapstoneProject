@@ -236,21 +236,21 @@
                             <label style="display: block; font-size: 12.5px; font-weight: bold; margin-bottom: 6px; color: #bfdbfe;">
                                 <i class="fa-solid fa-users"></i> Target Audience
                             </label>
-                            <select name="target_audience" required style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.25); background: #1e293b; color: white; font-size: 13.5px; outline: none;">
-                                <option value="all">Lahat ng Rehistradong Mamamayan (Workers & HouseHold Clients)</option>
-                                <option value="skilled_worker">Mga Skilled Workers Lamang</option>
-                                <option value="residential">Mga HouseHold Clients Lamang</option>
+                            <select name="target_audience" required style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1.5px solid #60a5fa; background: #ffffff; color: #0f172a; font-weight: bold; font-size: 13.5px; outline: none;">
+                                <option value="all" style="color: #0f172a; background: #ffffff; font-weight: 500;">Lahat ng Rehistradong Mamamayan (Workers & HouseHold Clients)</option>
+                                <option value="skilled_worker" style="color: #0f172a; background: #ffffff; font-weight: 500;">Mga Skilled Workers Lamang</option>
+                                <option value="residential" style="color: #0f172a; background: #ffffff; font-weight: 500;">Mga HouseHold Clients Lamang</option>
                             </select>
                         </div>
                         <div>
                             <label style="display: block; font-size: 12.5px; font-weight: bold; margin-bottom: 6px; color: #bfdbfe;">
                                 <i class="fa-solid fa-tag"></i> Category
                             </label>
-                            <select name="category" required style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.25); background: #1e293b; color: white; font-size: 13.5px; outline: none;">
-                                <option value="Executive Advisory">Opisyal na Abiso ng Municipal Mayor & PESO</option>
-                                <option value="Job Fair & Recruitment">DOLE / PESO Job Fair & Emergency Hiring</option>
-                                <option value="TESDA NC II Assessment">Libreng TESDA NC II Skills Training & Assessment</option>
-                                <option value="System Maintenance">System Maintenance & Upgrades Advisory</option>
+                            <select name="category" required style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1.5px solid #60a5fa; background: #ffffff; color: #0f172a; font-weight: bold; font-size: 13.5px; outline: none;">
+                                <option value="Executive Advisory" style="color: #0f172a; background: #ffffff; font-weight: 500;">Opisyal na Abiso ng Municipal Mayor & PESO</option>
+                                <option value="Job Fair & Recruitment" style="color: #0f172a; background: #ffffff; font-weight: 500;">DOLE / PESO Job Fair & Emergency Hiring</option>
+                                <option value="TESDA NC II Assessment" style="color: #0f172a; background: #ffffff; font-weight: 500;">Libreng TESDA NC II Skills Training & Assessment</option>
+                                <option value="System Maintenance" style="color: #0f172a; background: #ffffff; font-weight: 500;">System Maintenance & Upgrades Advisory</option>
                             </select>
                         </div>
                     </div>
