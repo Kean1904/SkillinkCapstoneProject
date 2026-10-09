@@ -578,8 +578,6 @@ $tesdaCertificates = [
                             <option value="" disabled selected hidden>Role</option>
                             <option value="Skilled Worker">Skilled Worker</option>
                             <option value="HouseHold Client">HouseHold Client</option>
-                            <option value="Peso Staff">Peso Staff</option>
-                            <option value="Admin">Admin</option>
                         </select>
                     </div>
 

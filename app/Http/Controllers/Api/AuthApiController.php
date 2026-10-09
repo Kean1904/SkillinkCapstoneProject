@@ -62,6 +62,13 @@ class AuthApiController extends Controller
         $role = strtolower(trim($validated['role']));
         $username = trim($validated['username']);
 
+        // Guard: Admin at PESO Staff roles cannot be registered through public registration
+        if (!in_array($role, ['skilled worker', 'household client'])) {
+            return response()->json([
+                'message' => 'Ang pagpaparehistro ay para lamang sa Skilled Worker at HouseHold Client. Ang Admin at PESO Staff accounts ay pinamamahalaan ng pamunuan.'
+            ], 422);
+        }
+
         $isSkilled = ($role === 'skilled worker');
 
         $middleName = $request->input('middle_name') ?? $request->input('middleName');

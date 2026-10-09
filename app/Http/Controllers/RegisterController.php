@@ -84,6 +84,13 @@ class RegisterController extends Controller
         $role = strtolower(trim($validated['role']));
         $username = trim($validated['username']);
 
+        // Guard: Admin at PESO Staff roles cannot be registered through public registration
+        if (!in_array($role, ['skilled worker', 'household client'])) {
+            return back()->withInput()->withErrors([
+                'role' => 'Ang pagpaparehistro ay para lamang sa Skilled Worker at HouseHold Client. Ang Admin at PESO Staff accounts ay pinamamahalaan ng pamunuan.'
+            ]);
+        }
+
         $isSkilledWorker = ($role === 'skilled worker');
 
         // 2. Save to database
