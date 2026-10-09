@@ -52,7 +52,7 @@ class LoginController extends Controller
         // I-save sa session ang info ng naka-login
         Session::put('user_id', $user->user_id);
         Session::put('user_name', $user->name);
-        Session::put('full_name', $user->first_name . ' ' . $user->last_name);
+        Session::put('full_name', $user->full_name);
         Session::put('user_role', $user->role);
         Session::put('profile_image_uri', $user->profile_image_uri);
         Session::put('privacy_consent_accepted', (bool) $user->privacy_consent_accepted);
