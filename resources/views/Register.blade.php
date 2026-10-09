@@ -588,7 +588,7 @@ $tesdaCertificates = [
 
                     <!-- Username -->
                     <div class="input-group username-wrapper">
-                        <input type="text" name="username" id="usernameInput" placeholder="Username (12-16 characters)" maxlength="16" value="{{ old('username') }}" oninput="checkUsernameExtension()" required>
+                        <input type="text" name="username" id="usernameInput" placeholder="Username (4-16 characters)" maxlength="16" value="{{ old('username') }}" oninput="checkUsernameAvailability()" required>
                         <span id="usernameStatusIcon" style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 15px; display: none; pointer-events: none;"></span>
                     </div>
                     <p id="usernameHint" style="display: none; font-size: 11px; margin-top: -10px; margin-bottom: 15px; text-align: left; line-height: 1.4;"></p>
@@ -648,24 +648,12 @@ $tesdaCertificates = [
                 }
             }
 
-            // Update placeholder at paalala ayon sa piniling role
-            if (role === 'Admin') {
-                usernameInput.placeholder = "Username (kailangan ng @Admin o @admin)";
-                usernameHint.style.display = 'block';
-                usernameHint.style.color = '#fde047';
-                usernameHint.innerHTML = '<i class="fa-solid fa-circle-info"></i> <strong>Admin Requirement:</strong> Ang username ay dapat magtapos sa <strong>@admin</strong> o <strong>@Admin</strong> (hal. <code>juan@Admin</code>)';
-            } else if (role === 'Peso Staff') {
-                usernameInput.placeholder = "Username (kailangan ng @Staff o @staff)";
-                usernameHint.style.display = 'block';
-                usernameHint.style.color = '#93c5fd';
-                usernameHint.innerHTML = '<i class="fa-solid fa-circle-info"></i> <strong>PESO Staff Requirement:</strong> Ang username ay dapat magtapos sa <strong>@staff</strong> o <strong>@Staff</strong> (hal. <code>maria@Staff</code>)';
-            } else {
-                usernameInput.placeholder = "Username";
-                usernameHint.style.display = 'none';
-                usernameHint.innerHTML = '';
-            }
+            // Standardize username placeholder across all roles
+            usernameInput.placeholder = "Username (4-16 characters)";
+            usernameHint.style.display = 'none';
+            usernameHint.innerHTML = '';
 
-            checkUsernameExtension();
+            checkUsernameAvailability();
         }
 
         function onCertificateChange() {
@@ -722,71 +710,20 @@ $tesdaCertificates = [
 
         let usernameCheckTimeout = null;
 
-        function checkUsernameExtension() {
-            const roleSelect = document.getElementById('roleSelect');
+        function checkUsernameAvailability() {
             const usernameInput = document.getElementById('usernameInput');
             const usernameHint = document.getElementById('usernameHint');
             const statusIcon = document.getElementById('usernameStatusIcon');
-            const role = roleSelect ? roleSelect.value : '';
             const rawVal = usernameInput.value.trim();
-            const val = rawVal.toLowerCase();
 
             clearTimeout(usernameCheckTimeout);
 
             if (!rawVal) {
                 if (statusIcon) statusIcon.style.display = 'none';
                 usernameInput.style.borderColor = '';
-                if (role === 'Admin' || role === 'Peso Staff') {
-                    return;
-                }
                 usernameHint.style.display = 'none';
                 usernameInput.setCustomValidity('');
                 return;
-            }
-
-            // Check role suffix requirements first
-            if (role === 'Admin') {
-                if (!val.endsWith('@admin')) {
-                    if (statusIcon) {
-                        statusIcon.style.display = 'block';
-                        statusIcon.style.color = '#f87171';
-                        statusIcon.innerHTML = '<i class="fa-solid fa-circle-xmark"></i>';
-                    }
-                    usernameInput.style.borderColor = '#ef4444';
-                    usernameHint.style.display = 'block';
-                    usernameHint.style.color = '#fca5a5';
-                    usernameHint.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> <strong>Kulang ng extension:</strong> Ang Admin username ay dapat magtapos sa <strong>@admin</strong> o <strong>@Admin</strong> (hal. <code>' + (val.includes('@') ? val.split('@')[0] : val) + '@Admin</code>).';
-                    usernameInput.setCustomValidity('Ang Admin username ay dapat magtapos sa @admin o @Admin');
-                    return;
-                }
-            } else if (role === 'Peso Staff') {
-                if (!val.endsWith('@staff')) {
-                    if (statusIcon) {
-                        statusIcon.style.display = 'block';
-                        statusIcon.style.color = '#f87171';
-                        statusIcon.innerHTML = '<i class="fa-solid fa-circle-xmark"></i>';
-                    }
-                    usernameInput.style.borderColor = '#ef4444';
-                    usernameHint.style.display = 'block';
-                    usernameHint.style.color = '#fca5a5';
-                    usernameHint.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> <strong>Kulang ng extension:</strong> Ang PESO Staff username ay dapat magtapos sa <strong>@staff</strong> o <strong>@Staff</strong> (hal. <code>' + (val.includes('@') ? val.split('@')[0] : val) + '@Staff</code>).';
-                    usernameInput.setCustomValidity('Ang PESO Staff username ay dapat magtapos sa @staff o @Staff');
-                    return;
-                }
-            } else {
-                if (val.endsWith('@admin') || val.endsWith('@staff')) {
-                    if (statusIcon) {
-                        statusIcon.style.display = 'block';
-                        statusIcon.style.color = '#f87171';
-                        statusIcon.innerHTML = '<i class="fa-solid fa-circle-xmark"></i>';
-                    }
-                    usernameInput.style.borderColor = '#ef4444';
-                    usernameHint.style.display = 'block';
-                    usernameHint.style.color = '#fca5a5';
-                    usernameHint.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Bawal gamitin ang extension na <strong>@admin</strong> o <strong>@staff</strong> para sa mga HouseHold Client o Skilled Worker.';
-                    usernameInput.setCustomValidity('Ang @admin at @staff ay para lamang sa mga opisyal.');
-                    return;
-                }
             }
 
             // Real-time protocol check if username already exists in database
@@ -834,6 +771,7 @@ $tesdaCertificates = [
                     });
             }, 300);
         }
+        const checkUsernameExtension = checkUsernameAvailability;
 
         function checkPasswordStrength() {
             const passwordInput = document.getElementById('password');
