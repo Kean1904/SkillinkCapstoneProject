@@ -611,7 +611,7 @@ $tesdaCertificates = [
 
                     <!-- Username -->
                     <div class="input-group username-wrapper">
-                        <input type="text" name="username" id="usernameInput" placeholder="Username (10-22 characters)" minlength="10" maxlength="22" value="{{ old('username') }}" oninput="checkUsernameAvailability()" required>
+                        <input type="text" name="username" id="usernameInput" placeholder="Username" minlength="10" maxlength="22" value="{{ old('username') }}" oninput="checkUsernameAvailability()" required>
                         <span id="usernameStatusIcon" style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 15px; display: none; pointer-events: none;"></span>
                     </div>
                     <p id="usernameHint" style="display: none; font-size: 11px; margin-top: -10px; margin-bottom: 15px; text-align: left; line-height: 1.4;"></p>
@@ -622,7 +622,7 @@ $tesdaCertificates = [
                             type="password" 
                             name="password" 
                             id="password" 
-                            placeholder="Password (10-22 characters)" 
+                            placeholder="Password" 
                             minlength="10"
                             maxlength="22"
                             pattern="^(?=.*[0-9])(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{10,22}$"
