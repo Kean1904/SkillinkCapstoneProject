@@ -25,6 +25,30 @@ class LoginController extends Controller
             return back()->withErrors(['username' => 'Invalid username or password.']);
         }
 
+        // Account Deactivation & 30-day Grace Period check
+        if ($user->deletion_scheduled_at) {
+            if (now()->gte($user->deletion_scheduled_at)) {
+                return back()->withErrors(['username' => 'Ang account na ito ay tuluyan nang nabura matapos ang 30-araw na palugit alinsunod sa Data Privacy Act of 2012.']);
+            } else {
+                // Reactivate account during 30-day grace period
+                $user->status = 'active';
+                $user->deactivated_at = null;
+                $user->deletion_scheduled_at = null;
+                $user->deactivation_reason = null;
+                $user->save();
+
+                \App\Models\AuditLog::log(
+                    'ACCOUNT_REACTIVATED',
+                    "User {$user->name} reactivated their account during the 30-day grace period.",
+                    $user->name,
+                    $user->role,
+                    $user->user_id
+                );
+
+                Session::flash('success', 'Maligayang pagbabalik! Matagumpay na na-reactivate ang iyong account at nakansela ang nakatakdang pagbura.');
+            }
+        }
+
         // I-save sa session ang info ng naka-login
         Session::put('user_id', $user->user_id);
         Session::put('user_name', $user->name);
@@ -84,6 +108,78 @@ class LoginController extends Controller
         }
 
         return response()->json(['success' => false, 'message' => 'User not found.'], 404);
+    }
+
+    /**
+     * Toggle Data Privacy Consent from Settings.
+     */
+    public function toggleConsent(Request $request)
+    {
+        $userId = Session::get('user_id') ?? (\Illuminate\Support\Facades\Auth::id());
+        if (!$userId) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized. Mangyaring mag-login muli.'], 401);
+        }
+
+        $user = User::where('user_id', $userId)->first();
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'User not found.'], 404);
+        }
+
+        $newConsent = $request->has('consent') ? filter_var($request->input('consent'), FILTER_VALIDATE_BOOLEAN) : !$user->privacy_consent_accepted;
+        $user->privacy_consent_accepted = $newConsent;
+        $user->privacy_consent_accepted_at = $newConsent ? now() : null;
+        $user->save();
+
+        Session::put('privacy_consent_accepted', $newConsent);
+
+        return response()->json([
+            'success' => true,
+            'consent' => $newConsent,
+            'message' => $newConsent
+                ? 'Aktibo ang iyong Data Privacy Consent alinsunod sa RA 10173.'
+                : 'Pansamantalang binawi ang Data Privacy Consent.',
+        ]);
+    }
+
+    /**
+     * Delete or Deactivate Account with 30-Day Grace Period.
+     */
+    public function deactivateAccount(Request $request)
+    {
+        $userId = Session::get('user_id') ?? (\Illuminate\Support\Facades\Auth::id());
+        if (!$userId) {
+            return redirect()->route('Login')->withErrors(['username' => 'Mangyaring mag-login muli bago i-deactivate ang account.']);
+        }
+
+        $user = User::where('user_id', $userId)->first();
+        if (!$user) {
+            return redirect()->route('Login')->withErrors(['username' => 'User account not found.']);
+        }
+
+        $reason = $request->input('reason', "This is temporary. I'll be back.");
+        if ($reason === 'Other' && $request->filled('other_reason')) {
+            $reason = 'Other: ' . trim($request->input('other_reason'));
+        }
+
+        $user->status = 'DEACTIVATED';
+        $user->deactivated_at = now();
+        $user->deletion_scheduled_at = now()->addDays(30);
+        $user->deactivation_reason = $reason;
+        $user->save();
+
+        \App\Models\AuditLog::log(
+            'ACCOUNT_DEACTIVATED',
+            "User {$user->name} ({$user->role}) deactivated account with 30-day scheduled deletion. Reason: {$reason}",
+            $user->name,
+            $user->role,
+            $user->user_id
+        );
+
+        \Illuminate\Support\Facades\Auth::logout();
+        Session::flush();
+        $request->session()->regenerate();
+
+        return redirect()->route('Login')->with('success', 'Nai-deactivate na ang iyong account. Mayroon kang 30 araw na palugit bago tuluyang mabura ang iyong profile at datos. Kung nais mong bawiin, mag-log in lamang muli bago lumipas ang 30 araw.');
     }
 
     public function logout(Request $request)

@@ -147,6 +147,30 @@ class AuthApiController extends Controller
             ], 401);
         }
 
+        // Account Deactivation & 30-day Grace Period check
+        if ($user->deletion_scheduled_at) {
+            if (now()->gte($user->deletion_scheduled_at)) {
+                return response()->json([
+                    'message' => 'Ang account na ito ay tuluyan nang nabura matapos ang 30-araw na palugit alinsunod sa Data Privacy Act of 2012.',
+                ], 403);
+            } else {
+                // Reactivate account during 30-day grace period
+                $user->status = 'active';
+                $user->deactivated_at = null;
+                $user->deletion_scheduled_at = null;
+                $user->deactivation_reason = null;
+                $user->save();
+
+                \App\Models\AuditLog::log(
+                    'ACCOUNT_REACTIVATED',
+                    "User {$user->name} reactivated their account during the 30-day grace period via Mobile.",
+                    $user->name,
+                    $user->role,
+                    $user->user_id
+                );
+            }
+        }
+
         $user->update(['last_seen_at' => now()]);
 
         $token = $user->createToken('android-app')->plainTextToken;
@@ -202,17 +226,73 @@ class AuthApiController extends Controller
             ], 404);
         }
 
-        $user->privacy_consent_accepted = true;
-        $user->privacy_consent_accepted_at = now();
+        $newConsent = $request->has('consent') ? filter_var($request->input('consent'), FILTER_VALIDATE_BOOLEAN) : true;
+        $user->privacy_consent_accepted = $newConsent;
+        $user->privacy_consent_accepted_at = $newConsent ? now() : null;
         $user->save();
 
         return response()->json([
             'success'                => true,
-            'message'                => 'Matagumpay na naitala ang iyong pahintulot sa Data Privacy.',
-            'isConsentAccepted'      => true,
-            'privacyConsentAccepted' => true,
-            'privacy_consent_accepted' => true,
+            'message'                => $newConsent
+                ? 'Matagumpay na naitala ang iyong pahintulot sa Data Privacy.'
+                : 'Pansamantalang binawi ang Data Privacy Consent.',
+            'isConsentAccepted'      => $newConsent,
+            'privacyConsentAccepted' => $newConsent,
+            'privacy_consent_accepted' => $newConsent,
         ]);
+    }
+
+    /**
+     * Mobile API: Deactivate / Delete Account with 30-Day Grace Period
+     */
+    public function deactivateAccount(Request $request)
+    {
+        $identifier = $request->input('username') ?? $request->input('user_id') ?? $request->input('email');
+        $user = null;
+        if ($request->user()) {
+            $user = $request->user();
+        } elseif ($identifier) {
+            $user = User::where('name', $identifier)
+                ->orWhere('user_id', $identifier)
+                ->orWhere('email', $identifier)
+                ->first();
+        }
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User account not found.',
+            ], 404);
+        }
+
+        $reason = $request->input('reason', "This is temporary. I'll be back.");
+        if ($reason === 'Other' && $request->filled('other_reason')) {
+            $reason = 'Other: ' . trim($request->input('other_reason'));
+        }
+
+        $user->status = 'DEACTIVATED';
+        $user->deactivated_at = now();
+        $user->deletion_scheduled_at = now()->addDays(30);
+        $user->deactivation_reason = $reason;
+        $user->save();
+
+        if (method_exists($user, 'tokens')) {
+            $user->tokens()->delete();
+        }
+
+        \App\Models\AuditLog::log(
+            'ACCOUNT_DEACTIVATED',
+            "User {$user->name} ({$user->role}) requested account deactivation with 30-day scheduled deletion via Mobile. Reason: {$reason}",
+            $user->name,
+            $user->role,
+            $user->user_id
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Nai-deactivate na ang iyong account. Mayroon kang 30 araw na palugit bago tuluyang mabura ang iyong profile at datos sa system.',
+            'deletion_scheduled_at' => $user->deletion_scheduled_at ? $user->deletion_scheduled_at->toIso8601String() : null,
+        ], 200);
     }
 
     // LOGOUT

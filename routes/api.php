@@ -21,6 +21,7 @@ Route::post('/login', [AuthApiController::class, 'login']);
 Route::post('/password/forgot', [AuthApiController::class, 'forgotPassword']);
 Route::post('/password/reset', [AuthApiController::class, 'resetPassword']);
 Route::post('/user/consent', [AuthApiController::class, 'updateConsent']);
+Route::post('/account/deactivate', [AuthApiController::class, 'deactivateAccount']);
 Route::post('/user/heartbeat', [CitizenApiController::class, 'heartbeat']);
 
 // Live Stats Endpoint (for Mobile Dashboard synchronization)

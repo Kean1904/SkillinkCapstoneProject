@@ -47,6 +47,8 @@ Route::post('/password/reset', [LoginController::class, 'updatePasswordWithToken
 
 Route::get('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::post('/user/consent/accept', [LoginController::class, 'acceptConsent'])->name('user.consent.accept');
+Route::post('/user/consent/toggle', [LoginController::class, 'toggleConsent'])->name('user.consent.toggle');
+Route::post('/account/deactivate', [LoginController::class, 'deactivateAccount'])->name('account.deactivate');
 
 // In-App Messaging (Pre-booking Clarification)
 Route::get('/chat/messages', [\App\Http\Controllers\Api\ChatApiController::class, 'getMessages'])->name('chat.messages');

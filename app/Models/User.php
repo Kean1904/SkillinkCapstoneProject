@@ -39,6 +39,9 @@ class User extends Authenticatable
         'last_seen_at',
         'privacy_consent_accepted',
         'privacy_consent_accepted_at',
+        'deactivated_at',
+        'deletion_scheduled_at',
+        'deactivation_reason',
     ];
 
     protected $hidden = [
@@ -52,6 +55,8 @@ class User extends Authenticatable
         'last_seen_at' => 'datetime',
         'privacy_consent_accepted' => 'boolean',
         'privacy_consent_accepted_at' => 'datetime',
+        'deactivated_at' => 'datetime',
+        'deletion_scheduled_at' => 'datetime',
     ];
 
     public function getAuthPassword()

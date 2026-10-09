@@ -303,11 +303,21 @@
                 </div>
             </div>
 
-            <!-- 3. LEGAL & COMPLIANCE -->
+            <!-- 3. LEGAL & COMPLIANCE / DATA PRIVACY CONTROLS -->
             <div class="card" style="background: rgba(30, 58, 138, 0.35); border: 1px solid rgba(255,255,255,0.2); border-radius: 14px; padding: 20px; margin-bottom: 18px;">
                 <h3 style="font-size: 13px; font-weight: bold; color: #93c5fd; letter-spacing: 0.8px; margin-bottom: 6px;">
-                    <i class="fa-solid fa-gavel"></i> LEGAL & COMPLIANCE
+                    <i class="fa-solid fa-gavel"></i> DATA PRIVACY & LEGAL COMPLIANCE
                 </h3>
+                <div class="settings-row" style="cursor: default;">
+                    <div>
+                        <p class="row-title">Data Privacy Consent (RA 10173)</p>
+                        <p class="row-sub">Pahintulot sa paggamit ng impormasyon alinsunod sa Data Privacy Act of 2012</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="privacyConsentToggle" {{ (isset($worker) && $worker->privacy_consent_accepted) || session('privacy_consent_accepted') ? 'checked' : '' }} onchange="toggleConsent(this.checked)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
                 <div class="settings-row" onclick="openModal('privacyModal')">
                     <div>
                         <p class="row-title">Data Privacy Policy (RA 10173)</p>
@@ -321,6 +331,13 @@
                         <p class="row-sub">Professional conduct guidelines for skilled workers</p>
                     </div>
                     <i class="fa-solid fa-chevron-right" style="opacity: 0.6; font-size: 13px;"></i>
+                </div>
+                <div class="settings-row" onclick="openModal('deactivateModal')" style="border-top: 1px solid rgba(239, 68, 68, 0.3); margin-top: 8px; padding-top: 14px;">
+                    <div>
+                        <p class="row-title" style="color: #f87171;"><i class="fa-solid fa-user-xmark" style="margin-right: 6px;"></i> Delete / Deactivate Account</p>
+                        <p class="row-sub">Humiling ng pagbura o deactivation ng account na may 30-day grace period</p>
+                    </div>
+                    <i class="fa-solid fa-chevron-right" style="color: #f87171; font-size: 13px;"></i>
                 </div>
             </div>
 
@@ -440,6 +457,73 @@
         </div>
     </div>
 
+    <!-- DELETE / DEACTIVATE ACCOUNT CONFIRMATION MODAL -->
+    <div id="deactivateModal" class="modal-wrap">
+        <div class="modal-box" style="max-width: 540px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="font-size: 17px; font-weight: bold; color: #f87171;">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Delete or Deactivate Account
+                </h3>
+                <i class="fa-solid fa-xmark" style="cursor: pointer; font-size: 18px;" onclick="closeModal('deactivateModal')"></i>
+            </div>
+
+            <div style="background: rgba(220, 38, 38, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 8px; padding: 12px; margin-bottom: 16px;">
+                <p style="font-size: 14px; font-weight: bold; color: #fca5a5; margin-bottom: 4px;">
+                    Are you sure to delete or deactivate this account?
+                </p>
+                <p style="font-size: 12px; line-height: 1.5; color: #fee2e2;">
+                    <strong>30-Day Grace Period:</strong> Ang iyong account ay ide-deactivate muna at may <strong>30 araw na palugit</strong> bago tuluyang mabura ang iyong profile at datos sa system (tulad ng Facebook). Sa loob ng 30 araw, maaari mo pa itong i-reactivate kapag nag-login ka muli.
+                </p>
+            </div>
+
+            <form method="POST" action="{{ route('account.deactivate') }}" id="deactivateForm">
+                @csrf
+                <p style="font-size: 13px; font-weight: bold; margin-bottom: 10px; color: #e2e8f0;">
+                    Piliin ang dahilan kung bakit mo nais i-deactivate o i-delete ang iyong account:
+                </p>
+
+                <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px;">
+                    <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer; background: rgba(255,255,255,0.06); padding: 8px 12px; border-radius: 6px;">
+                        <input type="radio" name="reason" value="This is temporary. I'll be back." checked onchange="toggleOtherReason(false)">
+                        <span>This is temporary. I'll be back.</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer; background: rgba(255,255,255,0.06); padding: 8px 12px; border-radius: 6px;">
+                        <input type="radio" name="reason" value="I don't feel safe on Skillink" onchange="toggleOtherReason(false)">
+                        <span>I don't feel safe on Skillink</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer; background: rgba(255,255,255,0.06); padding: 8px 12px; border-radius: 6px;">
+                        <input type="radio" name="reason" value="I have a privacy concern." onchange="toggleOtherReason(false)">
+                        <span>I have a privacy concern.</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer; background: rgba(255,255,255,0.06); padding: 8px 12px; border-radius: 6px;">
+                        <input type="radio" name="reason" value="I have another account." onchange="toggleOtherReason(false)">
+                        <span>I have another account.</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer; background: rgba(255,255,255,0.06); padding: 8px 12px; border-radius: 6px;">
+                        <input type="radio" name="reason" value="My account was hacked." onchange="toggleOtherReason(false)">
+                        <span>My account was hacked.</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer; background: rgba(255,255,255,0.06); padding: 8px 12px; border-radius: 6px;">
+                        <input type="radio" name="reason" value="Other" id="reasonOtherRadio" onchange="toggleOtherReason(true)">
+                        <span>Other (with a text box to write your own reason)</span>
+                    </label>
+                </div>
+
+                <div id="otherReasonBox" style="display: none; margin-bottom: 18px;">
+                    <label style="display: block; font-size: 12px; font-weight: bold; margin-bottom: 4px; color: #94a3b8;">Isulat ang iyong dahilan:</label>
+                    <textarea name="other_reason" id="otherReasonText" rows="3" placeholder="Pakilahad ang iyong dahilan..." style="width: 100%; padding: 10px; border-radius: 6px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.3); font-size: 12.5px;"></textarea>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="btn" style="background: rgba(255,255,255,0.2); color: white; border-radius: 6px;" onclick="closeModal('deactivateModal')">Disagree</button>
+                    <button type="submit" class="btn" style="background: #dc2626; color: white; border: 1px solid #ef4444; border-radius: 6px;">
+                        <i class="fa-solid fa-check"></i> I Agree
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('active');
@@ -450,6 +534,36 @@
         }
         function closeModal(id) {
             document.getElementById(id).style.display = 'none';
+        }
+        function toggleOtherReason(show) {
+            const box = document.getElementById('otherReasonBox');
+            if (box) {
+                box.style.display = show ? 'block' : 'none';
+                if (show) {
+                    const text = document.getElementById('otherReasonText');
+                    if (text) text.focus();
+                }
+            }
+        }
+        function toggleConsent(isChecked) {
+            fetch('{{ route("user.consent.toggle") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ consent: isChecked })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.message) {
+                    // Small toast or alert
+                    alert(data.message);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+            });
         }
     </script>
 </body>
