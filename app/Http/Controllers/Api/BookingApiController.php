@@ -71,6 +71,39 @@ class BookingApiController extends Controller
 
         $refNumber = $request->input('id') ?: ('BK-' . rand(100000, 999999));
 
+        // 🌟 SCHEDULE-CONFLICT PROTECTION: Prevent booking if worker is already booked on this date
+        $parsedDate = null;
+        if (!empty($validated['scheduledDate'])) {
+            $rawDate = trim(explode('(', $validated['scheduledDate'])[0]);
+            $ts = strtotime($rawDate);
+            if ($ts !== false) {
+                $parsedDate = date('Y-m-d', $ts);
+            }
+        }
+
+        if ($parsedDate) {
+            $existingBooking = Booking::where(function($q) use ($validated, $worker) {
+                    $q->where('worker_username', $validated['workerUsername']);
+                    if ($worker) {
+                        $q->orWhere('worker_username', $worker->name)
+                          ->orWhere('worker_id', $worker->user_id);
+                    }
+                })
+                ->where(function($q) use ($parsedDate) {
+                    $q->whereDate('scheduled_date', $parsedDate)
+                      ->orWhere('scheduled_date', 'like', "%{$parsedDate}%");
+                })
+                ->whereIn('status', ['PENDING', 'ACCEPTED', 'CONFIRMED', 'ASSIGNED', 'IN_PROGRESS', 'IN PROGRESS'])
+                ->first();
+
+            if ($existingBooking) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Hindi available ang skilled worker na si {$validated['workerUsername']} sa napiling petsa ({$validated['scheduledDate']}) dahil may existing schedule na ito sa araw na ito. Pumili ng ibang petsa."
+                ], 422);
+            }
+        }
+
         // 🌟 BILATERAL MATCHING: Merge client's open job need in this category
         $matchedClientJob = JobPost::where(function ($q) use ($validated, $client) {
                 if ($client) {
@@ -164,7 +197,46 @@ class BookingApiController extends Controller
             return response()->json(['message' => 'Booking not found.'], 404);
         }
 
-        $booking->status = strtoupper($validated['status']);
+        $newStatus = strtoupper($validated['status']);
+
+        // 🌟 SCHEDULE-CONFLICT PROTECTION: Prevent accepting if worker already has an active booking on this date
+        if ($newStatus === 'ACCEPTED') {
+            $parsedDate = null;
+            if (!empty($booking->scheduled_date)) {
+                $rawDate = trim(explode('(', $booking->scheduled_date)[0]);
+                $ts = strtotime($rawDate);
+                if ($ts !== false) {
+                    $parsedDate = date('Y-m-d', $ts);
+                }
+            }
+
+            $conflictQuery = Booking::where('booking_id', '!=', $booking->booking_id)
+                ->where(function($q) use ($booking) {
+                    $q->where('worker_username', $booking->worker_username)
+                      ->orWhere('worker_id', $booking->worker_id);
+                })
+                ->whereIn('status', ['ACCEPTED', 'CONFIRMED', 'ASSIGNED', 'IN_PROGRESS', 'IN PROGRESS']);
+
+            if ($parsedDate) {
+                $conflictQuery->where(function($q) use ($parsedDate, $booking) {
+                    $q->whereDate('scheduled_date', $parsedDate)
+                      ->orWhere('scheduled_date', 'like', "%{$parsedDate}%");
+                });
+            } else {
+                $conflictQuery->where('scheduled_date', $booking->scheduled_date);
+            }
+
+            $conflictBooking = $conflictQuery->first();
+
+            if ($conflictBooking) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Schedule Conflict: May tinanggap ka nang serbisyo sa araw na ito ({$booking->scheduled_date}) para sa booking #{$conflictBooking->booking_reference}. Hindi maaaring mag-overlap o tumanggap ng magkasabay na booking sa parehong petsa."
+                ], 422);
+            }
+        }
+
+        $booking->status = $newStatus;
         if ($booking->status === 'COMPLETED') {
             $booking->completion_date = now()->toDateString();
         }

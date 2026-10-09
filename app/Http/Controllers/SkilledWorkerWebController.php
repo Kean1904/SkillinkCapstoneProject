@@ -260,6 +260,41 @@ class SkilledWorkerWebController extends Controller
             ->firstOrFail();
 
         $status = strtoupper($request->input('status', 'ACCEPTED'));
+
+        // 🌟 SCHEDULE-CONFLICT PROTECTION: Prevent accepting if worker already has an accepted/in-progress booking on this date
+        if ($status === 'ACCEPTED') {
+            $parsedDate = null;
+            if (!empty($booking->scheduled_date)) {
+                $rawDate = trim(explode('(', $booking->scheduled_date)[0]);
+                $ts = strtotime($rawDate);
+                if ($ts !== false) {
+                    $parsedDate = date('Y-m-d', $ts);
+                }
+            }
+
+            $conflictQuery = Booking::where('booking_id', '!=', $booking->booking_id)
+                ->where(function($q) use ($booking) {
+                    $q->where('worker_username', $booking->worker_username)
+                      ->orWhere('worker_id', $booking->worker_id);
+                })
+                ->whereIn('status', ['ACCEPTED', 'CONFIRMED', 'ASSIGNED', 'IN_PROGRESS', 'IN PROGRESS']);
+
+            if ($parsedDate) {
+                $conflictQuery->where(function($q) use ($parsedDate, $booking) {
+                    $q->whereDate('scheduled_date', $parsedDate)
+                      ->orWhere('scheduled_date', 'like', "%{$parsedDate}%");
+                });
+            } else {
+                $conflictQuery->where('scheduled_date', $booking->scheduled_date);
+            }
+
+            $conflictBooking = $conflictQuery->first();
+
+            if ($conflictBooking) {
+                return back()->with('error', "Schedule Conflict: May tinanggap ka nang serbisyo sa araw na ito ({$booking->scheduled_date}) para sa booking #{$conflictBooking->booking_reference}. Hindi maaaring tumanggap ng magkasabay na booking sa parehong petsa upang maiwasan ang overlap.");
+            }
+        }
+
         $booking->status = $status;
         if ($status === 'COMPLETED') {
             $booking->completion_date = now()->toDateString();

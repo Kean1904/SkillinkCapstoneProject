@@ -284,13 +284,37 @@
                             $isCompleted = ($status === 'COMPLETED');
                         @endphp
 
+                        @php
+                            $hasConflict = false;
+                            if ($isPending && !empty($booking->scheduled_date)) {
+                                $bDate = trim(explode('(', $booking->scheduled_date)[0]);
+                                foreach ($currentActive as $other) {
+                                    if ($other->booking_id != $booking->booking_id) {
+                                        $oStatus = strtoupper($other->status ?? '');
+                                        if (in_array($oStatus, ['ACCEPTED', 'IN_PROGRESS', 'IN PROGRESS', 'CONFIRMED'])) {
+                                            $oDate = trim(explode('(', $other->scheduled_date ?? '')[0]);
+                                            if (!empty($bDate) && !empty($oDate) && ($bDate === $oDate || str_contains($oDate, $bDate) || str_contains($bDate, $oDate))) {
+                                                $hasConflict = true;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        @endphp
+
                         <div style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; padding: 20px; margin-bottom: 20px;">
                             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                                 <div>
                                     <span style="font-size: 15px; font-weight: bold; color: #93c5fd;">{{ $booking->booking_reference }}</span>
                                     <h4 style="font-size: 17px; margin-top: 4px;">{{ $booking->service_category }}</h4>
                                 </div>
-                                <div>
+                                <div style="display: flex; gap: 8px; align-items: center;">
+                                    @if($hasConflict)
+                                        <span class="badge" style="background: rgba(239, 68, 68, 0.25); color: #fca5a5; border: 1px solid #ef4444;" title="May kaparehong araw kang tinanggap na booking.">
+                                            <i class="fa-solid fa-triangle-exclamation"></i> Schedule Conflict
+                                        </span>
+                                    @endif
                                     <span class="badge badge-{{ strtolower(str_replace('_', '', $status)) }}">{{ $status }}</span>
                                 </div>
                             </div>
@@ -319,18 +343,30 @@
                                 <div><strong>Client:</strong> {{ $booking->client_name ?? $booking->client_username }}</div>
                                 <div><strong>Barangay:</strong> {{ $booking->barangay }}</div>
                                 <div><strong>Schedule:</strong> {{ $booking->scheduled_date }}</div>
-                                <div><strong>Budget:</strong> <span style="color: #4ade80; font-weight: bold;">{{ $booking->estimated_budget }}</span></div>
+                                <div><strong>Agreed Budget:</strong> <span style="color: #4ade80; font-weight: bold;">{{ $booking->estimated_budget }}</span> <span style="font-size: 11px; opacity: 0.85;">(Cash on Service / Settled Externally)</span></div>
                                 <div style="grid-column: 1 / -1;"><strong>Description:</strong> {{ $booking->task_description }}</div>
                             </div>
+
+                            @if($hasConflict)
+                                <div style="margin-top: 10px; background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #fca5a5; padding: 8px 12px; border-radius: 6px; font-size: 12px;">
+                                    <i class="fa-solid fa-triangle-exclamation"></i> <strong>Schedule Conflict Alert:</strong> May tinanggap ka nang ibang booking sa petsang ito ({{ $booking->scheduled_date }}). Hindi mo maaaring tanggapin ang hiling na ito hangga't may kasabay na schedule upang maiwasan ang overlap.
+                                </div>
+                            @endif
 
                             <!-- Lifecycle Actions -->
                             <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap;">
                                 @if($isPending)
-                                    <form method="POST" action="{{ route('skilled_worker.booking.update_status', $booking->booking_id) }}" style="display: inline;">
-                                        @csrf
-                                        <input type="hidden" name="status" value="ACCEPTED">
-                                        <button type="submit" class="btn btn-success" style="background: #16a34a; border: 1px solid #22c55e;"><i class="fa-solid fa-check"></i> Accept Booking Request</button>
-                                    </form>
+                                    @if(!$hasConflict)
+                                        <form method="POST" action="{{ route('skilled_worker.booking.update_status', $booking->booking_id) }}" style="display: inline;">
+                                            @csrf
+                                            <input type="hidden" name="status" value="ACCEPTED">
+                                            <button type="submit" class="btn btn-success" style="background: #16a34a; border: 1px solid #22c55e;"><i class="fa-solid fa-check"></i> Accept Booking Request</button>
+                                        </form>
+                                    @else
+                                        <button type="button" class="btn" style="background: rgba(148, 163, 184, 0.2); color: #cbd5e1; border: 1px solid #64748b; cursor: not-allowed;" disabled title="May conflict sa schedule.">
+                                            <i class="fa-solid fa-ban"></i> Conflict: Date Already Booked
+                                        </button>
+                                    @endif
                                     <form method="POST" action="{{ route('skilled_worker.booking.update_status', $booking->booking_id) }}" style="display: inline;">
                                         @csrf
                                         <input type="hidden" name="status" value="DECLINED">
@@ -381,14 +417,14 @@
                                     <div style="font-size: 11.5px; opacity: 0.75; display: flex; gap: 14px; flex-wrap: wrap;">
                                         <span><i class="fa-solid fa-user"></i> Client: {{ $comp->client_name ?? $comp->client_username }}</span>
                                         <span><i class="fa-solid fa-location-dot"></i> Brgy. {{ $comp->barangay }}</span>
-                                        <span><i class="fa-solid fa-coins"></i> Budget: {{ $comp->estimated_budget }}</span>
+                                        <span><i class="fa-solid fa-coins"></i> Agreed Budget: {{ $comp->estimated_budget }} (Cash on Service)</span>
                                         @if(!empty($comp->completion_date))
                                             <span><i class="fa-regular fa-calendar-check"></i> Date Completed: {{ $comp->completion_date }}</span>
                                         @endif
                                     </div>
                                 </div>
                                 <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                                    <span style="font-size: 12px; color: #4ade80; font-weight: bold;"><i class="fa-solid fa-check-double"></i> Closed & Settled</span>
+                                    <span style="font-size: 12px; color: #4ade80; font-weight: bold;"><i class="fa-solid fa-check-double"></i> Closed & Settled Externally</span>
                                     @if(!empty($comp->has_complaint))
                                         <button type="button" class="btn" style="background: rgba(148, 163, 184, 0.18); color: #cbd5e1; border: 1.5px solid rgba(148, 163, 184, 0.4); cursor: not-allowed; opacity: 0.85; font-weight: 600;" disabled title="Already Submitted">
                                             <i class="fa-solid fa-circle-check" style="color: #4ade80;"></i> Already Submitted

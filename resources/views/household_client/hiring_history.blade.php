@@ -357,7 +357,7 @@
                             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; font-size: 13px; opacity: 0.9; margin: 14px 0; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px;">
                                 <div><strong>Hired Worker:</strong> {{ $booking->worker_name ?? $booking->worker_username }}</div>
                                 <div><strong>Scheduled Date:</strong> {{ $booking->scheduled_date }}</div>
-                                <div><strong>Budget:</strong> <span style="color: #4ade80; font-weight: bold;">{{ $booking->estimated_budget }}</span></div>
+                                <div><strong>Agreed Budget:</strong> <span style="color: #4ade80; font-weight: bold;">{{ $booking->estimated_budget }}</span> <span style="font-size: 11px; opacity: 0.85;">(Cash on Service / Settled Externally)</span></div>
                                 <div><strong>Location:</strong> Brgy. {{ $booking->barangay }}</div>
                                 <div style="grid-column: 1 / -1;"><strong>Task Details:</strong> {{ $booking->task_description }}</div>
                             </div>
@@ -412,7 +412,7 @@
                                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; font-size: 13px; opacity: 0.9; margin: 12px 0; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px;">
                                     <div><strong>Worker:</strong> {{ $comp->worker_name ?? $comp->worker_username }}</div>
                                     <div><strong>Scheduled Date:</strong> {{ $comp->scheduled_date }}</div>
-                                    <div><strong>Paid/Budget:</strong> <span style="color: #4ade80; font-weight: bold;">{{ $comp->estimated_budget }}</span></div>
+                                    <div><strong>Agreed Budget:</strong> <span style="color: #4ade80; font-weight: bold;">{{ $comp->estimated_budget }}</span> <span style="font-size: 11px; opacity: 0.85;">(Cash on Service / Settled Externally)</span></div>
                                     <div><strong>Location:</strong> Brgy. {{ $comp->barangay }}</div>
                                 </div>
 

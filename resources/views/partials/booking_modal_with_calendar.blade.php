@@ -32,24 +32,27 @@
             <input type="hidden" name="estimatedBudget" id="bookEstimatedBudget" value="₱500.00">
             <input type="hidden" name="scheduledDate" id="bookScheduledDate" required>
 
-            <!-- 1. FIXED ESTIMATED SERVICE RATE CARD (DICTATED BY WORKER) -->
+            <!-- 1. AGREED BUDGET & PAYMENT METHOD CLARIFICATION -->
             <div style="margin-bottom: 14px; background: rgba(16, 185, 129, 0.18); border: 2px solid #10b981; border-radius: 10px; padding: 12px;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
                         <span style="font-size: 10.5px; font-weight: bold; letter-spacing: 0.5px; color: #86efac; text-transform: uppercase; display: block;">
-                            <i class="fa-solid fa-lock"></i> Fixed Service Rate (Naka-set ng Worker)
+                            <i class="fa-solid fa-hand-holding-dollar"></i> Agreed Budget (Set by Worker)
                         </span>
                         <div id="bookFixedRateDisplay" style="font-size: 22px; font-weight: 900; color: #ffffff; margin-top: 2px;">
                             ₱500.00
                         </div>
                     </div>
                     <span style="background: #10b981; color: white; font-size: 11px; font-weight: bold; padding: 4px 10px; border-radius: 6px; display: inline-flex; align-items: center; gap: 5px;">
-                        <i class="fa-solid fa-shield-halved"></i> Fixed Rate
+                        <i class="fa-solid fa-coins"></i> Agreed Budget
                     </span>
                 </div>
-                <p style="font-size: 11px; opacity: 0.85; margin: 4px 0 0 0; color: #d1fae5;">
-                    * Fixed ang halagang ito ayon sa rate ni skilled worker at hindi maaaring baguhin o bawasan ng household client.
-                </p>
+                <div style="margin-top: 8px; border-top: 1px dashed rgba(255,255,255,0.25); padding-top: 6px; font-size: 11px; color: #d1fae5; line-height: 1.4;">
+                    <i class="fa-solid fa-wallet" style="color: #6ee7b7;"></i> <strong>Payment Term: Cash on Service / Settled Externally</strong>
+                    <div style="opacity: 0.85; margin-top: 2px;">
+                        * Walang in-app e-wallet o credit card charging. Ang kabuuang halaga ay direktang babayaran nang cash sa manggagawa pagkatapos ng maayos na pagtapos sa trabaho.
+                    </div>
+                </div>
             </div>
 
             <!-- 2. SERVICE DETAILS -->
