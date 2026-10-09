@@ -39,10 +39,28 @@ class RegisterController extends Controller
 
     public function store(Request $request)
     {
-        // 1. Validate the data
+        // 1. Compute age from date of birth (dob) if provided
+        $dobInput = $request->input('dob') ?? $request->input('date_of_birth');
+        if (!empty($dobInput)) {
+            try {
+                $parsedDob = \Carbon\Carbon::parse($dobInput);
+                $calculatedAge = $parsedDob->age;
+                $dob = $parsedDob->format('Y-m-d');
+                $request->merge(['age' => $calculatedAge, 'dob' => $dob]);
+            } catch (\Exception $e) {
+                return back()->withInput()->withErrors(['dob' => 'Pakilagay ang tamang format ng Date of Birth.']);
+            }
+        } else {
+            $dob = null;
+        }
+
+        // Validate the data
         $validated = $request->validate([
             'first_name'  => 'required|string|max:255',
+            'middle_name' => 'nullable|string|max:255',
             'last_name'   => 'required|string|max:255',
+            'suffix'      => 'nullable|string|max:50',
+            'dob'         => 'required_without:age|nullable|date',
             'age'         => 'required|integer|min:18|max:100',
             'gender'      => 'required|string',
             'address'     => 'required|string|max:255',
@@ -50,13 +68,17 @@ class RegisterController extends Controller
             'email'       => 'required|email|unique:users,email',
             'cellphone'   => 'required|string|max:11',
             'role'        => 'required|string',
-            'username'    => 'required|string|min:4|max:16|unique:users,name',
-            'password'    => 'required|string|min:6',
+            'username'    => 'required|string|min:10|max:22|unique:users,name',
+            'password'    => ['required', 'string', 'min:10', 'max:22', 'regex:/[A-Z]/', 'regex:/[0-9]/', 'regex:/[^A-Za-z0-9]/'],
         ], [
-            'username.unique' => 'Username has already exist',
-            'username.max'    => 'Ang username ay may maximum na 16 characters lamang.',
-            'username.min'    => 'Ang username ay dapat may 4 hanggang 16 characters.',
-            'age.min'         => 'Ang minimum na edad ay 18 pataas (bawal ang 17 pababa alinsunod sa batas laban sa child labor).',
+            'username.unique'      => 'Username has already exist',
+            'username.max'         => 'Ang username ay may maximum na 22 characters lamang.',
+            'username.min'         => 'Ang username ay dapat may 10 hanggang 22 characters.',
+            'password.min'         => 'Ang password ay dapat may 10 hanggang 22 characters.',
+            'password.max'         => 'Ang password ay may maximum na 22 characters lamang.',
+            'password.regex'       => 'Ang password ay dapat mayroong kahit isang uppercase letter, number, at special character.',
+            'age.min'              => 'Ang minimum na edad ay 18 pataas (bawal ang 17 pababa alinsunod sa batas laban sa child labor).',
+            'dob.required_without' => 'Kinakailangang ilagay ang Date of Birth.',
         ]);
 
         $role = strtolower(trim($validated['role']));
@@ -67,12 +89,15 @@ class RegisterController extends Controller
         // 2. Save to database
         $user = User::create([
             'first_name'        => $validated['first_name'],
+            'middle_name'       => !empty($validated['middle_name']) ? trim($validated['middle_name']) : null,
             'last_name'         => $validated['last_name'],
-            'name'              => $validated['username'],
+            'suffix'            => !empty($validated['suffix']) ? trim($validated['suffix']) : null,
+            'name'              => $username,
             'email'             => $validated['email'],
             'password_hash'     => Hash::make($validated['password']),
             'role'              => $role,
             'age'               => $validated['age'],
+            'date_of_birth'     => $dob,
             'gender'            => $validated['gender'],
             'barangay'          => $validated['barangay'],
             'contact_number'    => $validated['cellphone'],

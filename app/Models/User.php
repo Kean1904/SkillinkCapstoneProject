@@ -14,12 +14,15 @@ class User extends Authenticatable
 
     protected $fillable = [
         'first_name',
+        'middle_name',
         'last_name',
+        'suffix',
         'name',
         'email',
         'password_hash',
         'role',
         'age',
+        'date_of_birth',
         'gender',
         'address',
         'barangay',
@@ -52,6 +55,7 @@ class User extends Authenticatable
         'is_verified' => 'boolean',
         'rating' => 'float',
         'age' => 'integer',
+        'date_of_birth' => 'date',
         'last_seen_at' => 'datetime',
         'privacy_consent_accepted' => 'boolean',
         'privacy_consent_accepted_at' => 'datetime',
@@ -66,7 +70,13 @@ class User extends Authenticatable
 
     public function getFullNameAttribute()
     {
-        return trim("{$this->first_name} {$this->last_name}") ?: $this->name;
+        $parts = array_filter([
+            $this->first_name,
+            $this->middle_name,
+            $this->last_name,
+            $this->suffix,
+        ]);
+        return !empty($parts) ? implode(' ', $parts) : $this->name;
     }
 
     public function getServiceRateDisplayAttribute(): string

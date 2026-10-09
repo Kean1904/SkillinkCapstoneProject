@@ -319,6 +319,12 @@ $tesdaCertificates = [
             -moz-appearance: none;
         }
 
+        .input-group input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
+            opacity: 0.85;
+        }
+
         /* AUTOFILL FIX: Prevent browser from turning box white */
         .input-group input:-webkit-autofill,
         .input-group input:-webkit-autofill:hover, 
@@ -475,23 +481,40 @@ $tesdaCertificates = [
                     </div>
                     @endif
 
-                    <!-- First name / Last name -->
+                    <!-- First name & Middle name -->
                     <div class="form-row">
                         <div class="input-group">
-                            <input type="text" name="first_name" placeholder="First name" required>
+                            <input type="text" name="first_name" placeholder="First Name" value="{{ old('first_name') }}" required>
                         </div>
                         <div class="input-group">
-                            <input type="text" name="last_name" placeholder="Last name" required>
+                            <input type="text" name="middle_name" placeholder="Middle Name (Optional)" value="{{ old('middle_name') }}">
                         </div>
                     </div>
 
-                    <!-- Age / Sex-Gender -->
+                    <!-- Last name & Suffix / Extension name -->
                     <div class="form-row">
                         <div class="input-group">
-                            <input type="number" name="age" id="ageInput" placeholder="Age" min="18" max="100" value="{{ old('age') }}" oninput="checkAgeRequirement()" required>
+                            <input type="text" name="last_name" placeholder="Last Name" value="{{ old('last_name') }}" required>
+                        </div>
+                        <div class="input-group">
+                            <input type="text" name="suffix" placeholder="Suffix (Optional, hal. Jr., III)" value="{{ old('suffix') }}">
+                        </div>
+                    </div>
+
+                    <!-- Date of Birth / Sex -->
+                    <div class="form-row">
+                        <div class="input-group" style="position: relative;">
+                            <label for="dobInput" style="display: block; font-size: 11px; margin-bottom: 5px; color: rgba(255, 255, 255, 0.85); text-align: left; font-weight: 500;">
+                                <i class="fa-regular fa-calendar" style="margin-right: 4px;"></i> Date of Birth
+                            </label>
+                            <input type="date" name="dob" id="dobInput" value="{{ old('dob') }}" max="{{ date('Y-m-d') }}" onchange="computeAndValidateAge()" oninput="computeAndValidateAge()" required>
+                            <input type="hidden" name="age" id="ageHidden" value="{{ old('age') }}">
                         </div>
                         <div class="input-group select-wrapper">
-                            <select name="gender" required>
+                            <label for="genderSelect" style="display: block; font-size: 11px; margin-bottom: 5px; color: rgba(255, 255, 255, 0.85); text-align: left; font-weight: 500;">
+                                <i class="fa-solid fa-venus-mars" style="margin-right: 4px;"></i> Sex / Kasarian
+                            </label>
+                            <select name="gender" id="genderSelect" required>
                                 <option value="" disabled selected hidden>Sex</option>
                                 <option value="Male" {{ old('gender') === 'Male' ? 'selected' : '' }}>Male</option>
                                 <option value="Female" {{ old('gender') === 'Female' ? 'selected' : '' }}>Female</option>
@@ -588,23 +611,22 @@ $tesdaCertificates = [
 
                     <!-- Username -->
                     <div class="input-group username-wrapper">
-                        <input type="text" name="username" id="usernameInput" placeholder="Username (4-16 characters)" maxlength="16" value="{{ old('username') }}" oninput="checkUsernameAvailability()" required>
+                        <input type="text" name="username" id="usernameInput" placeholder="Username (10-22 characters)" minlength="10" maxlength="22" value="{{ old('username') }}" oninput="checkUsernameAvailability()" required>
                         <span id="usernameStatusIcon" style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 15px; display: none; pointer-events: none;"></span>
                     </div>
                     <p id="usernameHint" style="display: none; font-size: 11px; margin-top: -10px; margin-bottom: 15px; text-align: left; line-height: 1.4;"></p>
 
-                    <!-- Password with eye toggle -->
                     <!-- Password with eye toggle -->
                     <div class="input-group password-wrapper">
                         <input 
                             type="password" 
                             name="password" 
                             id="password" 
-                            placeholder="Password" 
-                            minlength="12"
-                            maxlength="16"
-                            pattern="^(?=.*[0-9])(?=.*[A-Z])(?=.*[@_.%$])[A-Za-z0-9@_.%$]{12,16}$"
-                            title="12-16 characters, at least 1 uppercase letter, 1 number, and 1 special character (@ _ . % $)"
+                            placeholder="Password (10-22 characters)" 
+                            minlength="10"
+                            maxlength="22"
+                            pattern="^(?=.*[0-9])(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{10,22}$"
+                            title="10-22 characters, at least 1 uppercase letter, 1 number, and 1 special character (@ _ . % $)"
                             oninput="checkPasswordStrength()"
                             required
                         >
@@ -613,7 +635,7 @@ $tesdaCertificates = [
                         </span>
                     </div>
                     <p id="passwordHint" class="password-hint">
-                        Must be 12-16 characters, <br> with at least 1 uppercase letter, <br> 1 number, and 1 special character (@ _ . % $)
+                        Must be 10-22 characters, <br> with at least 1 uppercase letter, <br> 1 number, and 1 special character (@ _ . % $)
                     </p>
 
                     <button type="submit" class="register-btn">SIGN UP</button>
@@ -649,7 +671,7 @@ $tesdaCertificates = [
             }
 
             // Standardize username placeholder across all roles
-            usernameInput.placeholder = "Username (4-16 characters)";
+            usernameInput.placeholder = "Username (10-22 characters)";
             usernameHint.style.display = 'none';
             usernameHint.innerHTML = '';
 
@@ -679,34 +701,48 @@ $tesdaCertificates = [
             }
         }
 
-        function checkAgeRequirement() {
-            const ageInput = document.getElementById('ageInput');
+        function computeAndValidateAge() {
+            const dobInput = document.getElementById('dobInput');
+            const ageHidden = document.getElementById('ageHidden');
             const ageHint = document.getElementById('ageHint');
-            if (!ageInput || !ageHint) return;
+            if (!dobInput || !ageHint) return;
 
-            const valStr = ageInput.value.trim();
+            const valStr = dobInput.value;
             if (!valStr) {
                 ageHint.style.display = 'none';
-                ageInput.style.borderColor = '';
-                ageInput.setCustomValidity('');
+                dobInput.style.borderColor = '';
+                dobInput.setCustomValidity('');
+                if (ageHidden) ageHidden.value = '';
                 return;
             }
 
-            const val = parseInt(valStr, 10);
-            if (isNaN(val) || val < 18) {
+            const birthDate = new Date(valStr);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const m = today.getMonth() - birthDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+
+            if (ageHidden) {
+                ageHidden.value = isNaN(age) ? '' : age;
+            }
+
+            if (isNaN(age) || age < 18) {
                 ageHint.style.display = 'block';
                 ageHint.style.color = '#fca5a5';
-                ageHint.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> <strong>Bawal ang 17 pababa:</strong> Ang minimum na edad ay 18 pataas alinsunod sa batas laban sa child labor (RA 9231).';
-                ageInput.style.borderColor = '#ef4444';
-                ageInput.setCustomValidity('Ang edad ay dapat 18 pataas. Bawal ang 17 pababa alinsunod sa batas laban sa child labor.');
+                ageHint.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> <strong>Edad: ${isNaN(age) ? 0 : age} taong gulang (Bawal ang 17 pababa):</strong> Ang minimum na edad ay 18 pataas alinsunod sa batas laban sa child labor (RA 9231).`;
+                dobInput.style.borderColor = '#ef4444';
+                dobInput.setCustomValidity('Ang edad ay dapat 18 pataas alinsunod sa batas laban sa child labor.');
             } else {
                 ageHint.style.display = 'block';
                 ageHint.style.color = '#86efac';
-                ageHint.innerHTML = '<i class="fa-solid fa-circle-check"></i> Legal working age (18 pataas).';
-                ageInput.style.borderColor = '#10b981';
-                ageInput.setCustomValidity('');
+                ageHint.innerHTML = `<i class="fa-solid fa-circle-check"></i> <strong>Edad: ${age} taong gulang</strong> — Legal working age (18 pataas).`;
+                dobInput.style.borderColor = '#10b981';
+                dobInput.setCustomValidity('');
             }
         }
+        const checkAgeRequirement = computeAndValidateAge;
 
         let usernameCheckTimeout = null;
 
@@ -723,6 +759,34 @@ $tesdaCertificates = [
                 usernameInput.style.borderColor = '';
                 usernameHint.style.display = 'none';
                 usernameInput.setCustomValidity('');
+                return;
+            }
+
+            if (rawVal.length < 10) {
+                if (statusIcon) {
+                    statusIcon.style.display = 'block';
+                    statusIcon.style.color = '#f87171';
+                    statusIcon.innerHTML = '<i class="fa-solid fa-circle-xmark"></i>';
+                }
+                usernameInput.style.borderColor = '#ef4444';
+                usernameHint.style.display = 'block';
+                usernameHint.style.color = '#fca5a5';
+                usernameHint.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Ang username ay dapat may 10 hanggang 22 characters (Kasalukuyan: ${rawVal.length}).`;
+                usernameInput.setCustomValidity('Ang username ay dapat may minimum na 10 characters.');
+                return;
+            }
+
+            if (rawVal.length > 22) {
+                if (statusIcon) {
+                    statusIcon.style.display = 'block';
+                    statusIcon.style.color = '#f87171';
+                    statusIcon.innerHTML = '<i class="fa-solid fa-circle-xmark"></i>';
+                }
+                usernameInput.style.borderColor = '#ef4444';
+                usernameHint.style.display = 'block';
+                usernameHint.style.color = '#fca5a5';
+                usernameHint.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Ang username ay may maximum na 22 characters lamang.`;
+                usernameInput.setCustomValidity('Ang username ay may maximum na 22 characters lamang.');
                 return;
             }
 
@@ -776,8 +840,12 @@ $tesdaCertificates = [
         function checkPasswordStrength() {
             const passwordInput = document.getElementById('password');
             const hint = document.getElementById('passwordHint');
-            const pattern = /^(?=.*[0-9])(?=.*[A-Z])(?=.*[@_.%$])[A-Za-z0-9@_.%$]{12,16}$/;
-            if (pattern.test(passwordInput.value)) {
+            const val = passwordInput.value;
+            const hasUpper = /[A-Z]/.test(val);
+            const hasNum = /[0-9]/.test(val);
+            const hasSpecial = /[^A-Za-z0-9]/.test(val);
+            const isLenValid = val.length >= 10 && val.length <= 22;
+            if (isLenValid && hasUpper && hasNum && hasSpecial) {
                 hint.classList.remove('invalid');
                 hint.classList.add('valid');
             } else {
@@ -832,7 +900,7 @@ $tesdaCertificates = [
 
         document.addEventListener('DOMContentLoaded', function() {
             onRoleChange();
-            checkAgeRequirement();
+            computeAndValidateAge();
         });
     </script>
 
