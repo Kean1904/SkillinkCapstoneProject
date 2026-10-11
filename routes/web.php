@@ -54,6 +54,7 @@ Route::post('/account/deactivate', [LoginController::class, 'deactivateAccount']
 Route::get('/chat/messages', [\App\Http\Controllers\Api\ChatApiController::class, 'getMessages'])->name('chat.messages');
 Route::post('/chat/send', [\App\Http\Controllers\Api\ChatApiController::class, 'sendMessage'])->name('chat.send');
 Route::get('/chat/conversations', [\App\Http\Controllers\Api\ChatApiController::class, 'getConversations'])->name('chat.conversations');
+Route::get('/chat/unread-count', [\App\Http\Controllers\Api\ChatApiController::class, 'getUnreadCount'])->name('chat.unread_count');
 
 /*
 |--------------------------------------------------------------------------
@@ -132,6 +133,7 @@ Route::middleware(['checkrole:skilled worker'])->group(function () {
     Route::post('/skilled-worker/submit-application', [SkilledWorkerWebController::class, 'submitApplication'])->name('skilled_worker.submit_application');
     Route::get('/skilled-worker/profile', [SkilledWorkerWebController::class, 'profile'])->name('skilled_worker.profile');
     Route::post('/skilled-worker/profile/update', [SkilledWorkerWebController::class, 'updateProfile'])->name('skilled_worker.profile.update');
+    Route::get('/skilled-worker/messages', [SkilledWorkerWebController::class, 'messages'])->name('skilled_worker.messages');
     Route::get('/skilled-worker/settings', [SkilledWorkerWebController::class, 'settings'])->name('skilled_worker.settings');
     Route::post('/skilled-worker/password/update', [SkilledWorkerWebController::class, 'updatePassword'])->name('skilled_worker.password.update');
 });

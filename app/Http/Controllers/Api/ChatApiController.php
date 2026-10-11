@@ -44,6 +44,7 @@ class ChatApiController extends Controller
             ->get();
 
         $formatted = $messages->map(function ($m) use ($user1) {
+            $cAt = $m->created_at ? (clone $m->created_at)->setTimezone('Asia/Manila') : null;
             return [
                 'id' => $m->id,
                 'sender_username' => $m->sender_username,
@@ -51,9 +52,9 @@ class ChatApiController extends Controller
                 'message_text' => $m->message_text,
                 'is_read' => (bool)$m->is_read,
                 'is_me' => strtolower($m->sender_username) === strtolower($user1),
-                'timestamp' => $m->created_at ? $m->created_at->format('h:i A') : '',
-                'date' => $m->created_at ? $m->created_at->format('M d, Y') : '',
-                'created_at' => $m->created_at ? $m->created_at->toIso8601String() : '',
+                'timestamp' => $cAt ? $cAt->format('h:i A') : '',
+                'date' => $cAt ? $cAt->format('M d, Y') : '',
+                'created_at' => $cAt ? $cAt->toIso8601String() : '',
             ];
         });
 
@@ -98,6 +99,8 @@ class ChatApiController extends Controller
             'is_read' => false,
         ]);
 
+        $cAt = $msg->created_at ? (clone $msg->created_at)->setTimezone('Asia/Manila') : null;
+
         return response()->json([
             'success' => true,
             'message' => [
@@ -107,9 +110,9 @@ class ChatApiController extends Controller
                 'message_text' => $msg->message_text,
                 'is_read' => false,
                 'is_me' => true,
-                'timestamp' => $msg->created_at->format('h:i A'),
-                'date' => $msg->created_at->format('M d, Y'),
-                'created_at' => $msg->created_at->toIso8601String(),
+                'timestamp' => $cAt ? $cAt->format('h:i A') : '',
+                'date' => $cAt ? $cAt->format('M d, Y') : '',
+                'created_at' => $cAt ? $cAt->toIso8601String() : '',
             ],
         ]);
     }
@@ -147,6 +150,8 @@ class ChatApiController extends Controller
                 ->count();
 
             $partnerUser = User::where('name', $partner)->first();
+            $lastTime = $lastMsg && $lastMsg->created_at ? (clone $lastMsg->created_at)->setTimezone('Asia/Manila')->format('h:i A') : '';
+            $lastDate = $lastMsg && $lastMsg->created_at ? (clone $lastMsg->created_at)->setTimezone('Asia/Manila')->format('M d, Y') : '';
 
             $conversations[] = [
                 'partner_username' => $partner,
@@ -155,8 +160,10 @@ class ChatApiController extends Controller
                 'partner_barangay' => $partnerUser->barangay ?? 'Magalang',
                 'partner_skills' => $partnerUser->skills ?? '',
                 'partner_phone' => $partnerUser->contact_number ?? $partnerUser->phone_number ?? '09171234567',
+                'partner_avatar' => $partnerUser && $partnerUser->profile_image_uri ? asset($partnerUser->profile_image_uri) : asset('image/MP_Profile.png'),
                 'last_message' => $lastMsg ? $lastMsg->message_text : '',
-                'last_time' => $lastMsg && $lastMsg->created_at ? $lastMsg->created_at->format('h:i A') : '',
+                'last_time' => $lastTime,
+                'last_date' => $lastDate,
                 'unread_count' => $unreadCount,
             ];
         }
@@ -164,6 +171,56 @@ class ChatApiController extends Controller
         return response()->json([
             'success' => true,
             'conversations' => $conversations,
+        ]);
+    }
+
+    /**
+     * Get real-time unread messages count and latest notification snippet.
+     */
+    public function getUnreadCount(Request $request)
+    {
+        $user = trim($request->input('username') ?? Session::get('user_name', ''));
+        if (empty($user)) {
+            return response()->json([
+                'success' => true,
+                'unread_count' => 0,
+                'latest_sender_username' => null,
+                'latest_sender_name' => null,
+                'latest_message' => null,
+                'latest_time' => null,
+            ]);
+        }
+
+        $unreadCount = ChatMessage::where('receiver_username', $user)
+            ->where('is_read', false)
+            ->count();
+
+        $latestMsg = ChatMessage::where('receiver_username', $user)
+            ->where('is_read', false)
+            ->latest('created_at')
+            ->first();
+
+        $latestSenderName = null;
+        $latestSenderPhone = null;
+        $latestSenderRole = 'User';
+        if ($latestMsg) {
+            $senderUser = User::where('name', $latestMsg->sender_username)->first();
+            $latestSenderName = $senderUser ? $senderUser->full_name : $latestMsg->sender_username;
+            $latestSenderPhone = $senderUser ? ($senderUser->contact_number ?? $senderUser->phone_number ?? '') : '';
+            $latestSenderRole = $senderUser ? ($senderUser->role ?? 'User') : 'User';
+        }
+
+        $cAt = $latestMsg && $latestMsg->created_at ? (clone $latestMsg->created_at)->setTimezone('Asia/Manila') : null;
+
+        return response()->json([
+            'success' => true,
+            'unread_count' => $unreadCount,
+            'latest_sender_username' => $latestMsg ? $latestMsg->sender_username : null,
+            'latest_sender_name' => $latestSenderName,
+            'latest_sender_role' => $latestSenderRole,
+            'latest_sender_phone' => $latestSenderPhone,
+            'latest_message' => $latestMsg ? $latestMsg->message_text : null,
+            'latest_time' => $cAt ? $cAt->format('h:i A') : null,
         ]);
     }
 }

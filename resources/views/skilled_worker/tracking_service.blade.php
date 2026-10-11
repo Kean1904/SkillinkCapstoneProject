@@ -355,6 +355,9 @@
 
                             <!-- Lifecycle Actions -->
                             <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap;">
+                                <button type="button" class="btn" onclick="openChatModal('{{ $booking->client_username }}', '{{ addslashes($booking->client_name ?? $booking->client_username) }}', 'Household Client', '{{ $booking->client_contact ?? '' }}')" style="background: #0284c7; color: white; border: 1px solid #38bdf8;" title="Message Client">
+                                    <i class="fa-solid fa-comments"></i> Chat Client
+                                </button>
                                 @if($isPending)
                                     @if(!$hasConflict)
                                         <form method="POST" action="{{ route('skilled_worker.booking.update_status', $booking->booking_id) }}" style="display: inline;">
@@ -694,5 +697,7 @@
             }
         }
     </script>
+
+    @include('partials.chat_popup')
 </body>
 </html>

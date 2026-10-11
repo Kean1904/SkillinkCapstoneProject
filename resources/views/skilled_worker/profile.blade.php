@@ -451,5 +451,6 @@
             }
         }
     </script>
+    @include('partials.chat_popup')
 </body>
 </html>

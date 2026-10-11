@@ -411,5 +411,6 @@
             document.getElementById('jobOfferModal').style.display = 'none';
         }
     </script>
+    @include('partials.chat_popup')
 </body>
 </html>

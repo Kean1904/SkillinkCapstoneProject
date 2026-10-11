@@ -484,4 +484,106 @@ class SkilledWorkerWebController extends Controller
 
         return view('skilled_worker.declined_bookings', compact('worker', 'declinedBookings'));
     }
+
+    public function messages(Request $request)
+    {
+        $worker = $this->getCurrentWorker();
+        $selectedPartner = trim($request->input('partner', ''));
+
+        // Retrieve partners who exchanged messages with this worker
+        $sentPartners = \App\Models\ChatMessage::where('sender_username', $worker->name)->pluck('receiver_username');
+        $receivedPartners = \App\Models\ChatMessage::where('receiver_username', $worker->name)->pluck('sender_username');
+        
+        // Also include clients from active / recent bookings so worker can easily start chat
+        $bookingClients = Booking::where(function($q) use ($worker) {
+                $q->where('worker_username', $worker->name)
+                  ->orWhere('worker_id', $worker->user_id)
+                  ->orWhereRaw('LOWER(worker_username) = ?', [strtolower($worker->name)])
+                  ->orWhere('worker_name', $worker->full_name);
+            })
+            ->pluck('client_username');
+
+        $allPartners = $sentPartners->merge($receivedPartners)->merge($bookingClients)->unique()->filter()->values();
+
+        $conversations = [];
+        foreach ($allPartners as $partner) {
+            $lastMsg = \App\Models\ChatMessage::where(function ($q) use ($worker, $partner) {
+                    $q->where('sender_username', $worker->name)->where('receiver_username', $partner);
+                })
+                ->orWhere(function ($q) use ($worker, $partner) {
+                    $q->where('sender_username', $partner)->where('receiver_username', $worker->name);
+                })
+                ->latest('created_at')
+                ->first();
+
+            $unreadCount = \App\Models\ChatMessage::where('sender_username', $partner)
+                ->where('receiver_username', $worker->name)
+                ->where('is_read', false)
+                ->count();
+
+            $partnerUser = User::where('name', $partner)->first();
+            $lastTime = $lastMsg && $lastMsg->created_at ? (clone $lastMsg->created_at)->setTimezone('Asia/Manila')->format('h:i A') : '';
+            $lastDate = $lastMsg && $lastMsg->created_at ? (clone $lastMsg->created_at)->setTimezone('Asia/Manila')->format('M d, Y') : '';
+
+            $conversations[] = (object)[
+                'partner_username' => $partner,
+                'partner_name' => $partnerUser ? $partnerUser->full_name : $partner,
+                'partner_role' => $partnerUser ? ($partnerUser->role ?? 'Household Client') : 'Household Client',
+                'partner_barangay' => $partnerUser ? ($partnerUser->barangay ?? 'Magalang') : 'Magalang',
+                'partner_phone' => $partnerUser ? ($partnerUser->contact_number ?? $partnerUser->phone_number ?? '') : '',
+                'partner_avatar' => $partnerUser && $partnerUser->profile_image_uri ? asset($partnerUser->profile_image_uri) : asset('image/MP_Profile.png'),
+                'last_message' => $lastMsg ? $lastMsg->message_text : 'No messages yet. Tap to start conversation.',
+                'last_time' => $lastTime,
+                'last_date' => $lastDate,
+                'unread_count' => $unreadCount,
+                'has_messages' => (bool)$lastMsg,
+                'latest_timestamp' => $lastMsg ? $lastMsg->created_at : null,
+            ];
+        }
+
+        // Sort conversations: unread first, then latest timestamp
+        usort($conversations, function($a, $b) {
+            if ($a->unread_count > 0 && $b->unread_count == 0) return -1;
+            if ($b->unread_count > 0 && $a->unread_count == 0) return 1;
+            if ($a->latest_timestamp && $b->latest_timestamp) {
+                return $b->latest_timestamp <=> $a->latest_timestamp;
+            }
+            return $a->latest_timestamp ? -1 : 1;
+        });
+
+        if (empty($selectedPartner) && count($conversations) > 0) {
+            $selectedPartner = $conversations[0]->partner_username;
+        }
+
+        $activePartner = null;
+        $messages = collect();
+        if (!empty($selectedPartner)) {
+            $activePartnerUser = User::where('name', $selectedPartner)->first();
+            $activePartner = (object)[
+                'username' => $selectedPartner,
+                'full_name' => $activePartnerUser ? $activePartnerUser->full_name : $selectedPartner,
+                'role' => $activePartnerUser ? ($activePartnerUser->role ?? 'Household Client') : 'Household Client',
+                'barangay' => $activePartnerUser ? ($activePartnerUser->barangay ?? 'Magalang') : 'Magalang',
+                'phone' => $activePartnerUser ? ($activePartnerUser->contact_number ?? $activePartnerUser->phone_number ?? '') : '',
+                'avatar' => $activePartnerUser && $activePartnerUser->profile_image_uri ? asset($activePartnerUser->profile_image_uri) : asset('image/MP_Profile.png'),
+            ];
+
+            // Mark incoming messages as read
+            \App\Models\ChatMessage::where('sender_username', $selectedPartner)
+                ->where('receiver_username', $worker->name)
+                ->where('is_read', false)
+                ->update(['is_read' => true]);
+
+            $messages = \App\Models\ChatMessage::where(function ($q) use ($worker, $selectedPartner) {
+                    $q->where('sender_username', $worker->name)->where('receiver_username', $selectedPartner);
+                })
+                ->orWhere(function ($q) use ($worker, $selectedPartner) {
+                    $q->where('sender_username', $selectedPartner)->where('receiver_username', $worker->name);
+                })
+                ->orderBy('created_at', 'asc')
+                ->get();
+        }
+
+        return view('skilled_worker.messages', compact('worker', 'conversations', 'selectedPartner', 'activePartner', 'messages'));
+    }
 }
