@@ -852,8 +852,10 @@ class HouseholdClientController extends Controller
         // Also include workers from active / past bookings so client can easily message them
         $bookingWorkers = Booking::where(function($q) use ($user) {
                 $q->where('client_username', $user->name)
-                  ->orWhere('client_id', $user->user_id)
                   ->orWhereRaw('LOWER(client_username) = ?', [strtolower($user->name)]);
+                if (!empty($user->full_name)) {
+                    $q->orWhere('client_name', $user->full_name);
+                }
             })
             ->pluck('worker_username');
 
