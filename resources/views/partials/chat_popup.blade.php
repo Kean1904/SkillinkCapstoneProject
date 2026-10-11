@@ -70,13 +70,13 @@
                     <div id="chatAvatarBadge" style="width: 36px; height: 36px; border-radius: 50%; background: #ffffff; color: #0033a0; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; border: 2px solid #60a5fa;">
                         U
                     </div>
-                    <span style="position: absolute; bottom: 0; right: 0; width: 9px; height: 9px; background: #10b981; border-radius: 50%; border: 1.5px solid white;"></span>
+                    <span id="chatPartnerStatusDot" style="position: absolute; bottom: 0; right: 0; width: 10px; height: 10px; background: #94a3b8; border-radius: 50%; border: 1.5px solid white;"></span>
                 </div>
                 <div style="overflow: hidden; line-height: 1.25;">
                     <div id="chatWorkerFullName" style="font-size: 13.5px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #ffffff;">Contact Name</div>
                     <div style="display: flex; align-items: center; gap: 6px; margin-top: 2px;">
                         <span id="chatWorkerTradeBadge" style="font-size: 10.5px; color: #fde047; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">User</span>
-                        <span style="font-size: 10px; color: #86efac; opacity: 0.9;">&bull; Active</span>
+                        <span id="chatPartnerStatusText" style="font-size: 10px; color: #cbd5e1; opacity: 0.9;">&bull; Checking status...</span>
                     </div>
                 </div>
             </div>
@@ -240,22 +240,32 @@
                 data.conversations.forEach(c => {
                     const avatar = c.partner_avatar || '{{ asset("image/MP_Profile.png") }}';
                     const initials = (c.partner_name.split(' ').map(w => w[0]).join('').substring(0, 2) || 'U').toUpperCase();
+                    const isOnline = !!c.is_online;
+                    const dotColor = isOnline ? '#10b981' : '#94a3b8';
+                    const dotShadow = isOnline ? 'box-shadow: 0 0 5px #10b981;' : '';
+                    const statusText = isOnline ? '<span style="color:#10b981; font-weight:600;">Active</span>' : `<span style="color:#94a3b8;">${c.last_seen_display || 'Offline'}</span>`;
                     html += `
                         <div onclick="openChatModal('${c.partner_username}', '${escapeJs(c.partner_name)}', '${escapeJs(c.partner_role || c.partner_skills || 'User')}', '${escapeJs(c.partner_phone || '')}'); toggleContactsFlyout();"
                              style="display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; cursor: pointer; transition: background 0.2s;"
                              onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">
-                            <img src="${avatar}" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 1.5px solid #3b82f6;"
-                                 onerror="this.src='{{ asset('image/MP_Profile.png') }}'">
+                            <div style="position: relative; flex-shrink: 0;">
+                                <img src="${avatar}" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 1.5px solid #3b82f6;"
+                                     onerror="this.src='{{ asset('image/MP_Profile.png') }}'">
+                                <span style="position: absolute; bottom: 0; right: 0; width: 9px; height: 9px; border-radius: 50%; background: ${dotColor}; border: 1.5px solid white; ${dotShadow}" title="${isOnline ? 'Online / Active' : (c.last_seen_display || 'Offline')}"></span>
+                            </div>
                             <div style="flex: 1; min-width: 0;">
                                 <div style="display: flex; justify-content: space-between; align-items: baseline;">
                                     <strong style="font-size: 13px; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${c.partner_name}</strong>
                                     <span style="font-size: 10px; color: #64748b; margin-left: 4px;">${c.last_time || ''}</span>
                                 </div>
-                                <div style="font-size: 11.5px; color: #475569; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                    ${c.last_message || 'Start conversation...'}
+                                <div style="display: flex; justify-content: space-between; align-items: center; gap: 4px;">
+                                    <span style="font-size: 11.5px; color: #475569; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1;">
+                                        ${c.last_message || 'Start conversation...'}
+                                    </span>
+                                    <span style="font-size: 9.5px; flex-shrink: 0;">${statusText}</span>
                                 </div>
                             </div>
-                            ${c.unread_count > 0 ? `<span style="background: #ef4444; color: white; font-size: 10px; font-weight: bold; padding: 1px 6px; border-radius: 10px;">${c.unread_count}</span>` : ''}
+                            ${c.unread_count > 0 ? `<span style="background: #ef4444; color: white; font-size: 10px; font-weight: bold; padding: 1px 6px; border-radius: 10px; flex-shrink: 0;">${c.unread_count}</span>` : ''}
                         </div>
                     `;
                 });
@@ -456,30 +466,49 @@
         .then(data => {
             if (loading) loading.style.display = 'none';
 
-            if (data && data.success && Array.isArray(data.messages)) {
-                if (data.receiver && data.receiver.phone_number && !currentPartnerPhone) {
-                    currentPartnerPhone = data.receiver.phone_number;
-                    const callBtn = document.getElementById('chatCallBtn');
-                    if (callBtn) {
-                        callBtn.href = 'tel:' + currentPartnerPhone.replace(/[^0-9+]/g, '');
-                        callBtn.style.display = 'inline-flex';
+            if (data && data.success) {
+                if (data.receiver) {
+                    if (data.receiver.phone_number && !currentPartnerPhone) {
+                        currentPartnerPhone = data.receiver.phone_number;
+                        const callBtn = document.getElementById('chatCallBtn');
+                        if (callBtn) {
+                            callBtn.href = 'tel:' + currentPartnerPhone.replace(/[^0-9+]/g, '');
+                            callBtn.style.display = 'inline-flex';
+                        }
+                    }
+
+                    const isOnline = !!data.receiver.is_online;
+                    const dot = document.getElementById('chatPartnerStatusDot');
+                    const txt = document.getElementById('chatPartnerStatusText');
+                    if (dot) {
+                        dot.style.background = isOnline ? '#10b981' : '#94a3b8';
+                        dot.style.boxShadow = isOnline ? '0 0 6px #10b981' : 'none';
+                        dot.title = isOnline ? 'Online / Active' : (data.receiver.last_seen_display || 'Offline');
+                    }
+                    if (txt) {
+                        txt.style.color = isOnline ? '#86efac' : '#cbd5e1';
+                        txt.innerHTML = isOnline 
+                            ? '&bull; Active' 
+                            : `&bull; ${data.receiver.last_seen_display || 'Offline'}`;
                     }
                 }
 
-                if (data.messages.length !== lastMessageCount) {
-                    const hasNewIncoming = data.messages.length > lastMessageCount && data.messages.slice(lastMessageCount).some(m => !m.is_me);
-                    if (hasNewIncoming) {
-                        playAudioChime();
-                    }
+                if (Array.isArray(data.messages)) {
+                    if (data.messages.length !== lastMessageCount) {
+                        const hasNewIncoming = data.messages.length > lastMessageCount && data.messages.slice(lastMessageCount).some(m => !m.is_me);
+                        if (hasNewIncoming) {
+                            playAudioChime();
+                        }
 
-                    renderAllMessages(data.messages);
-                    lastMessageCount = data.messages.length;
-                    scrollToLatestMessage();
+                        renderAllMessages(data.messages);
+                        lastMessageCount = data.messages.length;
+                        scrollToLatestMessage();
 
-                    // If minimized, show unread dot
-                    const win = document.getElementById('chatWindow');
-                    if (win && win.style.display === 'none') {
-                        document.getElementById('chatUnreadDot').style.display = 'block';
+                        // If minimized, show unread dot
+                        const win = document.getElementById('chatWindow');
+                        if (win && win.style.display === 'none') {
+                            document.getElementById('chatUnreadDot').style.display = 'block';
+                        }
                     }
                 }
             }

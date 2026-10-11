@@ -334,8 +334,12 @@
             color: #ffffff; text-decoration: none; font-size: 13px; font-weight: 500;
             border-radius: 8px; transition: all 0.2s ease;
         }
-        .sidebar-menu a:hover { background-color: rgba(255,255,255,0.15); }
-        .sidebar-menu a.active { background-color: #ffffff; color: #0033a0; font-weight: bold; }
+        .sidebar-menu a:hover, .sidebar-menu a.active {
+            background: rgba(255, 255, 255, 0.22);
+            color: #ffffff !important;
+            font-weight: bold;
+            border-left: 4px solid #60a5fa;
+        }
         .sidebar-footer { padding: 12px 16px; border-top: 1px solid rgba(255,255,255,0.2); }
         .sidebar-footer .logout-btn {
             display: flex; align-items: center; gap: 10px; color: lightcoral;
@@ -414,8 +418,11 @@
                                    data-name="{{ strtolower($c->partner_name) }}"
                                    data-username="{{ strtolower($c->partner_username) }}"
                                    data-msg="{{ strtolower($c->last_message) }}">
-                                    <img src="{{ $c->partner_avatar }}" alt="{{ $c->partner_name }}" class="convo-avatar"
-                                         onerror="this.src='{{ asset('image/MP_Profile.png') }}'">
+                                    <div style="position: relative; flex-shrink: 0;">
+                                        <img src="{{ $c->partner_avatar }}" alt="{{ $c->partner_name }}" class="convo-avatar"
+                                             onerror="this.src='{{ asset('image/MP_Profile.png') }}'">
+                                        <span style="position: absolute; bottom: 0; right: 0; width: 11px; height: 11px; border-radius: 50%; background: {{ $c->is_online ? '#10b981' : '#94a3b8' }}; border: 2px solid #0a1e46; {{ $c->is_online ? 'box-shadow: 0 0 6px #10b981;' : '' }}" title="{{ $c->is_online ? 'Online / Active' : $c->last_seen_display }}"></span>
+                                    </div>
                                     <div class="convo-info">
                                         <div class="convo-top">
                                             <span class="convo-name">{{ $c->partner_name }}</span>
@@ -429,8 +436,11 @@
                                                 <span class="convo-badge">{{ $c->unread_count }}</span>
                                             @endif
                                         </div>
-                                        <div style="font-size: 10px; color: #93c5fd; margin-top: 2px;">
-                                            <i class="fa-solid fa-location-dot"></i> Brgy. {{ $c->partner_barangay }}
+                                        <div style="font-size: 10px; color: #93c5fd; margin-top: 2px; display: flex; align-items: center; justify-content: space-between;">
+                                            <span><i class="fa-solid fa-location-dot"></i> Brgy. {{ $c->partner_barangay }}</span>
+                                            <span style="color: {{ $c->is_online ? '#86efac' : '#94a3b8' }}; font-weight: 500;">
+                                                &bull; {{ $c->is_online ? 'Active' : 'Offline' }}
+                                            </span>
                                         </div>
                                     </div>
                                 </a>
@@ -451,8 +461,11 @@
                         <!-- Active Header -->
                         <div class="chat-main-header">
                             <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
-                                <img src="{{ $activePartner->avatar }}" alt="{{ $activePartner->full_name }}" class="convo-avatar"
-                                     onerror="this.src='{{ asset('image/MP_Profile.png') }}'">
+                                <div style="position: relative; flex-shrink: 0;">
+                                    <img src="{{ $activePartner->avatar }}" alt="{{ $activePartner->full_name }}" class="convo-avatar"
+                                         onerror="this.src='{{ asset('image/MP_Profile.png') }}'">
+                                    <span id="activePartnerDot" style="position: absolute; bottom: 0; right: 0; width: 11px; height: 11px; border-radius: 50%; background: {{ $activePartner->is_online ? '#10b981' : '#94a3b8' }}; border: 2px solid #0a1e46; {{ $activePartner->is_online ? 'box-shadow: 0 0 6px #10b981;' : '' }}" title="{{ $activePartner->is_online ? 'Online / Active' : $activePartner->last_seen_display }}"></span>
+                                </div>
                                 <div style="min-width: 0;">
                                     <h4 style="color: white; font-size: 15px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                                         {{ $activePartner->full_name }}
@@ -473,9 +486,15 @@
                                         <i class="fa-solid fa-phone"></i> {{ $activePartner->phone }}
                                     </a>
                                 @endif
-                                <span style="font-size: 11px; color: #86efac; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; padding: 4px 10px; border-radius: 12px;">
-                                    &bull; Online / Active
-                                </span>
+                                @if($activePartner->is_online)
+                                    <span id="activePartnerStatusPill" style="font-size: 11px; color: #86efac; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; padding: 4px 10px; border-radius: 12px; display: inline-flex; align-items: center; gap: 6px;">
+                                        <span style="width: 7px; height: 7px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px #10b981;"></span> Online / Active
+                                    </span>
+                                @else
+                                    <span id="activePartnerStatusPill" style="font-size: 11px; color: #cbd5e1; background: rgba(148, 163, 184, 0.2); border: 1px solid #94a3b8; padding: 4px 10px; border-radius: 12px; display: inline-flex; align-items: center; gap: 6px;">
+                                        <span style="width: 7px; height: 7px; border-radius: 50%; background: #94a3b8;"></span> {{ $activePartner->last_seen_display ?? 'Offline' }}
+                                    </span>
+                                @endif
                             </div>
                         </div>
 
@@ -720,8 +739,28 @@
         })
         .then(res => res.json())
         .then(data => {
-            if (data && data.success && Array.isArray(data.messages)) {
-                if (data.messages.length > lastLoadedMessageCount) {
+            if (data && data.success) {
+                // Update active presence dynamically
+                if (data.receiver) {
+                    const isOnline = !!data.receiver.is_online;
+                    const pill = document.getElementById('activePartnerStatusPill');
+                    const dot = document.getElementById('activePartnerDot');
+                    if (dot) {
+                        dot.style.background = isOnline ? '#10b981' : '#94a3b8';
+                        dot.style.boxShadow = isOnline ? '0 0 6px #10b981' : 'none';
+                        dot.title = isOnline ? 'Online / Active' : (data.receiver.last_seen_display || 'Offline');
+                    }
+                    if (pill) {
+                        pill.style.color = isOnline ? '#86efac' : '#cbd5e1';
+                        pill.style.background = isOnline ? 'rgba(16, 185, 129, 0.2)' : 'rgba(148, 163, 184, 0.2)';
+                        pill.style.borderColor = isOnline ? '#10b981' : '#94a3b8';
+                        pill.innerHTML = isOnline 
+                            ? '<span style="width: 7px; height: 7px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px #10b981;"></span> Online / Active'
+                            : `<span style="width: 7px; height: 7px; border-radius: 50%; background: #94a3b8;"></span> ${data.receiver.last_seen_display || 'Offline'}`;
+                    }
+                }
+
+                if (Array.isArray(data.messages) && data.messages.length > lastLoadedMessageCount) {
                     const diff = data.messages.length - lastLoadedMessageCount;
                     const newIncoming = data.messages.slice(-diff).some(m => !m.is_me);
 

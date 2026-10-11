@@ -121,7 +121,7 @@ class User extends Authenticatable
         if (!$this->last_seen_at) {
             return false;
         }
-        return $this->last_seen_at->gt(now()->subMinutes(5));
+        return $this->last_seen_at->gt(now()->subMinutes(3));
     }
 
     public function getStatusLabelAttribute(): string
@@ -132,12 +132,12 @@ class User extends Authenticatable
     public function getLastSeenDisplayAttribute(): string
     {
         if ($this->is_online) {
-            return 'Active now';
+            return 'Active';
         }
         if (!$this->last_seen_at) {
-            return 'Never';
+            return 'Offline';
         }
-        return $this->last_seen_at->diffForHumans();
+        return 'Active ' . $this->last_seen_at->diffForHumans();
     }
 
     public function getCreatedAtDisplayAttribute(): string

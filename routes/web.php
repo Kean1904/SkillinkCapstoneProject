@@ -148,6 +148,7 @@ Route::middleware(['checkrole:residential'])->group(function () {
     Route::get('/dashboard/Residential', [HouseholdClientController::class, 'index'])->name('dashboard.Residential');
 
     Route::get('/household-client/hiring-history', [HouseholdClientController::class, 'hiringHistory'])->name('household_client.hiring_history');
+    Route::get('/household-client/messages', [HouseholdClientController::class, 'messages'])->name('household_client.messages');
     Route::get('/household-client/declined-bookings', [HouseholdClientController::class, 'declinedBookings'])->name('household_client.declined_bookings');
     Route::post('/household-client/review/submit', [HouseholdClientController::class, 'submitReview'])->name('household_client.review.submit');
     Route::post('/household-client/complaint/submit', [HouseholdClientController::class, 'submitComplaint'])->name('household_client.complaint.submit');
@@ -166,6 +167,7 @@ Route::middleware(['checkrole:residential'])->group(function () {
 
     // Backward compatibility aliases
     Route::get('/residential/hiring-history', [HouseholdClientController::class, 'hiringHistory'])->name('residential.hiring_history');
+    Route::get('/residential/messages', [HouseholdClientController::class, 'messages'])->name('residential.messages');
     Route::post('/residential/application/{id}/respond', [HouseholdClientController::class, 'respondApplication'])->name('residential.application.respond');
     Route::post('/residential/review/submit', [HouseholdClientController::class, 'submitReview'])->name('residential.review.submit');
     Route::post('/residential/complaint/submit', [HouseholdClientController::class, 'submitComplaint'])->name('residential.complaint.submit');

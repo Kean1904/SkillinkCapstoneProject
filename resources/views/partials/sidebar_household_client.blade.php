@@ -8,6 +8,7 @@
     <ul class="sidebar-menu">
         <li><a href="{{ route('dashboard.HouseholdClient') }}" class="{{ ($active ?? '') === 'dashboard' ? 'active' : '' }}"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
         <li><a href="{{ route('household_client.hiring_history') }}" class="{{ ($active ?? '') === 'hiring_history' ? 'active' : '' }}"><i class="fa-solid fa-clock-rotate-left"></i> Hiring History</a></li>
+        <li><a href="{{ route('household_client.messages') }}" class="{{ ($active ?? '') === 'messages' ? 'active' : '' }}" style="display: flex; align-items: center; justify-content: space-between;"><span style="display: flex; align-items: center; gap: 12px; color: inherit;"><i class="fa-solid fa-comments"></i> Messages</span><span class="sidebar-chat-unread-badge" style="display: none; background: #ef4444; color: white; border-radius: 10px; font-size: 10px; font-weight: bold; padding: 2px 7px;">0</span></a></li>
         <li><a href="{{ route('household_client.declined_bookings') }}" class="{{ ($active ?? '') === 'declined_bookings' ? 'active' : '' }}"><i class="fa-solid fa-calendar-xmark"></i> Declined Bookings</a></li>
         <li><a href="{{ route('household_client.saved_workers') }}" class="{{ ($active ?? '') === 'saved_workers' ? 'active' : '' }}"><i class="fa-solid fa-bookmark"></i> Saved Workers</a></li>
         <li><a href="{{ route('household_client.job_posts') }}" class="{{ ($active ?? '') === 'job_posts' ? 'active' : '' }}"><i class="fa-solid fa-briefcase"></i> My Job Posts</a></li>

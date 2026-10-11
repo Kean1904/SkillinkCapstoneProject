@@ -835,4 +835,121 @@ class HouseholdClientController extends Controller
 
         return view('household_client.declined_bookings', compact('user', 'declinedBookings'));
     }
+
+    public function messages(Request $request)
+    {
+        $user = $this->getCurrentUser();
+        if ($user && $user->user_id) {
+            User::where('user_id', $user->user_id)->update(['last_seen_at' => now()]);
+        }
+
+        $selectedPartner = trim($request->input('partner', ''));
+
+        // Retrieve partners who exchanged messages with this client
+        $sentPartners = \App\Models\ChatMessage::where('sender_username', $user->name)->pluck('receiver_username');
+        $receivedPartners = \App\Models\ChatMessage::where('receiver_username', $user->name)->pluck('sender_username');
+
+        // Also include workers from active / past bookings so client can easily message them
+        $bookingWorkers = Booking::where(function($q) use ($user) {
+                $q->where('client_username', $user->name)
+                  ->orWhere('client_id', $user->user_id)
+                  ->orWhereRaw('LOWER(client_username) = ?', [strtolower($user->name)]);
+            })
+            ->pluck('worker_username');
+
+        // Include workers from saved workers
+        $savedWorkerIds = DB::table('saved_workers')->where('user_id', $user->user_id)->pluck('worker_id');
+        $savedWorkerUsernames = User::whereIn('user_id', $savedWorkerIds)->pluck('name');
+
+        $allPartners = $sentPartners->merge($receivedPartners)->merge($bookingWorkers)->merge($savedWorkerUsernames)->unique()->filter()->values();
+
+        $conversations = [];
+        foreach ($allPartners as $partner) {
+            $lastMsg = \App\Models\ChatMessage::where(function ($q) use ($user, $partner) {
+                    $q->where('sender_username', $user->name)->where('receiver_username', $partner);
+                })
+                ->orWhere(function ($q) use ($user, $partner) {
+                    $q->where('sender_username', $partner)->where('receiver_username', $user->name);
+                })
+                ->latest('created_at')
+                ->first();
+
+            $unreadCount = \App\Models\ChatMessage::where('sender_username', $partner)
+                ->where('receiver_username', $user->name)
+                ->where('is_read', false)
+                ->count();
+
+            $partnerUser = User::where('name', $partner)->first();
+            $lastTime = $lastMsg && $lastMsg->created_at ? (clone $lastMsg->created_at)->setTimezone('Asia/Manila')->format('h:i A') : '';
+            $lastDate = $lastMsg && $lastMsg->created_at ? (clone $lastMsg->created_at)->setTimezone('Asia/Manila')->format('M d, Y') : '';
+
+            $conversations[] = (object)[
+                'partner_username' => $partner,
+                'partner_name' => $partnerUser ? $partnerUser->full_name : $partner,
+                'partner_role' => $partnerUser ? ($partnerUser->role ?? 'Skilled Worker') : 'Skilled Worker',
+                'partner_barangay' => $partnerUser ? ($partnerUser->barangay ?? 'Magalang') : 'Magalang',
+                'partner_skills' => $partnerUser ? ($partnerUser->skills ?? 'General Handyman') : 'General Handyman',
+                'partner_phone' => $partnerUser ? ($partnerUser->contact_number ?? $partnerUser->phone_number ?? '') : '',
+                'partner_avatar' => $partnerUser && $partnerUser->profile_image_uri ? asset($partnerUser->profile_image_uri) : asset('image/MP_Profile.png'),
+                'is_online' => $partnerUser ? $partnerUser->is_online : false,
+                'status_label' => $partnerUser ? $partnerUser->status_label : 'Offline',
+                'last_seen_display' => $partnerUser ? $partnerUser->last_seen_display : 'Offline',
+                'last_message' => $lastMsg ? $lastMsg->message_text : 'No messages yet. Tap to start conversation.',
+                'last_time' => $lastTime,
+                'last_date' => $lastDate,
+                'unread_count' => $unreadCount,
+                'has_messages' => (bool)$lastMsg,
+                'latest_timestamp' => $lastMsg ? $lastMsg->created_at : null,
+            ];
+        }
+
+        // Sort conversations: unread first, then latest timestamp
+        usort($conversations, function($a, $b) {
+            if ($a->unread_count > 0 && $b->unread_count == 0) return -1;
+            if ($b->unread_count > 0 && $a->unread_count == 0) return 1;
+            if ($a->latest_timestamp && $b->latest_timestamp) {
+                return $b->latest_timestamp <=> $a->latest_timestamp;
+            }
+            return $a->latest_timestamp ? -1 : 1;
+        });
+
+        if (empty($selectedPartner) && count($conversations) > 0) {
+            $selectedPartner = $conversations[0]->partner_username;
+        }
+
+        $activePartner = null;
+        $messages = collect();
+        if (!empty($selectedPartner)) {
+            $activePartnerUser = User::where('name', $selectedPartner)->first();
+            $activePartner = (object)[
+                'username' => $selectedPartner,
+                'full_name' => $activePartnerUser ? $activePartnerUser->full_name : $selectedPartner,
+                'role' => $activePartnerUser ? ($activePartnerUser->role ?? 'Skilled Worker') : 'Skilled Worker',
+                'barangay' => $activePartnerUser ? ($activePartnerUser->barangay ?? 'Magalang') : 'Magalang',
+                'skills' => $activePartnerUser ? ($activePartnerUser->skills ?? 'General Handyman') : 'General Handyman',
+                'phone' => $activePartnerUser ? ($activePartnerUser->contact_number ?? $activePartnerUser->phone_number ?? '') : '',
+                'avatar' => $activePartnerUser && $activePartnerUser->profile_image_uri ? asset($activePartnerUser->profile_image_uri) : asset('image/MP_Profile.png'),
+                'is_online' => $activePartnerUser ? $activePartnerUser->is_online : false,
+                'status_label' => $activePartnerUser ? $activePartnerUser->status_label : 'Offline',
+                'last_seen_display' => $activePartnerUser ? $activePartnerUser->last_seen_display : 'Offline',
+            ];
+
+            // Mark incoming messages as read
+            \App\Models\ChatMessage::where('sender_username', $selectedPartner)
+                ->where('receiver_username', $user->name)
+                ->where('is_read', false)
+                ->update(['is_read' => true]);
+
+            $messages = \App\Models\ChatMessage::where(function ($q) use ($user, $selectedPartner) {
+                    $q->where('sender_username', $user->name)->where('receiver_username', $selectedPartner);
+                })
+                ->orWhere(function ($q) use ($user, $selectedPartner) {
+                    $q->where('sender_username', $selectedPartner)->where('receiver_username', $user->name);
+                })
+                ->orderBy('created_at', 'asc')
+                ->get();
+        }
+
+        return view('household_client.messages', compact('user', 'conversations', 'selectedPartner', 'activePartner', 'messages'));
+    }
 }

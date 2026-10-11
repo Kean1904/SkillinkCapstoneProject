@@ -488,6 +488,9 @@ class SkilledWorkerWebController extends Controller
     public function messages(Request $request)
     {
         $worker = $this->getCurrentWorker();
+        if ($worker && $worker->user_id) {
+            User::where('user_id', $worker->user_id)->update(['last_seen_at' => now()]);
+        }
         $selectedPartner = trim($request->input('partner', ''));
 
         // Retrieve partners who exchanged messages with this worker
@@ -532,6 +535,9 @@ class SkilledWorkerWebController extends Controller
                 'partner_barangay' => $partnerUser ? ($partnerUser->barangay ?? 'Magalang') : 'Magalang',
                 'partner_phone' => $partnerUser ? ($partnerUser->contact_number ?? $partnerUser->phone_number ?? '') : '',
                 'partner_avatar' => $partnerUser && $partnerUser->profile_image_uri ? asset($partnerUser->profile_image_uri) : asset('image/MP_Profile.png'),
+                'is_online' => $partnerUser ? $partnerUser->is_online : false,
+                'status_label' => $partnerUser ? $partnerUser->status_label : 'Offline',
+                'last_seen_display' => $partnerUser ? $partnerUser->last_seen_display : 'Offline',
                 'last_message' => $lastMsg ? $lastMsg->message_text : 'No messages yet. Tap to start conversation.',
                 'last_time' => $lastTime,
                 'last_date' => $lastDate,
@@ -566,6 +572,9 @@ class SkilledWorkerWebController extends Controller
                 'barangay' => $activePartnerUser ? ($activePartnerUser->barangay ?? 'Magalang') : 'Magalang',
                 'phone' => $activePartnerUser ? ($activePartnerUser->contact_number ?? $activePartnerUser->phone_number ?? '') : '',
                 'avatar' => $activePartnerUser && $activePartnerUser->profile_image_uri ? asset($activePartnerUser->profile_image_uri) : asset('image/MP_Profile.png'),
+                'is_online' => $activePartnerUser ? $activePartnerUser->is_online : false,
+                'status_label' => $activePartnerUser ? $activePartnerUser->status_label : 'Offline',
+                'last_seen_display' => $activePartnerUser ? $activePartnerUser->last_seen_display : 'Offline',
             ];
 
             // Mark incoming messages as read
