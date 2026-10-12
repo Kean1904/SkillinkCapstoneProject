@@ -63,13 +63,15 @@ class AuthApiController extends Controller
         $username = trim($validated['username']);
 
         // Guard: Admin at PESO Staff roles cannot be registered through public registration
-        if (!in_array($role, ['skilled worker', 'household client'])) {
+        if (!in_array($role, ['skilled worker', 'household client', 'residential'])) {
             return response()->json([
                 'message' => 'Ang pagpaparehistro ay para lamang sa Skilled Worker at HouseHold Client. Ang Admin at PESO Staff accounts ay pinamamahalaan ng pamunuan.'
             ], 422);
         }
 
-        $isSkilled = ($role === 'skilled worker');
+        // Standardized role storage in database: 'skilled worker' or 'residential'
+        $dbRole = ($role === 'skilled worker') ? 'skilled worker' : 'residential';
+        $isSkilled = ($dbRole === 'skilled worker');
 
         $middleName = $request->input('middle_name') ?? $request->input('middleName');
         $suffix = $request->input('suffix');
@@ -82,7 +84,7 @@ class AuthApiController extends Controller
             'name'              => $username,
             'email'             => $validated['email'],
             'password_hash'     => Hash::make($validated['password']),
-            'role'              => $role,
+            'role'              => $dbRole,
             'age'               => $validated['age'],
             'date_of_birth'     => $dob,
             'gender'            => $validated['gender'],
