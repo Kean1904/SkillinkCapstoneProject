@@ -620,11 +620,6 @@
                                      style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; margin-bottom: 10px; border-left: 4px solid #10b981; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
                                     <div>
                                         <strong style="font-size: 14px; color: white;">{{ $worker->full_name }}</strong>
-                                        @if(!empty($worker->badge_label))
-                                            <span style="font-size: 11px; color: #93c5fd; font-weight: bold; margin-left: 8px; background: rgba(37, 99, 235, 0.25); border: 1px solid #60a5fa; padding: 2px 7px; border-radius: 4px;">
-                                                <i class="fa-solid fa-chart-line"></i> {{ $worker->badge_label }}
-                                            </span>
-                                        @endif
                                         <span style="font-size: 11.5px; color: #86efac; font-weight: bold; margin-left: 6px; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; padding: 2px 7px; border-radius: 4px;">
                                             <i class="fa-solid fa-money-bill-wave"></i> {{ $worker->service_rate_display }} Fixed
                                         </span>
@@ -633,22 +628,22 @@
                                         </p>
                                         <span style="font-size: 11px; opacity: 0.75;"><i class="fa-solid fa-location-dot"></i> {{ $worker->barangay }}</span>
                                     </div>
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <button type="button" onclick="openChatModal('{{ $worker->name }}', '{{ addslashes($worker->full_name) }}', '{{ addslashes($worker->skills ?? 'General Handyman') }}', '{{ $worker->contact_number ?? $worker->phone_number ?? '' }}')" style="background: #0284c7; border: 1px solid #38bdf8; color: white; border-radius: 6px; padding: 6px 12px; cursor: pointer; font-size: 12px; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 6px rgba(0,0,0,0.25);" title="Send inquiry or clarify details before booking">
+                                    <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                                        <button type="button" onclick="openChatModal('{{ $worker->name }}', '{{ addslashes($worker->full_name) }}', '{{ addslashes($worker->skills ?? 'General Handyman') }}', '{{ $worker->contact_number ?? $worker->phone_number ?? '' }}')" style="height: 36px; padding: 0 14px; background: #0284c7; border: 1px solid #38bdf8; color: white; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-sizing: border-box; box-shadow: 0 2px 6px rgba(0,0,0,0.25);" title="Send inquiry or clarify details before booking">
                                             <i class="fa-solid fa-comments"></i> Message
                                         </button>
-                                        <button type="button" onclick="openBookModal('{{ $worker->name }}', '{{ $worker->full_name }}', '{{ $worker->skills }}', '{{ $worker->service_rate_display }}')" style="background: #0033a0; border: 1px solid #60a5fa; color: white; border-radius: 6px; padding: 6px 14px; cursor: pointer; font-size: 12px; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 6px rgba(0,0,0,0.25);">
+                                        <button type="button" onclick="openBookModal('{{ $worker->name }}', '{{ $worker->full_name }}', '{{ $worker->skills }}', '{{ $worker->service_rate_display }}')" style="height: 36px; padding: 0 14px; background: #0033a0; border: 1px solid #60a5fa; color: white; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-sizing: border-box; box-shadow: 0 2px 6px rgba(0,0,0,0.25);">
                                             <i class="fa-solid fa-calendar-check"></i> Book Now
                                         </button>
-                                        <form method="POST" action="{{ route('household_client.worker.toggle_save', $worker->user_id) }}" style="display: inline;">
+                                        <form method="POST" action="{{ route('household_client.worker.toggle_save', $worker->user_id) }}" style="display: inline-flex; margin: 0; padding: 0; align-items: center;">
                                             @csrf
                                             @php $isSaved = isset($savedWorkerIds) && in_array($worker->user_id, $savedWorkerIds); @endphp
-                                            <button type="submit" title="{{ $isSaved ? 'Remove from Saved Bookmarks' : 'Save / Bookmark Worker' }}" style="background: {{ $isSaved ? 'rgba(234, 179, 8, 0.25)' : 'rgba(255,255,255,0.15)' }}; border: 1px solid {{ $isSaved ? '#eab308' : 'rgba(255,255,255,0.4)' }}; color: {{ $isSaved ? '#facc15' : 'white' }}; border-radius: 6px; padding: 6px 10px; cursor: pointer; font-size: 12px;">
+                                            <button type="submit" title="{{ $isSaved ? 'Remove from Saved Bookmarks' : 'Save / Bookmark Worker' }}" style="height: 36px; width: 36px; padding: 0; background: {{ $isSaved ? 'rgba(234, 179, 8, 0.25)' : 'rgba(255,255,255,0.15)' }}; border: 1px solid {{ $isSaved ? '#eab308' : 'rgba(255,255,255,0.4)' }}; color: {{ $isSaved ? '#facc15' : 'white' }}; border-radius: 6px; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;">
                                                 <i class="{{ $isSaved ? 'fa-solid fa-bookmark' : 'fa-regular fa-bookmark' }}"></i>
                                             </button>
                                         </form>
-                                        <div style="text-align: right;">
-                                            <span style="background: #10b981; color: white; font-size: 11px; font-weight: bold; padding: 3px 8px; border-radius: 10px;">★ {{ number_format($worker->rating ?? 5.0, 1) }}</span>
+                                        <div style="text-align: right; min-width: 80px; margin-left: 4px;">
+                                            <span style="background: #10b981; color: white; font-size: 11px; font-weight: bold; padding: 3px 8px; border-radius: 10px; display: inline-block;">★ {{ number_format($worker->rating ?? 5.0, 1) }}</span>
                                             <p style="font-size: 10px; color: #a7f3d0; margin-top: 4px;">{{ $worker->is_verified ? 'Verified PESO' : 'Pending Verification' }}</p>
                                         </div>
                                     </div>

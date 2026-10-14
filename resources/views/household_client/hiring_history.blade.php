@@ -450,14 +450,14 @@
     <div id="reviewModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 3000; align-items: center; justify-content: center;">
         <div style="background: #1e3a8a; border: 1px solid rgba(255,255,255,0.3); border-radius: 12px; padding: 25px; width: 90%; max-width: 450px; color: white;">
             <h3 style="margin-bottom: 15px;"><i class="fa-solid fa-star" style="color: #eab308;"></i> Rate Worker Service</h3>
-            <form method="POST" action="{{ route('household_client.review.submit') }}">
+            <form id="householdReviewForm" method="POST" action="{{ route('household_client.review.submit') }}">
                 @csrf
                 <input type="hidden" name="bookingId" id="revBookingId">
                 <input type="hidden" name="workerUsername" id="revWorkerUsername">
                 <div style="margin-bottom: 15px;">
                     <label style="display: block; font-size: 13px; margin-bottom: 6px;">Rating Score (1 to 5 Stars)</label>
-                    <select name="ratingStars" style="width: 100%; padding: 10px; border-radius: 6px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.4);" required>
-                        <option value="5" style="color: black;">★★★★★ (5 Stars - Excellent)</option>
+                    <select name="ratingStars" id="revRatingStars" style="width: 100%; padding: 10px; border-radius: 6px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.4);" required>
+                        <option value="5" style="color: black;" selected>★★★★★ (5 Stars - Excellent)</option>
                         <option value="4" style="color: black;">★★★★☆ (4 Stars - Very Good)</option>
                         <option value="3" style="color: black;">★★★☆☆ (3 Stars - Satisfactory)</option>
                         <option value="2" style="color: black;">★★☆☆☆ (2 Stars - Needs Improvement)</option>
@@ -466,13 +466,34 @@
                 </div>
                 <div style="margin-bottom: 15px;">
                     <label style="display: block; font-size: 13px; margin-bottom: 6px;">Feedback Comments</label>
-                    <textarea name="reviewText" rows="3" style="width: 100%; padding: 10px; border-radius: 6px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.4);" placeholder="Ibahagi ang iyong komento sa kalidad ng serbisyo..."></textarea>
+                    <textarea name="reviewText" id="revReviewText" rows="3" style="width: 100%; padding: 10px; border-radius: 6px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.4);" placeholder="Ibahagi ang iyong komento sa kalidad ng serbisyo..."></textarea>
                 </div>
                 <div style="display: flex; justify-content: flex-end; gap: 10px;">
                     <button type="button" class="btn" style="background: rgba(255,255,255,0.2); color: white;" onclick="closeModals()">Cancel</button>
-                    <button type="submit" class="btn btn-warning"><i class="fa-solid fa-paper-plane"></i> Submit Review</button>
+                    <button type="button" class="btn btn-warning" onclick="triggerReviewConfirmation()"><i class="fa-solid fa-paper-plane"></i> Submit Rating</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- CONFIRM RATING & REVIEW MODAL -->
+    <div id="reviewConfirmModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 4000; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+        <div style="background: #0f172a; border: 2px solid #eab308; border-radius: 14px; padding: 25px; width: 90%; max-width: 440px; color: white; text-align: center; box-shadow: 0 15px 40px rgba(0,0,0,0.8);">
+            <div style="width: 52px; height: 52px; background: rgba(234, 179, 8, 0.2); border: 2px solid #facc15; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto;">
+                <i class="fa-solid fa-star" style="font-size: 24px; color: #facc15;"></i>
+            </div>
+            <h4 style="font-size: 17px; margin-bottom: 12px; color: #f8fafc; font-weight: 700;">Confirm Rating & Review</h4>
+            <p style="font-size: 13.5px; line-height: 1.5; color: #e2e8f0; margin-bottom: 22px;">
+                Are you sure you want to submit this rating and review?
+            </p>
+            <div style="display: flex; justify-content: center; gap: 12px;">
+                <button type="button" onclick="closeReviewConfirmation()" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 10px 22px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; transition: background 0.2s;">
+                    Cancel
+                </button>
+                <button type="button" id="confirmReviewSubmitBtn" onclick="proceedReviewSubmit()" style="background: #eab308; border: 1px solid #facc15; color: #1e293b; padding: 10px 24px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(234,179,8,0.35);">
+                    Confirm & Submit
+                </button>
+            </div>
         </div>
     </div>
 
@@ -549,22 +570,22 @@
         </div>
     </div>
 
-    <!-- EVIDENCE CONFIRMATION MODAL -->
+    <!-- COMPLAINT CONFIRMATION MODAL -->
     <div id="evidenceConfirmModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 4000; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
-        <div style="background: #0f172a; border: 2px solid #3b82f6; border-radius: 14px; padding: 25px; width: 90%; max-width: 460px; color: white; text-align: center; box-shadow: 0 15px 40px rgba(0,0,0,0.8);">
-            <div style="width: 52px; height: 52px; background: rgba(59, 130, 246, 0.2); border: 2px solid #60a5fa; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto;">
-                <i class="fa-solid fa-cloud-arrow-up" style="font-size: 24px; color: #60a5fa;"></i>
+        <div style="background: #0f172a; border: 2px solid #ef4444; border-radius: 14px; padding: 25px; width: 90%; max-width: 460px; color: white; text-align: center; box-shadow: 0 15px 40px rgba(0,0,0,0.8);">
+            <div style="width: 52px; height: 52px; background: rgba(239, 68, 68, 0.2); border: 2px solid #f87171; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px auto;">
+                <i class="fa-solid fa-triangle-exclamation" style="font-size: 24px; color: #f87171;"></i>
             </div>
-            <h4 style="font-size: 16px; margin-bottom: 12px; color: #f8fafc; font-weight: 700;">Confirmation</h4>
+            <h4 style="font-size: 16px; margin-bottom: 12px; color: #f8fafc; font-weight: 700;">Confirm Complaint Submission</h4>
             <p style="font-size: 13.5px; line-height: 1.5; color: #e2e8f0; margin-bottom: 22px;">
-                Are you sure you want to submit this image and video as evidence for your complaint?
+                Are you sure you agree to file and submit this official complaint against the worker? You can review or edit your details before proceeding.
             </p>
             <div style="display: flex; justify-content: center; gap: 12px;">
-                <button type="button" onclick="closeEvidenceConfirmation()" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 10px 22px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; transition: background 0.2s;">
-                    I disagree
+                <button type="button" onclick="closeEvidenceConfirmation()" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; transition: background 0.2s;" title="Edit or change complaint details">
+                    Cancel & Edit
                 </button>
-                <button type="button" id="confirmAgreeBtn" onclick="proceedComplaintSubmit()" style="background: #10b981; border: 1px solid #34d399; color: white; padding: 10px 24px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(16,185,129,0.3);">
-                    Yes, I Agree
+                <button type="button" id="confirmAgreeBtn" onclick="proceedComplaintSubmit()" style="background: #dc2626; border: 1px solid #ef4444; color: white; padding: 10px 24px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(220,38,38,0.35);">
+                    Yes, I Agree & Submit
                 </button>
             </div>
         </div>
@@ -591,6 +612,33 @@
             document.getElementById('reviewModal').style.display = 'none';
             document.getElementById('complaintModal').style.display = 'none';
             closeEvidenceConfirmation();
+            closeReviewConfirmation();
+        }
+
+        function triggerReviewConfirmation() {
+            const stars = document.getElementById('revRatingStars');
+            if (!stars || !stars.value) {
+                alert('Please select a star rating (1 to 5 stars) before submitting.');
+                if (stars) stars.focus();
+                return;
+            }
+            document.getElementById('reviewConfirmModal').style.display = 'flex';
+        }
+
+        function closeReviewConfirmation() {
+            document.getElementById('reviewConfirmModal').style.display = 'none';
+        }
+
+        function proceedReviewSubmit() {
+            const btn = document.getElementById('confirmReviewSubmitBtn');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
+            }
+            const form = document.getElementById('householdReviewForm');
+            if (form) {
+                form.submit();
+            }
         }
 
         function toggleClientOtherCategory(val) {
