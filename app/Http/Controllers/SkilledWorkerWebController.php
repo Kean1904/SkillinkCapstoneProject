@@ -339,11 +339,15 @@ class SkilledWorkerWebController extends Controller
 
         $rateValue = trim($validated['estimated_rate'] ?? '');
         if (!empty($rateValue)) {
-            if (!str_starts_with($rateValue, '₱')) {
+            $cleanedNum = preg_replace('/[^0-9.]/', '', $rateValue);
+            if (is_numeric($cleanedNum) && (float)$cleanedNum > 0) {
+                $rateValue = '₱' . number_format((float)$cleanedNum, 2);
+            } elseif (!str_starts_with($rateValue, '₱')) {
                 $rateValue = '₱' . $rateValue;
             }
             $worker->service_rate = $rateValue;
             $worker->save();
+            User::where('user_id', $worker->user_id)->update(['service_rate' => $rateValue]);
         }
 
         $rateInfo = !empty($rateValue) ? " (Service Rate: " . $rateValue . ")" : "";
@@ -380,10 +384,14 @@ class SkilledWorkerWebController extends Controller
         $worker->certificate_proof = $request->input('certificate_proof', $worker->certificate_proof);
         if ($request->filled('service_rate')) {
             $rate = trim($request->input('service_rate'));
-            if (!str_starts_with($rate, '₱')) {
+            $cleanedNum = preg_replace('/[^0-9.]/', '', $rate);
+            if (is_numeric($cleanedNum) && (float)$cleanedNum > 0) {
+                $rate = '₱' . number_format((float)$cleanedNum, 2);
+            } elseif (!str_starts_with($rate, '₱')) {
                 $rate = '₱' . $rate;
             }
             $worker->service_rate = $rate;
+            User::where('user_id', $worker->user_id)->update(['service_rate' => $rate]);
         }
         $worker->save();
 

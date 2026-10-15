@@ -29,7 +29,7 @@
         <form method="POST" action="{{ route('household_client.booking.create') }}" id="serviceBookingForm" onsubmit="return validateBookingSchedule()">
             @csrf
             <input type="hidden" name="workerUsername" id="bookWorkerUsername">
-            <input type="hidden" name="estimatedBudget" id="bookEstimatedBudget" value="₱500.00">
+            <input type="hidden" name="estimatedBudget" id="bookEstimatedBudget" value="">
             <input type="hidden" name="scheduledDate" id="bookScheduledDate" required>
 
             <!-- 1. AGREED BUDGET & PAYMENT METHOD CLARIFICATION -->

@@ -81,13 +81,40 @@ class User extends Authenticatable
 
     public function getServiceRateDisplayAttribute(): string
     {
+        // 1. If worker has published job offers with a specific rate, prioritize it!
+        try {
+            $latestOffer = \App\Models\JobPost::where(function ($q) {
+                    $q->where('client_id', $this->user_id)
+                      ->orWhere('posted_by', $this->name);
+                })
+                ->where('description', 'like', '%(Service Rate:%')
+                ->latest('request_id')
+                ->first();
+
+            if ($latestOffer && !empty($latestOffer->description) && preg_match('/\(Service Rate:\s*([^\)]+)\)/i', $latestOffer->description, $matches)) {
+                $rawOfferRate = trim($matches[1]);
+                if (!empty($rawOfferRate)) {
+                    $cleanedNum = preg_replace('/[^0-9.]/', '', $rawOfferRate);
+                    if (is_numeric($cleanedNum) && (float)$cleanedNum > 0) {
+                        return '₱' . number_format((float)$cleanedNum, 2);
+                    }
+                    if (!str_starts_with($rawOfferRate, '₱')) {
+                        return '₱' . $rawOfferRate;
+                    }
+                    return $rawOfferRate;
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        // 2. If service_rate is set on user model
         if (!empty($this->service_rate)) {
             $cleaned = trim($this->service_rate);
+            $cleanedNum = preg_replace('/[^0-9.]/', '', $cleaned);
+            if (is_numeric($cleanedNum) && (float)$cleanedNum > 0) {
+                return '₱' . number_format((float)$cleanedNum, 2);
+            }
             if (str_starts_with($cleaned, '₱')) {
                 return $cleaned;
-            }
-            if (is_numeric(preg_replace('/[^0-9.]/', '', $cleaned))) {
-                return '₱' . number_format((float) preg_replace('/[^0-9.]/', '', $cleaned), 2);
             }
             return '₱' . $cleaned;
         }

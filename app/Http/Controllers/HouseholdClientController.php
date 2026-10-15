@@ -568,28 +568,23 @@ class HouseholdClientController extends Controller
 
         // 🌟 RULE 2: ESTIMATED BUDGET FROM WORKER'S SERVICE OFFER OR SUBMITTED BUDGET
         $fixedBudget = trim($request->input('estimatedBudget', ''));
-        if (empty($fixedBudget)) {
+        if (empty($fixedBudget) || $fixedBudget === '₱500.00' || $fixedBudget === '500.00') {
             if ($matchedWorkerOffer && preg_match('/\(Service Rate:\s*([^\)]+)\)/i', $matchedWorkerOffer->description, $m)) {
-                $fixedBudget = trim($m[1]);
-            } elseif ($worker && !empty($worker->service_rate)) {
+                $rawRate = trim($m[1]);
+                $num = preg_replace('/[^0-9.]/', '', $rawRate);
+                $fixedBudget = (is_numeric($num) && (float)$num > 0) ? ('₱' . number_format((float)$num, 2)) : ('₱' . $rawRate);
+            } elseif ($worker) {
                 $fixedBudget = $worker->service_rate_display;
-            } elseif ($worker && !empty($worker->skills)) {
-                $lowerCat = strtolower($validated['serviceCategory']);
-                if (str_contains($lowerCat, 'plumb')) $fixedBudget = '₱450.00';
-                elseif (str_contains($lowerCat, 'electr')) $fixedBudget = '₱600.00';
-                elseif (str_contains($lowerCat, 'carpen')) $fixedBudget = '₱550.00';
-                elseif (str_contains($lowerCat, 'paint')) $fixedBudget = '₱400.00';
-                elseif (str_contains($lowerCat, 'aircon') || str_contains($lowerCat, 'refrig')) $fixedBudget = '₱750.00';
-                elseif (str_contains($lowerCat, 'weld')) $fixedBudget = '₱500.00';
-                elseif (str_contains($lowerCat, 'mason')) $fixedBudget = '₱500.00';
-                elseif (str_contains($lowerCat, 'appliance')) $fixedBudget = '₱400.00';
-                else $fixedBudget = '₱500.00';
             } else {
                 $fixedBudget = '₱500.00';
             }
-        }
-        if (!str_starts_with($fixedBudget, '₱')) {
-            $fixedBudget = '₱' . $fixedBudget;
+        } else {
+            $num = preg_replace('/[^0-9.]/', '', $fixedBudget);
+            if (is_numeric($num) && (float)$num > 0) {
+                $fixedBudget = '₱' . number_format((float)$num, 2);
+            } elseif (!str_starts_with($fixedBudget, '₱')) {
+                $fixedBudget = '₱' . $fixedBudget;
+            }
         }
 
         $booking = Booking::create([
@@ -803,13 +798,16 @@ class HouseholdClientController extends Controller
 
             $agreedBudget = trim($request->input('agreed_budget', ''));
             if (empty($agreedBudget)) {
-                if ($worker && !empty($worker->service_rate)) {
+                if ($worker) {
                     $agreedBudget = $worker->service_rate_display;
                 } else {
                     $agreedBudget = '₱500.00';
                 }
             } else {
-                if (!str_starts_with($agreedBudget, '₱')) {
+                $cleanedNum = preg_replace('/[^0-9.]/', '', $agreedBudget);
+                if (is_numeric($cleanedNum) && (float)$cleanedNum > 0) {
+                    $agreedBudget = '₱' . number_format((float)$cleanedNum, 2);
+                } elseif (!str_starts_with($agreedBudget, '₱')) {
                     $agreedBudget = '₱' . $agreedBudget;
                 }
             }

@@ -24,15 +24,6 @@ class CitizenApiController extends Controller
 
         $workers = $query->get()->map(function ($u) {
             $serviceRate = $u->service_rate_display;
-            $activeOffer = DB::table('job_posts')
-                ->where('posted_by', $u->name)
-                ->where('status', 'Open')
-                ->where('description', 'like', '%(Service Rate:%')
-                ->latest()
-                ->first();
-            if ($activeOffer && !empty($activeOffer->description) && preg_match('/\(Service Rate:\s*([^)]+)\)/i', $activeOffer->description, $matches)) {
-                $serviceRate = trim($matches[1]);
-            }
 
             return [
                 'username' => $u->name,
