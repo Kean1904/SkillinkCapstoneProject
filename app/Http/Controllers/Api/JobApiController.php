@@ -48,6 +48,7 @@ class JobApiController extends Controller
                 'barangay'          => $job->barangay ?? 'San Nicolas 1st',
                 'postedBy'          => $job->posted_by ?? 'Resident',
                 'status'            => $job->status ?? 'Pending',
+                'estimatedBudget'   => $job->estimated_budget_display,
                 'applicantUsername' => $job->applicant_username,
                 'isAvailable'       => $isAvailable,
                 'isTaken'           => !empty($job->applicant_username),
@@ -60,6 +61,12 @@ class JobApiController extends Controller
         return response()->json($jobs, 200);
     }
 
+    public function categories()
+    {
+        $categories = \App\Services\CategoryService::getCategoryNames();
+        return response()->json($categories, 200);
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -68,9 +75,23 @@ class JobApiController extends Controller
             'description' => 'required|string',
             'barangay' => 'required|string|max:100',
             'postedBy' => 'required|string|max:100',
+            'estimatedBudget' => 'nullable|string|max:100',
         ]);
 
         $client = User::where('name', $validated['postedBy'])->first();
+
+        $budget = trim($request->input('estimatedBudget') ?? '');
+        $budgetFormatted = 'Negotiable';
+        if (!empty($budget)) {
+            $cleaned = preg_replace('/[^0-9.]/', '', $budget);
+            if (is_numeric($cleaned) && (float)$cleaned > 0) {
+                $budgetFormatted = '₱' . number_format((float)$cleaned, 2);
+            } elseif (str_starts_with($budget, '₱')) {
+                $budgetFormatted = $budget;
+            } else {
+                $budgetFormatted = '₱' . $budget;
+            }
+        }
 
         $job = JobPost::create([
             'title' => $validated['title'],
@@ -80,6 +101,7 @@ class JobApiController extends Controller
             'description' => $validated['description'],
             'location_tag' => $validated['barangay'],
             'barangay' => $validated['barangay'],
+            'estimated_budget' => $budgetFormatted,
             'preferred_schedule' => $request->input('preferredSchedule', 'Flexible'),
             'date_posted' => now()->toDateString(),
             'status' => 'Pending',

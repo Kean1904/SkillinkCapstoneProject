@@ -239,6 +239,13 @@ class BookingApiController extends Controller
         $booking->status = $newStatus;
         if ($booking->status === 'COMPLETED') {
             $booking->completion_date = now()->toDateString();
+            if (!empty($booking->request_id)) {
+                $linkedJob = JobPost::find($booking->request_id);
+                if ($linkedJob) {
+                    $linkedJob->status = 'Completed';
+                    $linkedJob->save();
+                }
+            }
         }
         $booking->save();
 

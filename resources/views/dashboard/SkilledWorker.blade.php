@@ -714,10 +714,13 @@
                                     </div>
                                     <p style="font-size: 12px; opacity: 0.85; margin: 6px 0;">{{ $job->description }}</p>
                                     <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 8px;">
-                                        <div style="font-size: 11px; opacity: 0.75; display: flex; gap: 14px;">
+                                        <div style="font-size: 11px; opacity: 0.75; display: flex; gap: 14px; flex-wrap: wrap;">
                                             <span><i class="fa-solid fa-location-dot"></i> {{ $job->location_tag ?? ('Brgy. ' . $job->barangay) }}</span>
                                             <span><i class="fa-regular fa-calendar"></i> {{ $job->date_posted }}</span>
                                             <span><i class="fa-solid fa-user"></i> {{ $job->posted_by }}</span>
+                                            @if(!empty($job->estimated_budget_display))
+                                                <span style="color: #4ade80; font-weight: bold;"><i class="fa-solid fa-peso-sign"></i> Budget: {{ $job->estimated_budget_display }}</span>
+                                            @endif
                                         </div>
                                         <div>
                                             @if($job->applicant_username === session('user_name'))

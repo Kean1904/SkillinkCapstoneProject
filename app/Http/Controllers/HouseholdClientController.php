@@ -677,6 +677,34 @@ class HouseholdClientController extends Controller
           ->latest('created_at')
           ->get();
 
+        foreach ($activeJobs as $job) {
+            if (!empty($job->applicant_username)) {
+                $job->applicant_worker = User::where('name', $job->applicant_username)
+                    ->orWhere('user_id', $job->applicant_username)
+                    ->orWhereRaw('LOWER(name) = ?', [strtolower($job->applicant_username)])
+                    ->first();
+            }
+        }
+
+        // Auto-synchronize completed jobs from bookings (Hiring History)
+        $completedBookings = Booking::where(function($q) use ($user) {
+            $q->where('client_username', $user->name)
+              ->orWhereRaw('LOWER(client_username) = ?', [strtolower($user->name)]);
+        })
+        ->where('status', 'COMPLETED')
+        ->latest('completion_date')
+        ->latest('created_at')
+        ->get();
+
+        // If any booking has a request_id, ensure that JobPost is marked Completed
+        foreach ($completedBookings as $cb) {
+            if (!empty($cb->request_id)) {
+                JobPost::where('request_id', $cb->request_id)
+                    ->where('status', '!=', 'Completed')
+                    ->update(['status' => 'Completed']);
+            }
+        }
+
         $completedJobs = JobPost::where(function ($q) use ($user) {
             $q->where('client_id', $user->user_id)
               ->orWhere('posted_by', $user->name);
@@ -684,9 +712,10 @@ class HouseholdClientController extends Controller
           ->latest('created_at')
           ->get();
 
+        $jobCategories = \App\Services\CategoryService::getCategoryNames();
         $jobs = $activeJobs;
 
-        return view('household_client.job_posts', compact('user', 'activeJobs', 'completedJobs', 'jobs'));
+        return view('household_client.job_posts', compact('user', 'activeJobs', 'completedJobs', 'completedBookings', 'jobs', 'jobCategories'));
     }
 
     public function completeJob($id)
@@ -750,23 +779,45 @@ class HouseholdClientController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'category' => 'required|string',
+            'other_category' => 'nullable|string|max:100',
             'description' => 'required|string',
             'lot_number' => 'nullable|string|max:255',
             'barangay' => 'required|string',
+            'estimated_budget' => 'nullable|string|max:100',
         ]);
 
         $user = $this->getCurrentUser();
         $lotNumber = !empty($validated['lot_number']) ? trim($validated['lot_number']) : null;
         $locationTag = $lotNumber ? "{$lotNumber}, Brgy. {$validated['barangay']}" : "Brgy. {$validated['barangay']}";
 
+        $category = trim($validated['category']);
+        if ($category === 'Others' || empty($category)) {
+            $customCat = trim($request->input('other_category', ''));
+            $category = !empty($customCat) ? $customCat : 'General Repair';
+        }
+
+        $rawBudget = trim($request->input('estimated_budget', ''));
+        $budgetFormatted = 'Negotiable';
+        if (!empty($rawBudget)) {
+            $cleanedNum = preg_replace('/[^0-9.]/', '', $rawBudget);
+            if (is_numeric($cleanedNum) && (float)$cleanedNum > 0) {
+                $budgetFormatted = '₱' . number_format((float)$cleanedNum, 2);
+            } elseif (str_starts_with($rawBudget, '₱')) {
+                $budgetFormatted = $rawBudget;
+            } else {
+                $budgetFormatted = '₱' . $rawBudget;
+            }
+        }
+
         JobPost::create([
-            'title' => $validated['title'],
+            'title' => trim($validated['title']),
             'client_id' => $user->user_id ?? 1,
             'posted_by' => $user->name,
-            'category' => $validated['category'],
-            'description' => $validated['description'],
+            'category' => $category,
+            'description' => trim($validated['description']),
             'location_tag' => $locationTag,
-            'barangay' => $validated['barangay'],
+            'barangay' => trim($validated['barangay']),
+            'estimated_budget' => $budgetFormatted,
             'preferred_schedule' => 'Flexible',
             'date_posted' => now()->toDateString(),
             'status' => 'Pending',

@@ -37,6 +37,7 @@ Route::get('/workers', [CitizenApiController::class, 'getWorkers']);
 Route::get('/users', [CitizenApiController::class, 'getUsers']);
 
 // Jobs & Applications
+Route::get('/job-categories', [JobApiController::class, 'categories']);
 Route::get('/jobs', [JobApiController::class, 'index']);
 Route::post('/jobs', [JobApiController::class, 'store']);
 Route::post('/jobs/{id}/apply', [JobApiController::class, 'apply']);

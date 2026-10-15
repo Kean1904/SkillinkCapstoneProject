@@ -457,10 +457,13 @@
                             <div>
                                 <strong style="font-size: 15px; color: white;">{{ $job->title }}</strong>
                                 <p style="font-size: 12px; opacity: 0.85; margin: 4px 0;">{{ $job->description }}</p>
-                                <div style="font-size: 11px; opacity: 0.7; display: flex; gap: 15px;">
+                                <div style="font-size: 11px; opacity: 0.7; display: flex; gap: 15px; flex-wrap: wrap;">
                                     <span><i class="fa-solid fa-tag"></i> {{ $job->category }}</span>
                                     <span><i class="fa-solid fa-location-dot"></i> Brgy. {{ $job->barangay }}</span>
                                     <span><i class="fa-regular fa-calendar"></i> {{ $job->date_posted }}</span>
+                                    @if(!empty($job->estimated_budget_display))
+                                        <span style="color: #4ade80; font-weight: bold;"><i class="fa-solid fa-peso-sign"></i> Budget: {{ $job->estimated_budget_display }}</span>
+                                    @endif
                                 </div>
                             </div>
                             <div>

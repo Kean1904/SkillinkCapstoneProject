@@ -257,10 +257,11 @@
                                 <div>
                                     <h4 style="font-size: 17px;">{{ $job->title }}</h4>
                                     <p style="font-size: 13px; opacity: 0.9; margin: 4px 0 8px 0;">{{ $job->description }}</p>
-                                    <div style="font-size: 11px; opacity: 0.75; display: flex; gap: 15px;">
+                                    <div style="font-size: 11px; opacity: 0.75; display: flex; gap: 15px; flex-wrap: wrap;">
                                         <span><i class="fa-solid fa-tag"></i> {{ $job->category }}</span>
                                         <span><i class="fa-solid fa-location-dot"></i> {{ $job->location_tag ?? ('Brgy. ' . $job->barangay) }}</span>
                                         <span><i class="fa-regular fa-calendar"></i> {{ $job->date_posted }}</span>
+                                        <span style="color: #4ade80; font-weight: bold;"><i class="fa-solid fa-peso-sign"></i> Budget: {{ $job->estimated_budget_display }}</span>
                                     </div>
                                 </div>
                                 <div>
@@ -275,6 +276,9 @@
                                         <i class="fa-solid fa-user-check" style="color: #4ade80;"></i>
                                         <strong>May nag-apply na Manggagawa:</strong>
                                         <span style="color: #93c5fd; font-weight: bold;">@ {{ $job->applicant_username }}</span>
+                                        @if(!empty($job->applicant_worker->full_name))
+                                            <span style="font-size: 11.5px; opacity: 0.85;">({{ $job->applicant_worker->full_name }})</span>
+                                        @endif
                                     </div>
                                 @else
                                     <div style="font-size: 12px; opacity: 0.75;">
@@ -283,6 +287,12 @@
                                 @endif
 
                                 <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                                    @if(!empty($job->applicant_username))
+                                        <button type="button" class="btn" style="background: #2563eb; color: white; padding: 7px 12px; font-size: 12px; font-weight: bold; border: 1px solid #3b82f6;" onclick="openChatModal('{{ $job->applicant_username }}', '{{ $job->applicant_worker->full_name ?? $job->applicant_username }}', '{{ $job->category }}', '{{ $job->applicant_worker->contact_number ?? '' }}')">
+                                            <i class="fa-solid fa-comments"></i> In-App Chat (Pag-usapan ang Presyo)
+                                        </button>
+                                    @endif
+
                                     @if(!empty($job->applicant_username) && strtolower($job->status) === 'applied')
                                         <form method="POST" action="{{ route('household_client.application.respond', $job->request_id) }}" style="display: inline;">
                                             @csrf
@@ -318,25 +328,36 @@
                 @endif
             </div>
 
-            <!-- COMPLETED JOB POSTS HISTORY -->
-            @if(isset($completedJobs) && count($completedJobs) > 0)
-                <div class="card" style="background: rgba(15, 45, 105, 0.45);">
-                    <h3><i class="fa-solid fa-clipboard-check" style="color: #4ade80;"></i> Completed Job Needs History ({{ count($completedJobs) }})</h3>
-                    <p style="font-size: 13px; opacity: 0.85;">Talaan ng mga natapos mong ipinosteng trabaho sa Magalang.</p>
-                    <hr>
+            <!-- COMPLETED JOB POSTS HISTORY (Auto-Synced with Hiring History) -->
+            @php
+                $allCompletedJobs = $completedJobs ?? collect();
+                $allCompletedBookings = $completedBookings ?? collect();
+                $totalCompletedCount = count($allCompletedJobs) + count($allCompletedBookings);
+            @endphp
+            <div class="card" style="background: rgba(15, 45, 105, 0.45);">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <h3><i class="fa-solid fa-clipboard-check" style="color: #4ade80;"></i> Completed Job Needs History ({{ $totalCompletedCount }})</h3>
+                    <span style="font-size: 11.5px; background: rgba(34, 197, 94, 0.25); border: 1px solid #22c55e; color: #bbf7d0; padding: 4px 10px; border-radius: 20px;">
+                        <i class="fa-solid fa-sync"></i> Auto-Synced with Hiring History
+                    </span>
+                </div>
+                <p style="font-size: 13px; opacity: 0.85;">Talaan ng lahat ng natapos mong ipinosteng trabaho at mga nakumpletong serbisyo mula sa iyong Hiring History.</p>
+                <hr>
 
+                @if($totalCompletedCount > 0)
                     <div style="display: flex; flex-direction: column; gap: 12px;">
-                        @foreach($completedJobs as $compJob)
+                        @foreach($allCompletedJobs as $compJob)
                             <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(74, 222, 128, 0.25); border-radius: 8px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                                 <div>
-                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                                         <h4 style="font-size: 15px; margin: 0; color: white;">{{ $compJob->title }}</h4>
-                                        <span style="font-size: 11px; background: rgba(34, 197, 94, 0.25); color: #4ade80; border: 1px solid #22c55e; padding: 2px 8px; border-radius: 10px;">✓ COMPLETED</span>
+                                        <span style="font-size: 11px; background: rgba(34, 197, 94, 0.25); color: #4ade80; border: 1px solid #22c55e; padding: 2px 8px; border-radius: 10px;">✓ COMPLETED JOB NEED</span>
                                     </div>
                                     <p style="font-size: 12.5px; opacity: 0.85; margin: 4px 0 6px 0;">{{ $compJob->description }}</p>
-                                    <div style="font-size: 11px; opacity: 0.75; display: flex; gap: 14px;">
+                                    <div style="font-size: 11px; opacity: 0.75; display: flex; gap: 14px; flex-wrap: wrap;">
                                         <span><i class="fa-solid fa-tag"></i> {{ $compJob->category }}</span>
                                         <span><i class="fa-solid fa-location-dot"></i> {{ $compJob->location_tag ?? ('Brgy. ' . $compJob->barangay) }}</span>
+                                        <span style="color: #4ade80; font-weight: bold;"><i class="fa-solid fa-peso-sign"></i> Budget: {{ $compJob->estimated_budget_display }}</span>
                                         @if(!empty($compJob->applicant_username))
                                             <span><i class="fa-solid fa-user-check"></i> Hired: @ {{ $compJob->applicant_username }}</span>
                                         @endif
@@ -347,9 +368,35 @@
                                 </div>
                             </div>
                         @endforeach
+
+                        @foreach($allCompletedBookings as $compBooking)
+                            <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(59, 130, 246, 0.35); border-radius: 8px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                                <div>
+                                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                        <h4 style="font-size: 15px; margin: 0; color: white;">{{ $compBooking->task_description ?: $compBooking->service_category }}</h4>
+                                        <span style="font-size: 11px; background: rgba(59, 130, 246, 0.25); color: #93c5fd; border: 1px solid #3b82f6; padding: 2px 8px; border-radius: 10px;">✓ COMPLETED BOOKING</span>
+                                    </div>
+                                    <p style="font-size: 12.5px; opacity: 0.85; margin: 4px 0 6px 0;">Worker: <strong>{{ $compBooking->worker_name ?? $compBooking->worker_username }}</strong> (@ {{ $compBooking->worker_username }})</p>
+                                    <div style="font-size: 11px; opacity: 0.75; display: flex; gap: 14px; flex-wrap: wrap;">
+                                        <span><i class="fa-solid fa-tag"></i> {{ $compBooking->service_category }}</span>
+                                        <span><i class="fa-solid fa-location-dot"></i> {{ $compBooking->service_address ?: ('Brgy. ' . $compBooking->barangay) }}</span>
+                                        <span style="color: #4ade80; font-weight: bold;"><i class="fa-solid fa-peso-sign"></i> Rate: {{ $compBooking->estimated_budget }}</span>
+                                        <span><i class="fa-regular fa-calendar-check"></i> {{ $compBooking->completion_date ?? $compBooking->scheduled_date }}</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <span style="font-size: 12px; color: #60a5fa; font-weight: bold;"><i class="fa-solid fa-circle-check"></i> Service Fulfilled</span>
+                                </div>
+                            </div>
+                        @endforeach
                     </div>
-                </div>
-            @endif
+                @else
+                    <div style="text-align: center; padding: 25px; opacity: 0.75;">
+                        <i class="fa-solid fa-clipboard-list" style="font-size: 26px; margin-bottom: 6px;"></i>
+                        <p style="font-size: 13px;">Walang natapos na job needs o booking history sa kasalukuyan.</p>
+                    </div>
+                @endif
+            </div>
 
         </div>
     </div>
@@ -368,13 +415,30 @@
                 </div>
                 <div style="margin-bottom: 12px;">
                     <label style="display: block; font-size: 12px; font-weight: bold; margin-bottom: 4px;">Category / Larangan</label>
-                    <select name="category" style="width: 100%; padding: 9px; border-radius: 6px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.4);" required>
-                        <option value="Plumbing Repair" style="color: black;">Plumbing Repair</option>
-                        <option value="Electrical Installation" style="color: black;">Electrical Installation</option>
-                        <option value="Carpentry & Roofing" style="color: black;">Carpentry & Roofing</option>
-                        <option value="Welding & Fabrication" style="color: black;">Welding & Fabrication</option>
-                        <option value="Appliance Repair" style="color: black;">Appliance Repair</option>
+                    <select name="category" id="jobCategorySelect" onchange="toggleOtherCategoryInput(this.value)" style="width: 100%; padding: 9px; border-radius: 6px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.4);" required>
+                        <option value="" disabled selected style="color: black;">-- Pumili ng Job Category / Larangan --</option>
+                        @if(isset($jobCategories) && count($jobCategories) > 0)
+                            @foreach($jobCategories as $cat)
+                                <option value="{{ $cat }}" style="color: black;">{{ $cat }}</option>
+                            @endforeach
+                        @else
+                            <option value="Plumbing Repair" style="color: black;">Plumbing Repair</option>
+                            <option value="Electrical Installation" style="color: black;">Electrical Installation</option>
+                            <option value="Carpentry & Roofing" style="color: black;">Carpentry & Roofing</option>
+                            <option value="Welding & Fabrication" style="color: black;">Welding & Fabrication</option>
+                            <option value="Appliance & Refrigeration Repair" style="color: black;">Appliance & Refrigeration Repair</option>
+                        @endif
+                        <option value="Others" style="color: black; font-weight: bold;">Others (Iba pa / Custom Service)</option>
                     </select>
+                    <div id="otherCategoryWrapper" style="display: none; margin-top: 8px;">
+                        <label style="display: block; font-size: 11.5px; font-weight: bold; margin-bottom: 3px; color: #93c5fd;">Pakilagay ang hinahanap na Trabaho / Serbisyo:</label>
+                        <input type="text" name="other_category" id="otherCategoryInput" placeholder="hal. Aircon Cleaning, Garden Landscaping, Masonry, atbp." style="width: 100%; padding: 8px 10px; border-radius: 6px; background: rgba(255,255,255,0.15); color: white; border: 1px solid #60a5fa; font-size: 13px;">
+                    </div>
+                </div>
+                <div style="margin-bottom: 12px;">
+                    <label style="display: block; font-size: 12px; font-weight: bold; margin-bottom: 4px;">Estimated Budget / Presyo (₱)</label>
+                    <input type="text" name="estimated_budget" placeholder="hal. 500 o ₱1,200.00" style="width: 100%; padding: 9px; border-radius: 6px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.4);" required>
+                    <small style="font-size: 11px; opacity: 0.75; display: block; margin-top: 3px;">Inisyal na badyet na makikita ng skilled worker bago mag-apply. Mapag-uusapan ang pinal na presyo sa In-App Chat.</small>
                 </div>
                 <div style="margin-bottom: 12px;">
                     <label style="display: block; font-size: 12px; font-weight: bold; margin-bottom: 4px;">Task Description</label>
@@ -419,6 +483,19 @@
         }
         function closePostJobModal() {
             document.getElementById('postJobModal').style.display = 'none';
+        }
+
+        function toggleOtherCategoryInput(val) {
+            const wrapper = document.getElementById('otherCategoryWrapper');
+            const input = document.getElementById('otherCategoryInput');
+            if (val === 'Others') {
+                wrapper.style.display = 'block';
+                input.required = true;
+                input.focus();
+            } else {
+                wrapper.style.display = 'none';
+                input.required = false;
+            }
         }
 
         @if(request('action') === 'create')
