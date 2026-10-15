@@ -490,7 +490,7 @@
                     <i class="fa-solid fa-circle-xmark"></i> {{ session('error') }}
                 </div>
             @endif
-            @if($errors->any())
+            @if(isset($errors) && $errors->any())
                 <div style="background: rgba(239, 68, 68, 0.25); border: 1px solid #f87171; color: #fecaca; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px;">
                     <strong><i class="fa-solid fa-triangle-exclamation"></i> May problema sa pag-submit:</strong>
                     <ul style="margin: 5px 0 0 20px;">
@@ -563,15 +563,21 @@
                         <span>CREATE A JOBS</span>
                     </div>
 
-                    <!-- AVAILABLE SKILLED WORKER LIST -->
-                    <!-- AVAILABLE SKILLED WORKER LIST & FUNCTIONAL JOB SEARCH -->
+                    <!-- SERVICE OFFERS OF SKILLED WORKERS (MAIN SECTION) -->
                     <div class="panel">
                         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
                             <div>
-                                <h3>AVAILABLE SKILLED WORKER</h3>
-                                <p style="font-size: 11.5px; opacity: 0.8; margin-top: 2px;">Maghanap ng skilled worker sa pamamagitan ng trabaho (Job / Specialized Skill).</p>
+                                <h3 style="display: flex; align-items: center; gap: 8px; margin: 0; font-size: 16px;">
+                                    <i class="fa-solid fa-bullhorn" style="color: #60a5fa;"></i>
+                                    SERVICE OFFERS OF SKILLED WORKERS
+                                </h3>
+                                <p style="font-size: 11.5px; opacity: 0.8; margin-top: 3px;">
+                                    Tingnan at i-book ang mga ipinaskil na alok na serbisyo at presyo ng mga lehitimong manggagawa sa Magalang.
+                                </p>
                             </div>
-                            <a href="{{ route('household_client.saved_workers') }}" style="color: #93c5fd; font-size: 12px; text-decoration: none;"><i class="fa-solid fa-bookmark"></i> View Saved ({{ count($savedWorkerIds ?? []) }})</a>
+                            <span style="font-size: 11px; color: #86efac; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; padding: 3px 10px; border-radius: 6px; font-weight: bold;">
+                                <i class="fa-solid fa-handshake"></i> Direct Worker Rates
+                            </span>
                         </div>
 
                         <!-- Dedicated In-Panel Search & Quick Filters -->
@@ -580,11 +586,11 @@
                                 <div style="position: relative; flex: 1;">
                                     <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 12px; top: 11px; color: #93c5fd; font-size: 13px;"></i>
                                     <input type="text" id="panelSearchInput" value="{{ $search ?? '' }}" 
-                                           placeholder="Type job or skill needed (e.g., Plumbing, IT Technician, Electrical, Carpentry)..." 
-                                           onkeyup="syncAndFilterWorkers(this.value)"
+                                           placeholder="Type service needed (e.g., IT Technician, Plumbing, Electrical, Carpentry)..." 
+                                           onkeyup="syncAndFilterOffersAndWorkers(this.value)"
                                            style="width: 100%; padding: 8px 12px 8px 34px; border-radius: 8px; border: 1.5px solid rgba(147, 197, 253, 0.4); background: rgba(0, 0, 0, 0.25); color: white; font-size: 13px; outline: none;">
                                 </div>
-                                <button type="button" onclick="clearWorkerSearch()" title="Clear Search" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; border-radius: 8px; padding: 8px 14px; font-size: 12px; cursor: pointer; white-space: nowrap;">
+                                <button type="button" onclick="clearSearch()" title="Clear Search" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; border-radius: 8px; padding: 8px 14px; font-size: 12px; cursor: pointer; white-space: nowrap;">
                                     Reset
                                 </button>
                             </div>
@@ -592,7 +598,7 @@
                             <!-- Quick Filter Pills -->
                             <div style="display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; align-items: center;">
                                 <span style="font-size: 11px; color: rgba(255,255,255,0.7); margin-right: 4px;">Popular Trades:</span>
-                                @foreach(['All', 'Plumbing', 'Electrical', 'Carpentry', 'Welding', 'Masonry', 'IT Technician', 'Appliance', 'Cleaning'] as $pill)
+                                @foreach(['All', 'Plumbing', 'Electrical', 'Carpentry', 'Welding', 'Masonry', 'IT Technician', 'Appliance', 'Other Home Services'] as $pill)
                                     <button type="button" class="trade-pill" onclick="applyQuickFilter('{{ $pill === 'All' ? '' : $pill }}')" 
                                             style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.25); color: #e2e8f0; font-size: 11px; padding: 3px 10px; border-radius: 14px; cursor: pointer; transition: all 0.2s;">
                                         {{ $pill }}
@@ -602,55 +608,103 @@
                         </div>
 
                         <div id="searchResultsInfo" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 12px; color: #93c5fd;">
-                            <span id="resultCountText">Showing {{ count($workersList ?? []) }} skilled workers</span>
+                            <span id="resultCountText">Showing {{ count($serviceOffers ?? []) }} published service offers</span>
                         </div>
 
                         <hr style="margin-top: 4px; margin-bottom: 12px;">
 
-                        <div id="noWorkerFoundNotice" style="display: none; background: rgba(0,0,0,0.3); border: 1px dashed rgba(255,255,255,0.3); border-radius: 8px; padding: 20px; text-align: center; color: #cbd5e1; margin-bottom: 12px;">
+                        <div id="noOfferFoundNotice" style="display: none; background: rgba(0,0,0,0.3); border: 1px dashed rgba(255,255,255,0.3); border-radius: 8px; padding: 20px; text-align: center; color: #cbd5e1; margin-bottom: 12px;">
                             <i class="fa-solid fa-magnifying-glass" style="font-size: 24px; color: #93c5fd; margin-bottom: 8px;"></i>
-                            <h4 style="font-size: 14px; color: white;">No skilled workers found matching this job search.</h4>
-                            <p style="font-size: 12px; opacity: 0.75; margin-top: 4px;">Try searching for other trade services like Plumbing, Electrical, Carpentry, or IT Technician.</p>
+                            <h4 style="font-size: 14px; color: white;">Walang nahanap na service offer na tumutugma sa iyong paghahanap.</h4>
+                            <p style="font-size: 12px; opacity: 0.75; margin-top: 4px;">Subukan ang ibang salita tulad ng Plumbing, Electrical, IT, o Carpentry.</p>
                         </div>
 
-                        <div id="workersContainer">
-                        @if(isset($workersList) && count($workersList) > 0)
-                            @foreach($workersList as $worker)
-                                <div class="worker-card-item" data-name="{{ strtolower($worker->full_name . ' ' . $worker->name) }}" data-skills="{{ strtolower($worker->skills ?? '') }}" data-barangay="{{ strtolower($worker->barangay ?? '') }}"
-                                     style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; margin-bottom: 10px; border-left: 4px solid #10b981; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
-                                    <div>
-                                        <strong style="font-size: 14px; color: white;">{{ $worker->full_name }}</strong>
-                                        <span style="font-size: 11.5px; color: #86efac; font-weight: bold; margin-left: 6px; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; padding: 2px 7px; border-radius: 4px;">
-                                            <i class="fa-solid fa-money-bill-wave"></i> {{ $worker->service_rate_display }} Fixed
-                                        </span>
-                                        <p style="font-size: 12px; color: #fde047; font-weight: bold; margin: 3px 0;">
-                                            <i class="fa-solid fa-wrench"></i> <span class="worker-skills-display">{{ $worker->skills ?? 'General Handyman' }}</span>
-                                        </p>
-                                        <span style="font-size: 11px; opacity: 0.75;"><i class="fa-solid fa-location-dot"></i> {{ $worker->barangay }}</span>
+                        <div id="serviceOffersContainer">
+                        @if(isset($serviceOffers) && count($serviceOffers) > 0)
+                            @foreach($serviceOffers as $offer)
+                                @php
+                                    $wName = $offer->worker ? $offer->worker->name : $offer->posted_by;
+                                    $wFullName = $offer->worker ? $offer->worker->full_name : $offer->posted_by;
+                                    $wSkills = $offer->worker ? $offer->worker->skills : $offer->category;
+                                    $wContact = $offer->worker ? ($offer->worker->contact_number ?? $offer->worker->phone_number ?? '') : '';
+                                    $wRating = number_format($offer->worker->rating ?? 5.0, 1);
+                                    $wRate = $offer->parsed_rate ?? ($offer->worker ? $offer->worker->service_rate_display : '₱500.00');
+                                    $wVerified = $offer->worker && $offer->worker->is_verified;
+                                    $wBarangay = $offer->barangay ?? ($offer->worker ? $offer->worker->barangay : 'Magalang');
+                                    $isSaved = isset($savedWorkerIds) && $offer->worker && in_array($offer->worker->user_id, $savedWorkerIds);
+                                @endphp
+                                <div class="service-offer-card-item" 
+                                     data-title="{{ strtolower($offer->title) }}" 
+                                     data-category="{{ strtolower($offer->category) }}" 
+                                     data-worker="{{ strtolower($wFullName . ' ' . $wName) }}" 
+                                     data-desc="{{ strtolower($offer->description) }}" 
+                                     data-barangay="{{ strtolower($wBarangay) }}"
+                                     style="background: rgba(255,255,255,0.08); border-radius: 10px; padding: 14px 16px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.15); border-left: 4px solid #3b82f6; transition: all 0.2s;">
+                                    
+                                    <!-- Offer Header: Title, Category Badge, Price -->
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap;">
+                                        <div style="flex: 1; min-width: 200px;">
+                                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                                <h4 style="font-size: 15px; color: white; margin: 0; font-weight: bold;">{{ $offer->title }}</h4>
+                                                <span style="background: rgba(59, 130, 246, 0.25); color: #93c5fd; border: 1px solid #3b82f6; font-size: 11px; font-weight: bold; padding: 2px 8px; border-radius: 4px;">
+                                                    <i class="fa-solid fa-tag"></i> {{ $offer->category }}
+                                                </span>
+                                            </div>
+                                            <p style="font-size: 12.5px; color: #e2e8f0; margin: 6px 0 8px 0; line-height: 1.45;">
+                                                {{ $offer->description }}
+                                            </p>
+                                        </div>
+
+                                        <div style="text-align: right; flex-shrink: 0;">
+                                            <span style="font-size: 13px; color: #86efac; font-weight: 900; background: rgba(16, 185, 129, 0.22); border: 1.5px solid #10b981; padding: 4px 10px; border-radius: 6px; display: inline-flex; align-items: center; gap: 5px;">
+                                                <i class="fa-solid fa-money-bill-wave"></i> {{ $wRate }} Fixed
+                                            </span>
+                                        </div>
                                     </div>
-                                    <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
-                                        <button type="button" onclick="openChatModal('{{ $worker->name }}', '{{ addslashes($worker->full_name) }}', '{{ addslashes($worker->skills ?? 'General Handyman') }}', '{{ $worker->contact_number ?? $worker->phone_number ?? '' }}')" style="height: 36px; padding: 0 14px; background: #0284c7; border: 1px solid #38bdf8; color: white; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-sizing: border-box; box-shadow: 0 2px 6px rgba(0,0,0,0.25);" title="Send inquiry or clarify details before booking">
-                                            <i class="fa-solid fa-comments"></i> Message
-                                        </button>
-                                        <button type="button" onclick="openBookModal('{{ $worker->name }}', '{{ $worker->full_name }}', '{{ $worker->skills }}', '{{ $worker->service_rate_display }}')" style="height: 36px; padding: 0 14px; background: #0033a0; border: 1px solid #60a5fa; color: white; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-sizing: border-box; box-shadow: 0 2px 6px rgba(0,0,0,0.25);">
-                                            <i class="fa-solid fa-calendar-check"></i> Book Now
-                                        </button>
-                                        <form method="POST" action="{{ route('household_client.worker.toggle_save', $worker->user_id) }}" style="display: inline-flex; margin: 0; padding: 0; align-items: center;">
-                                            @csrf
-                                            @php $isSaved = isset($savedWorkerIds) && in_array($worker->user_id, $savedWorkerIds); @endphp
-                                            <button type="submit" title="{{ $isSaved ? 'Remove from Saved Bookmarks' : 'Save / Bookmark Worker' }}" style="height: 36px; width: 36px; padding: 0; background: {{ $isSaved ? 'rgba(234, 179, 8, 0.25)' : 'rgba(255,255,255,0.15)' }}; border: 1px solid {{ $isSaved ? '#eab308' : 'rgba(255,255,255,0.4)' }}; color: {{ $isSaved ? '#facc15' : 'white' }}; border-radius: 6px; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;">
-                                                <i class="{{ $isSaved ? 'fa-solid fa-bookmark' : 'fa-regular fa-bookmark' }}"></i>
+
+                                    <!-- Worker Meta Info & Actions Row -->
+                                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(255,255,255,0.15);">
+                                        <div style="font-size: 11.5px; opacity: 0.85; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                                            <span style="color: white; font-weight: bold;">
+                                                <i class="fa-solid fa-user-check" style="color: #60a5fa;"></i> {{ $wFullName }}
+                                            </span>
+                                            <span style="background: #10b981; color: white; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 10px;">
+                                                ★ {{ $wRating }}
+                                            </span>
+                                            <span>
+                                                <i class="fa-solid fa-location-dot" style="color: #f87171;"></i> Brgy. {{ $wBarangay }}
+                                            </span>
+                                            <span style="color: {{ $wVerified ? '#86efac' : '#fde047' }};">
+                                                <i class="fa-solid {{ $wVerified ? 'fa-certificate' : 'fa-clock' }}"></i> {{ $wVerified ? 'Verified PESO' : 'Accredited' }}
+                                            </span>
+                                        </div>
+
+                                        <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                                            <button type="button" onclick="openChatModal('{{ $wName }}', '{{ addslashes($wFullName) }}', '{{ addslashes($wSkills ?? $offer->category) }}', '{{ $wContact }}')" 
+                                                    style="height: 34px; padding: 0 12px; background: #0284c7; border: 1px solid #38bdf8; color: white; border-radius: 6px; cursor: pointer; font-size: 11.5px; font-weight: bold; display: inline-flex; align-items: center; justify-content: center; gap: 5px; box-sizing: border-box;" title="Message worker to discuss details">
+                                                <i class="fa-solid fa-comments"></i> Message
                                             </button>
-                                        </form>
-                                        <div style="text-align: right; min-width: 80px; margin-left: 4px;">
-                                            <span style="background: #10b981; color: white; font-size: 11px; font-weight: bold; padding: 3px 8px; border-radius: 10px; display: inline-block;">★ {{ number_format($worker->rating ?? 5.0, 1) }}</span>
-                                            <p style="font-size: 10px; color: #a7f3d0; margin-top: 4px;">{{ $worker->is_verified ? 'Verified PESO' : 'Pending Verification' }}</p>
+
+                                            <button type="button" onclick="openBookModal('{{ $wName }}', '{{ addslashes($wFullName) }}', '{{ addslashes($wSkills ?? $offer->category) }}', '{{ $wRate }}')" 
+                                                    style="height: 34px; padding: 0 14px; background: #0033a0; border: 1px solid #60a5fa; color: white; border-radius: 6px; cursor: pointer; font-size: 11.5px; font-weight: bold; display: inline-flex; align-items: center; justify-content: center; gap: 5px; box-sizing: border-box;" title="Book this service offer">
+                                                <i class="fa-solid fa-calendar-check"></i> Book Now
+                                            </button>
+
+                                            @if($offer->worker)
+                                                <form method="POST" action="{{ route('household_client.worker.toggle_save', $offer->worker->user_id) }}" style="display: inline-flex; margin: 0; padding: 0; align-items: center;">
+                                                    @csrf
+                                                    <button type="submit" title="{{ $isSaved ? 'Remove from Saved Bookmarks' : 'Save / Bookmark Worker' }}" 
+                                                            style="height: 34px; width: 34px; padding: 0; background: {{ $isSaved ? 'rgba(234, 179, 8, 0.25)' : 'rgba(255,255,255,0.15)' }}; border: 1px solid {{ $isSaved ? '#eab308' : 'rgba(255,255,255,0.4)' }}; color: {{ $isSaved ? '#facc15' : 'white' }}; border-radius: 6px; cursor: pointer; font-size: 12.5px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;">
+                                                        <i class="{{ $isSaved ? 'fa-solid fa-bookmark' : 'fa-regular fa-bookmark' }}"></i>
+                                                    </button>
+                                                </form>
+                                            @endif
                                         </div>
                                     </div>
                                 </div>
                             @endforeach
                         @else
-                            <div class="no-data">No Data</div>
+                            <div class="no-data">Walang aktibong service offer sa kasalukuyan.</div>
                         @endif
                         </div>
                     </div>
@@ -669,6 +723,77 @@
                         <h3>Service Request</h3>
                         <hr>
                         <div class="no-data">No Data</div>
+                    </div>
+
+                    <!-- AVAILABLE SKILLED WORKERS (SIDE PANEL CONTAINER) -->
+                    <div class="panel" style="margin-top: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
+                            <h3 style="font-size: 13.5px; margin: 0; display: flex; align-items: center; gap: 6px;">
+                                <i class="fa-solid fa-user-group" style="color: #60a5fa;"></i>
+                                AVAILABLE SKILLED WORKER
+                            </h3>
+                            <a href="{{ route('household_client.saved_workers') }}" style="color: #93c5fd; font-size: 11px; text-decoration: none;" title="View Bookmarked Workers">
+                                <i class="fa-solid fa-bookmark"></i> Saved ({{ count($savedWorkerIds ?? []) }})
+                            </a>
+                        </div>
+                        <p style="font-size: 11px; opacity: 0.75; margin: 3px 0 8px 0;">Mga rehistradong manggagawa sa Magalang.</p>
+                        <hr style="margin-top: 2px; margin-bottom: 10px;">
+
+                        <div id="sideWorkersContainer" style="max-height: 480px; overflow-y: auto; padding-right: 2px;">
+                        @if(isset($workersList) && count($workersList) > 0)
+                            @foreach($workersList as $worker)
+                                @php
+                                    $isSaved = isset($savedWorkerIds) && in_array($worker->user_id, $savedWorkerIds);
+                                @endphp
+                                <div class="worker-side-card" 
+                                     data-name="{{ strtolower($worker->full_name . ' ' . $worker->name) }}" 
+                                     data-skills="{{ strtolower($worker->skills ?? '') }}" 
+                                     data-barangay="{{ strtolower($worker->barangay ?? '') }}"
+                                     style="background: rgba(255,255,255,0.08); border-radius: 8px; padding: 10px 12px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.15); border-left: 3px solid #10b981;">
+                                    
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 6px;">
+                                        <div>
+                                            <strong style="font-size: 13px; color: white; display: block;">{{ $worker->full_name }}</strong>
+                                            <span style="font-size: 10.5px; color: #86efac; font-weight: bold;">
+                                                <i class="fa-solid fa-money-bill-wave"></i> {{ $worker->service_rate_display }} Fixed
+                                            </span>
+                                        </div>
+                                        <span style="background: #10b981; color: white; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 8px;">
+                                            ★ {{ number_format($worker->rating ?? 5.0, 1) }}
+                                        </span>
+                                    </div>
+
+                                    <div style="font-size: 11px; color: #fde047; font-weight: bold; margin: 3px 0;">
+                                        <i class="fa-solid fa-wrench"></i> {{ $worker->skills ?? 'General Handyman' }}
+                                    </div>
+                                    <div style="font-size: 10.5px; opacity: 0.75; margin-bottom: 6px;">
+                                        <i class="fa-solid fa-location-dot"></i> Brgy. {{ $worker->barangay }} &bull; <span style="color: {{ $worker->is_verified ? '#86efac' : '#fde047' }};">{{ $worker->is_verified ? 'Verified PESO' : 'Pending' }}</span>
+                                    </div>
+
+                                    <!-- Bottom Button Row (Katulad sa Mobile Application: Sama-samang Message, Book Now, at Bookmark) -->
+                                    <div style="display: flex; align-items: center; gap: 6px; margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.1);">
+                                        <button type="button" onclick="openChatModal('{{ $worker->name }}', '{{ addslashes($worker->full_name) }}', '{{ addslashes($worker->skills ?? 'General Handyman') }}', '{{ $worker->contact_number ?? $worker->phone_number ?? '' }}')" 
+                                                style="flex: 1; height: 32px; background: #0284c7; border: 1px solid #38bdf8; color: white; border-radius: 5px; cursor: pointer; font-size: 11px; font-weight: bold; display: inline-flex; align-items: center; justify-content: center; gap: 4px;" title="Send inquiry or clarify details before booking">
+                                            <i class="fa-solid fa-comments"></i> Message
+                                        </button>
+                                        <button type="button" onclick="openBookModal('{{ $worker->name }}', '{{ $worker->full_name }}', '{{ $worker->skills }}', '{{ $worker->service_rate_display }}')" 
+                                                style="flex: 1.2; height: 32px; background: #0033a0; border: 1px solid #60a5fa; color: white; border-radius: 5px; cursor: pointer; font-size: 11px; font-weight: bold; display: inline-flex; align-items: center; justify-content: center; gap: 4px;" title="Book Worker">
+                                            <i class="fa-solid fa-calendar-check"></i> Book Now
+                                        </button>
+                                        <form method="POST" action="{{ route('household_client.worker.toggle_save', $worker->user_id) }}" style="display: inline-flex; margin: 0; padding: 0;">
+                                            @csrf
+                                            <button type="submit" title="{{ $isSaved ? 'Remove from Saved Bookmarks' : 'Save / Bookmark Worker' }}" 
+                                                    style="height: 32px; width: 32px; background: {{ $isSaved ? 'rgba(234, 179, 8, 0.25)' : 'rgba(255,255,255,0.15)' }}; border: 1px solid {{ $isSaved ? '#eab308' : 'rgba(255,255,255,0.3)' }}; color: {{ $isSaved ? '#facc15' : 'white' }}; border-radius: 5px; cursor: pointer; font-size: 12px; display: inline-flex; align-items: center; justify-content: center;">
+                                                <i class="{{ $isSaved ? 'fa-solid fa-bookmark' : 'fa-regular fa-bookmark' }}"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            @endforeach
+                        @else
+                            <div class="no-data">No Data</div>
+                        @endif
+                        </div>
                     </div>
                 </div>
 
@@ -727,7 +852,7 @@
         });
     }
 
-    function syncAndFilterWorkers(query) {
+    function syncAndFilterOffersAndWorkers(query) {
         const headerInput = document.getElementById('headerSearchInput');
         const panelInput = document.getElementById('panelSearchInput');
         
@@ -739,19 +864,23 @@
         }
 
         const q = (query || '').trim().toLowerCase();
-        const items = document.querySelectorAll('.worker-card-item');
+        
+        // Filter Service Offers in Main Panel
+        const offerItems = document.querySelectorAll('.service-offer-card-item');
         const countText = document.getElementById('resultCountText');
-        const noNotice = document.getElementById('noWorkerFoundNotice');
+        const noNotice = document.getElementById('noOfferFoundNotice');
 
-        let visibleCount = 0;
-        items.forEach(card => {
-            const name = card.getAttribute('data-name') || '';
-            const skills = card.getAttribute('data-skills') || '';
+        let visibleOffers = 0;
+        offerItems.forEach(card => {
+            const title = card.getAttribute('data-title') || '';
+            const category = card.getAttribute('data-category') || '';
+            const worker = card.getAttribute('data-worker') || '';
+            const desc = card.getAttribute('data-desc') || '';
             const barangay = card.getAttribute('data-barangay') || '';
 
-            if (!q || name.includes(q) || skills.includes(q) || barangay.includes(q)) {
-                card.style.display = 'flex';
-                visibleCount++;
+            if (!q || title.includes(q) || category.includes(q) || worker.includes(q) || desc.includes(q) || barangay.includes(q)) {
+                card.style.display = 'block';
+                visibleOffers++;
             } else {
                 card.style.display = 'none';
             }
@@ -759,19 +888,33 @@
 
         if (countText) {
             if (q) {
-                countText.innerHTML = `Found <strong style="color: #fde047;">${visibleCount}</strong> skilled workers matching "<strong>${escapeHtml(q)}</strong>"`;
+                countText.innerHTML = `Found <strong style="color: #fde047;">${visibleOffers}</strong> published service offers matching "<strong>${escapeHtml(q)}</strong>"`;
             } else {
-                countText.innerText = `Showing ${visibleCount} skilled workers`;
+                countText.innerText = `Showing ${visibleOffers} published service offers`;
             }
         }
 
         if (noNotice) {
-            noNotice.style.display = (visibleCount === 0 && items.length > 0) ? 'block' : 'none';
+            noNotice.style.display = (visibleOffers === 0 && offerItems.length > 0) ? 'block' : 'none';
         }
+
+        // Also filter workers in the Side Panel
+        const sideWorkerItems = document.querySelectorAll('.worker-side-card');
+        sideWorkerItems.forEach(card => {
+            const name = card.getAttribute('data-name') || '';
+            const skills = card.getAttribute('data-skills') || '';
+            const barangay = card.getAttribute('data-barangay') || '';
+
+            if (!q || name.includes(q) || skills.includes(q) || barangay.includes(q)) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
     }
 
     function handleHeaderSearch(e) {
-        syncAndFilterWorkers(e.target.value);
+        syncAndFilterOffersAndWorkers(e.target.value);
         if (e.key === 'Enter') {
             document.getElementById('panelSearchInput')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
@@ -779,16 +922,16 @@
 
     function triggerSearch() {
         const val = document.getElementById('headerSearchInput')?.value || '';
-        syncAndFilterWorkers(val);
+        syncAndFilterOffersAndWorkers(val);
         document.getElementById('panelSearchInput')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     function applyQuickFilter(trade) {
-        syncAndFilterWorkers(trade);
+        syncAndFilterOffersAndWorkers(trade);
     }
 
-    function clearWorkerSearch() {
-        syncAndFilterWorkers('');
+    function clearSearch() {
+        syncAndFilterOffersAndWorkers('');
     }
 
     function escapeHtml(str) {
@@ -804,7 +947,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         const initialSearch = "{{ $search ?? '' }}";
         if (initialSearch) {
-            syncAndFilterWorkers(initialSearch);
+            syncAndFilterOffersAndWorkers(initialSearch);
         }
     });
 

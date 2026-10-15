@@ -67,6 +67,49 @@ class HouseholdClientController extends Controller
             }
         }
 
+        // Fetch published Service Offers by Skilled Workers
+        $skilledWorkerUsernames = User::where('role', 'skilled worker')->pluck('name')->toArray();
+        $skilledWorkerUserIds = User::where('role', 'skilled worker')->pluck('user_id')->toArray();
+
+        $serviceOffersQuery = JobPost::where(function($q) use ($skilledWorkerUsernames, $skilledWorkerUserIds) {
+                $q->whereIn('posted_by', $skilledWorkerUsernames)
+                  ->orWhereIn('client_id', $skilledWorkerUserIds);
+            })
+            ->whereNotIn('status', ['Cancelled', 'Completed']);
+
+        if (!empty($search)) {
+            $serviceOffersQuery->where(function($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhere('category', 'like', "%{$search}%")
+                  ->orWhere('barangay', 'like', "%{$search}%")
+                  ->orWhere('posted_by', 'like', "%{$search}%");
+            });
+        }
+
+        $serviceOffers = $serviceOffersQuery->latest('request_id')->get();
+
+        foreach ($serviceOffers as $offer) {
+            $offerWorker = User::where('name', $offer->posted_by)
+                ->orWhere('user_id', $offer->client_id)
+                ->first();
+            $offer->worker = $offerWorker;
+
+            $parsedRate = $offerWorker ? $offerWorker->service_rate_display : '₱500.00';
+            if (!empty($offer->description) && preg_match('/\(Service Rate:\s*([^\)]+)\)/i', $offer->description, $m)) {
+                $raw = trim($m[1]);
+                $num = preg_replace('/[^0-9.]/', '', $raw);
+                if (is_numeric($num) && (float)$num > 0) {
+                    $parsedRate = '₱' . number_format((float)$num, 2);
+                } elseif (!str_starts_with($raw, '₱')) {
+                    $parsedRate = '₱' . $raw;
+                } else {
+                    $parsedRate = $raw;
+                }
+            }
+            $offer->parsed_rate = $parsedRate;
+        }
+
         $savedWorkerIds = DB::table('saved_workers')
             ->where('user_id', $user->user_id)
             ->pluck('worker_id')
@@ -77,7 +120,7 @@ class HouseholdClientController extends Controller
             ->take(5)
             ->get();
 
-        return view('dashboard.HouseholdClient', compact('user', 'availableWorkers', 'postedJobs', 'workersList', 'search', 'savedWorkerIds', 'announcements'));
+        return view('dashboard.HouseholdClient', compact('user', 'availableWorkers', 'postedJobs', 'workersList', 'serviceOffers', 'search', 'savedWorkerIds', 'announcements'));
     }
 
     public function hiringHistory()
