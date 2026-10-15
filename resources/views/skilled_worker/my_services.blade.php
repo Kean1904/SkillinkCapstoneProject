@@ -254,8 +254,9 @@
                     </div>
                 </div>
 
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 8px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 8px;">
                     <div><strong>Availability:</strong> <span style="color: #4ade80; font-weight: bold;">Available for Service</span></div>
+                    <div><strong>Service Rate:</strong> <span style="color: #86efac; font-weight: bold;">{{ $worker->service_rate_display }} Fixed</span></div>
                     <div><strong>Accreditation:</strong> <span style="color: #60a5fa;">{{ $worker->is_verified ? 'Verified PESO Partner' : 'Under Review' }}</span></div>
                     <div><strong>Barangay:</strong> {{ $worker->barangay ?? 'San Nicolas 1st' }}</div>
                     <div><strong>Rating:</strong> ★ {{ number_format($worker->rating ?? 5.0, 1) }} / 5.0</div>
@@ -273,6 +274,11 @@
                     <div style="margin-bottom: 15px;">
                         <label style="font-size: 13px; font-weight: bold; display: block; margin-bottom: 6px;">Skills & Trade Services (Comma-separated)</label>
                         <input type="text" name="skills" value="{{ $worker->skills ?? 'Plumbing Repair, Pipe Fitting, Water Line Sealant' }}" style="width: 100%; padding: 10px 14px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.4); background: rgba(255,255,255,0.1); color: white;" required>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <label style="font-size: 13px; font-weight: bold; display: block; margin-bottom: 6px;">Estimated Service Rate / Fixed Price (₱)</label>
+                        <input type="text" name="service_rate" value="{{ $worker->service_rate ?? $worker->service_rate_display }}" placeholder="hal. ₱600.00 Fixed o ₱750.00" style="width: 100%; padding: 10px 14px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.4); background: rgba(255,255,255,0.1); color: white;">
                     </div>
 
                     <div style="margin-bottom: 15px;">
@@ -298,13 +304,24 @@
                 @if(isset($myJobOffers) && count($myJobOffers) > 0)
                     <div style="display: flex; flex-direction: column; gap: 12px;">
                         @foreach($myJobOffers as $offer)
+                            @php
+                                $offerRate = '';
+                                if (preg_match('/\(Service Rate:\s*([^\)]+)\)/i', $offer->description, $m)) {
+                                    $offerRate = trim($m[1]);
+                                }
+                            @endphp
                             <div style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                                 <div>
-                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                                         <h4 style="font-size: 15px; margin: 0; color: white;">{{ $offer->title }}</h4>
                                         <span style="font-size: 10.5px; padding: 2px 8px; border-radius: 12px; background: rgba(34, 197, 94, 0.25); border: 1px solid #4ade80; color: #bbf7d0; font-weight: bold;">
                                             {{ $offer->status ?? 'Active' }}
                                         </span>
+                                        @if(!empty($offerRate))
+                                            <span style="font-size: 11px; padding: 2px 8px; border-radius: 12px; background: rgba(16, 185, 129, 0.25); border: 1px solid #10b981; color: #86efac; font-weight: bold;">
+                                                <i class="fa-solid fa-coins"></i> {{ $offerRate }}
+                                            </span>
+                                        @endif
                                     </div>
                                     <p style="font-size: 12.5px; opacity: 0.85; margin: 4px 0 6px 0;">{{ $offer->description }}</p>
                                     <div style="font-size: 11px; opacity: 0.75; display: flex; gap: 14px;">

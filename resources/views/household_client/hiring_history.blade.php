@@ -302,19 +302,28 @@
                                     </div>
                                 </div>
 
-                                <!-- Confirmation Actions: Accept / Decline -->
-                                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                                    <form method="POST" action="{{ route('household_client.application.respond', $app->request_id) }}" style="display: inline;">
+                                <!-- Confirmation Actions: Message (Discuss Price) / Accept with Agreed Price / Decline -->
+                                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                                    <button type="button" class="btn" onclick="openChatModal('{{ $app->applicant_username }}', '{{ addslashes($app->applicant_worker ? $app->applicant_worker->full_name : $app->applicant_username) }}', '{{ addslashes($app->category) }}', '{{ $app->applicant_worker ? $app->applicant_worker->contact_number : '' }}')" style="background: #0284c7; color: white; border: 1px solid #38bdf8; font-weight: bold; font-size: 12.5px; padding: 8px 12px;" title="Message worker to discuss and agree on service price">
+                                        <i class="fa-solid fa-comments"></i> Message (Discuss Price)
+                                    </button>
+
+                                    <form method="POST" action="{{ route('household_client.application.respond', $app->request_id) }}" style="display: inline-flex; align-items: center; gap: 6px;">
                                         @csrf
                                         <input type="hidden" name="action" value="accept">
-                                        <button type="submit" class="btn" style="background: #16a34a; color: white; border: 1px solid #22c55e; font-weight: bold;">
+                                        <div style="display: inline-flex; align-items: center; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; padding: 2px 8px;">
+                                            <span style="font-size: 11px; color: #86efac; font-weight: bold; margin-right: 4px;">Agreed Price:</span>
+                                            <input type="text" name="agreed_budget" placeholder="{{ $app->applicant_worker && !empty($app->applicant_worker->service_rate) ? $app->applicant_worker->service_rate_display : '₱500.00' }}" value="{{ $app->applicant_worker && !empty($app->applicant_worker->service_rate) ? $app->applicant_worker->service_rate_display : '' }}" style="width: 85px; padding: 4px 6px; font-size: 12px; border-radius: 4px; border: 1px solid #22c55e; background: rgba(255,255,255,0.15); color: white; font-weight: bold;" title="Ilagay ang presyong napag-usapan sa In-App Message">
+                                        </div>
+                                        <button type="submit" class="btn" style="background: #16a34a; color: white; border: 1px solid #22c55e; font-weight: bold; font-size: 12.5px; padding: 8px 12px;">
                                             <i class="fa-solid fa-check"></i> Accept Application
                                         </button>
                                     </form>
+
                                     <form method="POST" action="{{ route('household_client.application.respond', $app->request_id) }}" style="display: inline;">
                                         @csrf
                                         <input type="hidden" name="action" value="decline">
-                                        <button type="submit" class="btn" style="background: #dc2626; color: white; border: 1px solid #ef4444; font-weight: bold;" onclick="return confirm('Sigurado ka bang tatanggihan mo ang aplikasyon ni {{ $app->applicant_username }}?')">
+                                        <button type="submit" class="btn" style="background: #dc2626; color: white; border: 1px solid #ef4444; font-weight: bold; font-size: 12.5px; padding: 8px 12px;" onclick="return confirm('Sigurado ka bang tatanggihan mo ang aplikasyon ni {{ $app->applicant_username }}?')">
                                             <i class="fa-solid fa-xmark"></i> Decline
                                         </button>
                                     </form>

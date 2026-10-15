@@ -23,6 +23,17 @@ class CitizenApiController extends Controller
         }
 
         $workers = $query->get()->map(function ($u) {
+            $serviceRate = $u->service_rate_display;
+            $activeOffer = DB::table('job_posts')
+                ->where('posted_by', $u->name)
+                ->where('status', 'Open')
+                ->where('description', 'like', '%(Service Rate:%')
+                ->latest()
+                ->first();
+            if ($activeOffer && !empty($activeOffer->description) && preg_match('/\(Service Rate:\s*([^)]+)\)/i', $activeOffer->description, $matches)) {
+                $serviceRate = trim($matches[1]);
+            }
+
             return [
                 'username' => $u->name,
                 'firstName' => $u->first_name ?? '',
@@ -34,6 +45,8 @@ class CitizenApiController extends Controller
                 'phoneNumber' => $u->contact_number ?? '',
                 'cellphone' => $u->contact_number ?? '',
                 'skills' => $u->skills ?? 'General Handyman',
+                'serviceRate' => $serviceRate,
+                'service_rate' => $serviceRate,
                 'certificateProof' => $u->certificate_proof,
                 'isVerified' => (bool) $u->is_verified,
                 'rating' => (float) ($u->rating ?? 5.0),
@@ -84,6 +97,8 @@ class CitizenApiController extends Controller
                 'phoneNumber' => $u->contact_number ?? '',
                 'cellphone' => $u->contact_number ?? '',
                 'skills' => $u->skills ?? '',
+                'serviceRate' => $u->service_rate_display,
+                'service_rate' => $u->service_rate_display,
                 'certificateProof' => $u->certificate_proof,
                 'isVerified' => (bool) $u->is_verified,
                 'rating' => (float) ($u->rating ?? 5.0),

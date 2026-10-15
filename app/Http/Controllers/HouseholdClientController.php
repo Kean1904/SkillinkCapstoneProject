@@ -52,6 +52,21 @@ class HouseholdClientController extends Controller
         $rankedResults = \App\Services\JobMatchingAlgorithm::rankWorkers($workersList, $user->barangay ?? 'San Nicolas 1st', $search ?? '');
         $workersList = collect(array_column($rankedResults, 'worker'));
 
+        // Reflect service rate from worker's active published service offer in My Services
+        foreach ($workersList as $w) {
+            $latestOffer = JobPost::where(function ($q) use ($w) {
+                    $q->where('client_id', $w->user_id)
+                      ->orWhere('posted_by', $w->name);
+                })
+                ->whereNotIn('status', ['Completed', 'Cancelled', 'Matched', 'Accepted', 'In Progress', 'IN_PROGRESS'])
+                ->latest('created_at')
+                ->first();
+
+            if ($latestOffer && preg_match('/\(Service Rate:\s*([^\)]+)\)/i', $latestOffer->description, $m)) {
+                $w->service_rate = trim($m[1]);
+            }
+        }
+
         $savedWorkerIds = DB::table('saved_workers')
             ->where('user_id', $user->user_id)
             ->pluck('worker_id')
@@ -505,22 +520,6 @@ class HouseholdClientController extends Controller
             }
         }
 
-        // 🌟 RULE 2: FIXED ESTIMATED COST
-        $fixedBudget = '₱500.00';
-        if ($worker && !empty($worker->service_rate)) {
-            $fixedBudget = $worker->service_rate_display;
-        } elseif ($worker && !empty($worker->skills)) {
-            $lowerCat = strtolower($validated['serviceCategory']);
-            if (str_contains($lowerCat, 'plumb')) $fixedBudget = '₱450.00';
-            elseif (str_contains($lowerCat, 'electr')) $fixedBudget = '₱600.00';
-            elseif (str_contains($lowerCat, 'carpen')) $fixedBudget = '₱550.00';
-            elseif (str_contains($lowerCat, 'paint')) $fixedBudget = '₱400.00';
-            elseif (str_contains($lowerCat, 'aircon') || str_contains($lowerCat, 'refrig')) $fixedBudget = '₱750.00';
-            elseif (str_contains($lowerCat, 'weld')) $fixedBudget = '₱500.00';
-            elseif (str_contains($lowerCat, 'mason')) $fixedBudget = '₱500.00';
-            elseif (str_contains($lowerCat, 'appliance')) $fixedBudget = '₱400.00';
-        }
-
         $user = $this->getCurrentUser();
         $refNumber = 'SRV-' . strtoupper(substr(uniqid(), -6));
 
@@ -565,6 +564,32 @@ class HouseholdClientController extends Controller
         if ($matchedWorkerOffer) {
             $matchedWorkerOffer->status = 'Matched';
             $matchedWorkerOffer->save();
+        }
+
+        // 🌟 RULE 2: ESTIMATED BUDGET FROM WORKER'S SERVICE OFFER OR SUBMITTED BUDGET
+        $fixedBudget = trim($request->input('estimatedBudget', ''));
+        if (empty($fixedBudget)) {
+            if ($matchedWorkerOffer && preg_match('/\(Service Rate:\s*([^\)]+)\)/i', $matchedWorkerOffer->description, $m)) {
+                $fixedBudget = trim($m[1]);
+            } elseif ($worker && !empty($worker->service_rate)) {
+                $fixedBudget = $worker->service_rate_display;
+            } elseif ($worker && !empty($worker->skills)) {
+                $lowerCat = strtolower($validated['serviceCategory']);
+                if (str_contains($lowerCat, 'plumb')) $fixedBudget = '₱450.00';
+                elseif (str_contains($lowerCat, 'electr')) $fixedBudget = '₱600.00';
+                elseif (str_contains($lowerCat, 'carpen')) $fixedBudget = '₱550.00';
+                elseif (str_contains($lowerCat, 'paint')) $fixedBudget = '₱400.00';
+                elseif (str_contains($lowerCat, 'aircon') || str_contains($lowerCat, 'refrig')) $fixedBudget = '₱750.00';
+                elseif (str_contains($lowerCat, 'weld')) $fixedBudget = '₱500.00';
+                elseif (str_contains($lowerCat, 'mason')) $fixedBudget = '₱500.00';
+                elseif (str_contains($lowerCat, 'appliance')) $fixedBudget = '₱400.00';
+                else $fixedBudget = '₱500.00';
+            } else {
+                $fixedBudget = '₱500.00';
+            }
+        }
+        if (!str_starts_with($fixedBudget, '₱')) {
+            $fixedBudget = '₱' . $fixedBudget;
         }
 
         $booking = Booking::create([
@@ -776,6 +801,19 @@ class HouseholdClientController extends Controller
                 }
             }
 
+            $agreedBudget = trim($request->input('agreed_budget', ''));
+            if (empty($agreedBudget)) {
+                if ($worker && !empty($worker->service_rate)) {
+                    $agreedBudget = $worker->service_rate_display;
+                } else {
+                    $agreedBudget = '₱500.00';
+                }
+            } else {
+                if (!str_starts_with($agreedBudget, '₱')) {
+                    $agreedBudget = '₱' . $agreedBudget;
+                }
+            }
+
             // Create or sync into service_bookings so it appears in both client's and worker's tracking!
             $refNumber = 'SRV-' . strtoupper(substr(uniqid(), -6));
             $booking = Booking::create([
@@ -790,7 +828,7 @@ class HouseholdClientController extends Controller
                 'task_description' => $job->title . ': ' . $job->description,
                 'service_address' => $job->location_tag ?? ('Brgy. ' . $job->barangay),
                 'barangay' => $job->barangay,
-                'estimated_budget' => '₱500.00',
+                'estimated_budget' => $agreedBudget,
                 'scheduled_date' => $job->preferred_schedule ?: now()->toDateString(),
                 'status' => 'ACCEPTED',
             ]);

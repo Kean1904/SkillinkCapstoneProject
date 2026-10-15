@@ -337,7 +337,16 @@ class SkilledWorkerWebController extends Controller
 
         $worker = $this->getCurrentWorker();
 
-        $rateInfo = !empty($validated['estimated_rate']) ? " (Service Rate: " . $validated['estimated_rate'] . ")" : "";
+        $rateValue = trim($validated['estimated_rate'] ?? '');
+        if (!empty($rateValue)) {
+            if (!str_starts_with($rateValue, '₱')) {
+                $rateValue = '₱' . $rateValue;
+            }
+            $worker->service_rate = $rateValue;
+            $worker->save();
+        }
+
+        $rateInfo = !empty($rateValue) ? " (Service Rate: " . $rateValue . ")" : "";
 
         JobPost::create([
             'title' => $validated['title'],
@@ -369,6 +378,13 @@ class SkilledWorkerWebController extends Controller
         $worker = $this->getCurrentWorker();
         $worker->skills = $request->input('skills', $worker->skills);
         $worker->certificate_proof = $request->input('certificate_proof', $worker->certificate_proof);
+        if ($request->filled('service_rate')) {
+            $rate = trim($request->input('service_rate'));
+            if (!str_starts_with($rate, '₱')) {
+                $rate = '₱' . $rate;
+            }
+            $worker->service_rate = $rate;
+        }
         $worker->save();
 
         \App\Models\AuditLog::log(
