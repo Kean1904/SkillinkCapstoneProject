@@ -327,6 +327,125 @@ class AdminDashboardController extends Controller
         return back()->with('success', "Matagumpay na nai-post ang trabaho sa labas ng Magalang: '{$job->title}' sa {$request->city_province}! Makikita na ito ng mga Skilled Workers.");
     }
 
+    public static function mapTradeToTesdaQualification($rawSkill)
+    {
+        $skill = strtolower(trim($rawSkill ?: 'General Handyman'));
+        
+        if (str_contains($skill, 'electr') || str_contains($skill, 'kuryente') || str_contains($skill, 'wir')) {
+            return [
+                'qualification' => 'Electrical Installation & Maintenance NC II',
+                'code'          => 'EET-EIM-NC2',
+                'sector'        => 'Electrical & Electronics',
+                'delivery'      => 'Mobile Training Program (MTP) / On-Site Assessment',
+            ];
+        }
+        if (str_contains($skill, 'plumb') || str_contains($skill, 'tubo') || str_contains($skill, 'poso')) {
+            return [
+                'qualification' => 'Plumbing NC II',
+                'code'          => 'CON-PLB-NC2',
+                'sector'        => 'Construction',
+                'delivery'      => 'Community-Based Training Program (CBTP)',
+            ];
+        }
+        if (str_contains($skill, 'carp') || str_contains($skill, 'karpint') || str_contains($skill, 'wood')) {
+            return [
+                'qualification' => 'Carpentry NC II',
+                'code'          => 'CON-CRP-NC2',
+                'sector'        => 'Construction',
+                'delivery'      => 'Community-Based Training Program (CBTP)',
+            ];
+        }
+        if (str_contains($skill, 'weld') || str_contains($skill, 'hinang') || str_contains($skill, 'smaw')) {
+            return [
+                'qualification' => 'Shielded Metal Arc Welding (SMAW) NC II',
+                'code'          => 'MET-SMA-NC2',
+                'sector'        => 'Metals & Engineering',
+                'delivery'      => 'On-Site Assessment / Assessment Center',
+            ];
+        }
+        if (str_contains($skill, 'aircon') || str_contains($skill, 'rac') || str_contains($skill, 'refrig') || str_contains($skill, 'hvac')) {
+            return [
+                'qualification' => 'RAC Servicing (DOMRAC) NC II',
+                'code'          => 'EET-RAC-NC2',
+                'sector'        => 'Electrical & Electronics',
+                'delivery'      => 'Mobile Training Program (MTP)',
+            ];
+        }
+        if (str_contains($skill, 'appliance') || str_contains($skill, 'electronics') || str_contains($skill, 'tv repair')) {
+            return [
+                'qualification' => 'Consumer Electronics Servicing NC II',
+                'code'          => 'ELC-CES-NC2',
+                'sector'        => 'Electrical & Electronics',
+                'delivery'      => 'Community-Based Training Program (CBTP)',
+            ];
+        }
+        if (str_contains($skill, 'mason') || str_contains($skill, 'semento') || str_contains($skill, 'palitada')) {
+            return [
+                'qualification' => 'Masonry NC II',
+                'code'          => 'CON-MSN-NC2',
+                'sector'        => 'Construction',
+                'delivery'      => 'Community-Based Training Program (CBTP)',
+            ];
+        }
+        if (str_contains($skill, 'paint') || str_contains($skill, 'pintor')) {
+            return [
+                'qualification' => 'Construction Painting NC II',
+                'code'          => 'CON-CPT-NC2',
+                'sector'        => 'Construction',
+                'delivery'      => 'Community-Based Training Program (CBTP)',
+            ];
+        }
+        if (str_contains($skill, 'tile') || str_contains($skill, 'baldosa')) {
+            return [
+                'qualification' => 'Tile Setting NC II',
+                'code'          => 'CON-TLS-NC2',
+                'sector'        => 'Construction',
+                'delivery'      => 'Community-Based Training Program (CBTP)',
+            ];
+        }
+        if (str_contains($skill, 'auto') || str_contains($skill, 'mechanic') || str_contains($skill, 'motor')) {
+            return [
+                'qualification' => 'Automotive Servicing NC II',
+                'code'          => 'ALT-ASV-NC2',
+                'sector'        => 'Automotive & Land Transportation',
+                'delivery'      => 'Assessment Center / MTP',
+            ];
+        }
+        if (str_contains($skill, 'computer') || str_contains($skill, 'it') || str_contains($skill, 'css') || str_contains($skill, 'network')) {
+            return [
+                'qualification' => 'Computer Systems Servicing NC II',
+                'code'          => 'ICT-CSS-NC2',
+                'sector'        => 'Information & Communications Tech',
+                'delivery'      => 'Community-Based Training Program (CBTP)',
+            ];
+        }
+        if (str_contains($skill, 'housekeep') || str_contains($skill, 'clean')) {
+            return [
+                'qualification' => 'Housekeeping NC II',
+                'code'          => 'TRS-HSK-NC2',
+                'sector'        => 'Tourism & Hospitality',
+                'delivery'      => 'Community-Based Training Program (CBTP)',
+            ];
+        }
+        if (str_contains($skill, 'cook') || str_contains($skill, 'chef') || str_contains($skill, 'kusin')) {
+            return [
+                'qualification' => 'Cookery NC II',
+                'code'          => 'TRS-COK-NC2',
+                'sector'        => 'Tourism & Hospitality',
+                'delivery'      => 'Community-Based Training Program (CBTP)',
+            ];
+        }
+        
+        $cleanName = ucwords(trim($rawSkill ?: 'General Handyman'));
+        $slug = strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $cleanName), 0, 4));
+        return [
+            'qualification' => $cleanName . ' NC II',
+            'code'          => 'TESDA-' . ($slug ?: 'GEN') . '-NC2',
+            'sector'        => 'General Building & Community Services',
+            'delivery'      => 'Community-Based Training Program (CBTP)',
+        ];
+    }
+
     public function getTesdaReportData()
     {
         $allWorkers = User::where('role', 'skilled worker')->get();
@@ -357,6 +476,50 @@ class AdminDashboardController extends Controller
         }
         arsort($tradesNeedingTraining);
         $prioritySkillsCount = count($tradesNeedingTraining);
+
+        // Map trades to formal TESDA NC Qualifications with exact worker counts and course codes
+        $qualificationsMap = [];
+        $totalTradeInstances = 0;
+        foreach ($tradesNeedingTraining as $rawTrade => $count) {
+            $meta = self::mapTradeToTesdaQualification($rawTrade);
+            $qTitle = $meta['qualification'];
+            if (!isset($qualificationsMap[$qTitle])) {
+                $qualificationsMap[$qTitle] = [
+                    'qualification_title' => $qTitle,
+                    'course_code'         => $meta['code'],
+                    'sector'              => $meta['sector'],
+                    'delivery_mode'       => $meta['delivery'],
+                    'raw_trades'          => [$rawTrade],
+                    'worker_count'        => $count,
+                ];
+            } else {
+                $qualificationsMap[$qTitle]['worker_count'] += $count;
+                if (!in_array($rawTrade, $qualificationsMap[$qTitle]['raw_trades'])) {
+                    $qualificationsMap[$qTitle]['raw_trades'][] = $rawTrade;
+                }
+            }
+            $totalTradeInstances += $count;
+        }
+
+        uasort($qualificationsMap, fn($a, $b) => $b['worker_count'] <=> $a['worker_count']);
+
+        $qualificationsNeeded = [];
+        $itemNum = 1;
+        foreach ($qualificationsMap as $q) {
+            $share = $totalTradeInstances > 0 ? round(($q['worker_count'] / $totalTradeInstances) * 100, 1) : 0;
+            $priority = $q['worker_count'] >= 5 ? 'URGENT' : ($q['worker_count'] >= 2 ? 'HIGH' : 'STANDARD');
+            $qualificationsNeeded[] = [
+                'item_no'             => $itemNum++,
+                'qualification_title' => $q['qualification_title'],
+                'course_code'         => $q['course_code'],
+                'sector'              => $q['sector'],
+                'delivery_mode'       => $q['delivery_mode'],
+                'worker_count'        => $q['worker_count'],
+                'share_percentage'    => $share,
+                'priority_level'      => $priority,
+                'raw_trades'          => implode(', ', $q['raw_trades']),
+            ];
+        }
 
         // Barangay breakdown for uncertified workers
         $uncertifiedByBarangay = [];
@@ -390,7 +553,8 @@ class AdminDashboardController extends Controller
             'certificationRate',
             'tradesNeedingTraining',
             'prioritySkillsCount',
-            'uncertifiedByBarangay'
+            'uncertifiedByBarangay',
+            'qualificationsNeeded'
         );
     }
 
@@ -418,6 +582,7 @@ class AdminDashboardController extends Controller
             'prioritySkillsCount'   => $data['prioritySkillsCount'],
             'tradesNeedingTraining' => $data['tradesNeedingTraining'],
             'uncertifiedByBarangay' => $data['uncertifiedByBarangay'],
+            'qualificationsNeeded'  => $data['qualificationsNeeded'],
             'uncertifiedWorkers'    => $data['uncertifiedWorkers']->map(function($w) {
                 return [
                     'user_id'           => $w->user_id,
